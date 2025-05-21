@@ -205,7 +205,7 @@ const RestaurantForm = ({ restaurant, onComplete }: RestaurantFormProps) => {
                           className="rounded-r-none"
                         />
                         <div className="bg-neutral-100 px-4 py-2 border border-l-0 border-neutral-200 rounded-r-lg text-neutral-300 flex items-center">
-                          .menumaster.com
+                          .menuisland.it
                         </div>
                       </div>
                     </FormControl>
