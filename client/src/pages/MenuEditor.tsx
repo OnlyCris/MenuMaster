@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useParams, Navigate } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import Sidebar from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
-import MenuEditor as MenuEditorComponent from "@/components/menu/MenuEditor";
+import { default as MenuEditorComponent } from "@/components/menu/MenuEditor";
 import MenuPreview from "@/components/menu/MenuPreview";
 import { Restaurant } from "@shared/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,9 +26,12 @@ const MenuEditor = () => {
     enabled: !!restaurantId && isAuthenticated,
   });
 
+  const [, setLocation] = useLocation();
+  
   // If not authenticated and not loading, redirect to login
   if (!isAuthLoading && !isAuthenticated) {
-    return <Navigate to="/api/login" />;
+    setLocation("/api/login");
+    return null;
   }
 
   if (isAuthLoading || isRestaurantLoading) {
