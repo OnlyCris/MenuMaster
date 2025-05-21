@@ -156,7 +156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/restaurants", isAuthenticated, adminOnly, async (req: any, res) => {
+  app.post("/api/restaurants", isAuthenticated, async (req: any, res) => {
     try {
       const validatedData = insertRestaurantSchema.parse(req.body);
       const restaurant = await storage.createRestaurant(validatedData);
