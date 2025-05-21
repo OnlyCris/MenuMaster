@@ -243,8 +243,8 @@ const RestaurantForm = ({ restaurant, onComplete }: RestaurantFormProps) => {
                       Template del menu
                     </FormLabel>
                     <Select 
-                      value={field.value} 
-                      onValueChange={field.onChange}
+                      value={field.value?.toString()} 
+                      onValueChange={(value) => field.onChange(Number(value))}
                     >
                       <FormControl>
                         <SelectTrigger>
