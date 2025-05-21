@@ -2,6 +2,7 @@ import express, { type Express, type Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { insertTemplateSchema } from "../shared/schema";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { 
@@ -46,15 +47,68 @@ async function isAdmin(req: Request): Promise<boolean> {
 
 // Helper middleware for admin-only routes
 const adminOnly = async (req: any, res: any, next: any) => {
-  if (await isAdmin(req)) {
-    return next();
+  const isUserAdmin = await isAdmin(req);
+  if (!isUserAdmin) {
+    return res.status(403).json({ message: "Forbidden: Admin access required" });
   }
-  return res.status(403).json({ message: "Admin access required" });
+  next();
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+  
+  // Subdomain handling for restaurant menus
+  app.get("/", async (req, res, next) => {
+    const host = req.hostname;
+    
+    // Check if this is a restaurant subdomain
+    if (host.includes(".menuisland.it") && !host.startsWith("www.")) {
+      const subdomain = host.split(".")[0];
+      try {
+        const restaurant = await storage.getRestaurantBySubdomain(subdomain);
+        
+        if (restaurant) {
+          // Increment analytics for restaurant visit
+          await storage.incrementVisits(restaurant.id);
+          
+          // Fetch restaurant menu data
+          const categories = await storage.getCategories(restaurant.id);
+          const template = restaurant.templateId ? 
+            await storage.getTemplate(restaurant.templateId) : 
+            null;
+            
+          // Prepare menu data with items and allergens
+          const menuData = {
+            restaurant,
+            template,
+            categories: await Promise.all(
+              categories.map(async (category) => {
+                const items = await storage.getMenuItems(category.id);
+                return {
+                  ...category,
+                  items: await Promise.all(
+                    items.map(async (item) => {
+                      const allergens = await storage.getMenuItemAllergens(item.id);
+                      return { ...item, allergens };
+                    })
+                  )
+                };
+              })
+            )
+          };
+          
+          // Serve the restaurant menu view
+          return res.json(menuData);
+        }
+      } catch (error) {
+        console.error("Error fetching restaurant data:", error);
+      }
+    }
+    
+    // If not a restaurant subdomain or restaurant not found, continue to next route
+    next();
+  });
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
