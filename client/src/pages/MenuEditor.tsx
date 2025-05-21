@@ -14,7 +14,8 @@ import { Button } from "@/components/ui/button";
 
 const MenuEditor = () => {
   const { id } = useParams();
-  const restaurantId = parseInt(id);
+  // Handle params safely
+  const restaurantId = id ? parseInt(id) : 0;
 
   const { isLoading: isAuthLoading, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState("editor");

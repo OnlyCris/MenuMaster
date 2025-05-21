@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "wouter";
+import { useLocation } from "wouter";
 import Sidebar from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
 import AllergenManager from "@/components/allergens/AllergenManager";
@@ -9,9 +9,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 const Allergens = () => {
   const { isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
+  const [, setLocation] = useLocation();
+  
   // If not authenticated and not loading, redirect to login
   if (!isAuthLoading && !isAuthenticated) {
-    return <Navigate to="/api/login" />;
+    setLocation("/api/login");
+    return null;
   }
 
   if (isAuthLoading) {

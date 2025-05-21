@@ -163,9 +163,12 @@ const Templates = () => {
     setIsPreviewModalOpen(true);
   };
 
+  const [, setLocation] = useLocation();
+  
   // If not authenticated and not loading, redirect to login
   if (!isAuthLoading && !isAuthenticated) {
-    return <Navigate to="/api/login" />;
+    setLocation("/api/login");
+    return null;
   }
 
   if (isAuthLoading) {
