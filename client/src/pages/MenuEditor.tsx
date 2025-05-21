@@ -43,7 +43,8 @@ const MenuEditor = () => {
   }
   
   if (!restaurant && !isRestaurantLoading) {
-    return <Navigate to="/restaurants" />;
+    setLocation("/restaurants");
+    return null;
   }
 
   return (

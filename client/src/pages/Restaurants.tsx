@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "wouter";
+import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Restaurant } from "@shared/schema";
 import Sidebar from "@/components/layout/Sidebar";
@@ -45,9 +45,12 @@ const Restaurants = () => {
     setIsQRModalOpen(true);
   };
 
+  const [, setLocation] = useLocation();
+  
   // If not authenticated and not loading, redirect to login
   if (!isAuthLoading && !isAuthenticated) {
-    return <Navigate to="/api/login" />;
+    setLocation("/api/login");
+    return null;
   }
 
   if (isAuthLoading) {
