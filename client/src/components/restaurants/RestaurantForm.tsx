@@ -252,12 +252,15 @@ const RestaurantForm = ({ restaurant, onComplete }: RestaurantFormProps) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Seleziona un template</SelectItem>
-                        {templates.map((template) => (
-                          <SelectItem key={template.id} value={template.id.toString()}>
-                            {template.name}
-                          </SelectItem>
-                        ))}
+                        {templates.length > 0 ? (
+                          templates.map((template) => (
+                            <SelectItem key={template.id} value={template.id.toString()}>
+                              {template.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-templates">Nessun template disponibile</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -283,7 +286,6 @@ const RestaurantForm = ({ restaurant, onComplete }: RestaurantFormProps) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Seleziona categoria</SelectItem>
                         <SelectItem value="italian">Italiano</SelectItem>
                         <SelectItem value="japanese">Giapponese</SelectItem>
                         <SelectItem value="pizza">Pizzeria</SelectItem>
