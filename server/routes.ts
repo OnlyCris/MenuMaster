@@ -183,6 +183,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch template" });
     }
   });
+  
+  app.post("/api/templates", isAuthenticated, adminOnly, async (req: any, res) => {
+    try {
+      const validatedData = insertTemplateSchema.parse(req.body);
+      const template = await storage.createTemplate(validatedData);
+      res.status(201).json(template);
+    } catch (error) {
+      console.error("Error creating template:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create template" });
+    }
+  });
+  
+  app.put("/api/templates/:id", isAuthenticated, adminOnly, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const template = await storage.getTemplate(id);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      const validatedData = insertTemplateSchema.partial().parse(req.body);
+      const updatedTemplate = await storage.updateTemplate(id, validatedData);
+      res.json(updatedTemplate);
+    } catch (error) {
+      console.error("Error updating template:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update template" });
+    }
+  });
+  
+  app.delete("/api/templates/:id", isAuthenticated, adminOnly, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteTemplate(id);
+      if (success) {
+        res.status(204).end();
+      } else {
+        res.status(404).json({ message: "Template not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting template:", error);
+      res.status(500).json({ message: "Failed to delete template" });
+    }
+  });
 
   // Categories routes
   app.get("/api/restaurants/:id/categories", async (req, res) => {
