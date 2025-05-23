@@ -5,7 +5,7 @@ import { Restaurant } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, QrCode, BarChart2, Trash2 } from "lucide-react";
+import { Edit, QrCode, BarChart2, Trash2, Menu } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -196,6 +196,16 @@ const RestaurantList = ({ onEdit, onGenerateQR }: RestaurantListProps) => {
                     {formatDate(restaurant.updatedAt)}
                   </TableCell>
                   <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-neutral-300 text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-primary hover:text-accent"
+                      asChild
+                    >
+                      <Link href={`/restaurants/${restaurant.id}/menu`}>
+                        <Menu size={16} />
+                      </Link>
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
