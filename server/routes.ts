@@ -159,7 +159,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/restaurants", isAuthenticated, async (req: any, res) => {
     try {
       const validatedData = insertRestaurantSchema.parse(req.body);
-      const restaurant = await storage.createRestaurant(validatedData);
+      
+      // Associate the restaurant with the current user
+      const userId = req.user.claims.sub;
+      const restaurantData = {
+        ...validatedData,
+        ownerId: userId
+      };
+      
+      const restaurant = await storage.createRestaurant(restaurantData);
       res.status(201).json(restaurant);
     } catch (error) {
       console.error("Error creating restaurant:", error);
