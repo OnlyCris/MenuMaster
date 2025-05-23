@@ -246,7 +246,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/templates", isAuthenticated, adminOnly, async (req: any, res) => {
+  app.post("/api/templates", isAuthenticated, async (req: any, res) => {
     try {
       const validatedData = insertTemplateSchema.parse(req.body);
       const template = await storage.createTemplate(validatedData);
@@ -260,7 +260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/templates/:id", isAuthenticated, adminOnly, async (req, res) => {
+  app.put("/api/templates/:id", isAuthenticated, async (req, res) => {
     try {
       const id = Number(req.params.id);
       const template = await storage.getTemplate(id);
@@ -621,7 +621,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/allergens", isAuthenticated, adminOnly, async (req, res) => {
+  app.post("/api/allergens", isAuthenticated, async (req, res) => {
     try {
       const validatedData = insertAllergenSchema.parse(req.body);
       const allergen = await storage.createAllergen(validatedData);
@@ -635,7 +635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/allergens/:id", isAuthenticated, adminOnly, async (req, res) => {
+  app.put("/api/allergens/:id", isAuthenticated, async (req, res) => {
     try {
       const id = Number(req.params.id);
       const validatedData = insertAllergenSchema.partial().parse(req.body);
@@ -655,7 +655,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/allergens/:id", isAuthenticated, adminOnly, async (req, res) => {
+  app.delete("/api/allergens/:id", isAuthenticated, async (req, res) => {
     try {
       const id = Number(req.params.id);
       const success = await storage.deleteAllergen(id);
