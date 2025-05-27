@@ -15,7 +15,7 @@ export default function ClientRegistration() {
   const inviteCode = params.get('code');
 
   const { data: invitation, isLoading } = useQuery({
-    queryKey: ['/api/client-invitations/verify', inviteCode],
+    queryKey: [`/api/client-invitations/verify/${inviteCode}`],
     enabled: !!inviteCode,
   });
 

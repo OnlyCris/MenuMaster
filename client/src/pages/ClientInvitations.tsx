@@ -93,7 +93,7 @@ export default function ClientInvitations() {
   };
 
   const copyInviteLink = (inviteCode: string) => {
-    const inviteUrl = `${window.location.origin}/register?code=${inviteCode}`;
+    const inviteUrl = `${window.location.origin}/invite?code=${inviteCode}`;
     navigator.clipboard.writeText(inviteUrl);
     toast({
       title: "Link copiato!",

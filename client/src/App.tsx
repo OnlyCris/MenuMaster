@@ -32,18 +32,18 @@ function Router() {
     return <RestaurantMenu />;
   }
 
-  // Otherwise show the admin dashboard
+  // Public routes (no authentication required)
   return (
     <Switch>
+      <Route path="/invite" component={ClientRegistration} />
+      <Route path="/view/:subdomain" component={RestaurantView} />
       <Route path="/" component={Dashboard} />
       <Route path="/restaurants" component={Restaurants} />
       <Route path="/restaurants/:id/menu" component={MenuEditor} />
       <Route path="/templates" component={Templates} />
       <Route path="/allergens" component={Allergens} />
       <Route path="/clients" component={ClientInvitations} />
-      <Route path="/invite" component={ClientRegistration} />
       <Route path="/settings" component={Settings} />
-      <Route path="/view/:subdomain" component={RestaurantView} />
       <Route component={NotFound} />
     </Switch>
   );
