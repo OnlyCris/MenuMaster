@@ -438,7 +438,10 @@ export class DatabaseStorage implements IStorage {
     const [newInvitation] = await db
       .insert(clientInvitations)
       .values({
-        ...invitation,
+        email: invitation.email,
+        restaurantName: invitation.restaurantName,
+        invitedBy: invitation.invitedBy,
+        expiresAt: invitation.expiresAt,
         inviteCode,
       })
       .returning();

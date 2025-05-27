@@ -13,6 +13,7 @@ import Templates from "@/pages/Templates";
 import Allergens from "@/pages/Allergens";
 import Settings from "@/pages/Settings";
 import ClientInvitations from "@/pages/ClientInvitations";
+import ClientRegistration from "@/pages/ClientRegistration";
 import NotFound from "@/pages/not-found";
 import RestaurantView from "@/pages/RestaurantView";
 import RestaurantMenu from "@/pages/RestaurantMenu";
@@ -40,6 +41,7 @@ function Router() {
       <Route path="/templates" component={Templates} />
       <Route path="/allergens" component={Allergens} />
       <Route path="/clients" component={ClientInvitations} />
+      <Route path="/invite" component={ClientRegistration} />
       <Route path="/settings" component={Settings} />
       <Route path="/view/:subdomain" component={RestaurantView} />
       <Route component={NotFound} />

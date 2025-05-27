@@ -931,6 +931,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Verify invitation by code
+  app.get("/api/client-invitations/verify/:code", async (req, res) => {
+    try {
+      const { code } = req.params;
+      const invitation = await storage.getClientInvitationByCode(code);
+      
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      res.json(invitation);
+    } catch (error) {
+      console.error("Error verifying invitation:", error);
+      res.status(500).json({ message: "Failed to verify invitation" });
+    }
+  });
+
+  // Accept invitation
+  app.post("/api/client-invitations/accept", async (req, res) => {
+    try {
+      const { inviteCode } = req.body;
+      
+      if (!inviteCode) {
+        return res.status(400).json({ message: "Invite code is required" });
+      }
+      
+      const invitation = await storage.getClientInvitationByCode(inviteCode);
+      
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      if (invitation.usedAt) {
+        return res.status(400).json({ message: "Invitation already used" });
+      }
+      
+      if (new Date(invitation.expiresAt) < new Date()) {
+        return res.status(400).json({ message: "Invitation expired" });
+      }
+      
+      // Mark invitation as used
+      await storage.updateClientInvitation(invitation.id, { usedAt: new Date() });
+      
+      res.json({ message: "Invitation accepted successfully" });
+    } catch (error) {
+      console.error("Error accepting invitation:", error);
+      res.status(500).json({ message: "Failed to accept invitation" });
+    }
+  });
+
   app.delete("/api/client-invitations/:id", isAuthenticated, async (req, res) => {
     try {
       const id = Number(req.params.id);
