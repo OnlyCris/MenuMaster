@@ -31,7 +31,7 @@ export default function ClientInvitations() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Fetch invitations
-  const { data: invitations = [], isLoading } = useQuery<ClientInvitation[]>({
+  const { data: invitations = [], isLoading, refetch } = useQuery<ClientInvitation[]>({
     queryKey: ["/api/client-invitations"],
   });
 
@@ -97,7 +97,7 @@ export default function ClientInvitations() {
     navigator.clipboard.writeText(inviteUrl);
     toast({
       title: "Link copiato!",
-      description: "Il link di invito è stato copiato negli appunti",
+      description: `Link copiato: ${inviteUrl}`,
     });
   };
 
@@ -211,9 +211,14 @@ export default function ClientInvitations() {
             <CardContent>
               {isLoading ? (
                 <div className="text-center py-8">Caricamento inviti...</div>
-              ) : invitations.length === 0 ? (
+              ) : !invitations || invitations.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   Nessun invito creato ancora. Inizia creando il primo invito per un cliente!
+                  <div className="mt-2 text-sm">
+                    <button onClick={() => refetch()} className="text-blue-600 hover:underline">
+                      Ricarica lista
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <Table>

@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  menumaster:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - REPLIT_DOMAINS=${REPLIT_DOMAINS}
+      - REPL_ID=${REPL_ID}
+      - ISSUER_URL=${ISSUER_URL}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=menumaster
+      - POSTGRES_USER=menumaster
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - menumaster
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
