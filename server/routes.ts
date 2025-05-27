@@ -902,14 +902,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/client-invitations", isAuthenticated, async (req: any, res) => {
     try {
-      const validatedData = insertClientInvitationSchema.parse(req.body);
+      // Extract and validate only the required fields
+      const { email, restaurantName } = req.body;
+      
+      if (!email || !restaurantName) {
+        return res.status(400).json({ message: "Email e nome ristorante sono obbligatori" });
+      }
       
       // Set expiry date (30 days from now)
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 30);
       
       const invitationData = {
-        ...validatedData,
+        email,
+        restaurantName,
         invitedBy: req.user.claims.sub,
         expiresAt,
       };
