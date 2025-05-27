@@ -33,8 +33,22 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   isAdmin: boolean("is_admin").default(false),
+  role: varchar("role").default("user"), // "admin", "user", "restaurant_owner"
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Client invitations table
+export const clientInvitations = pgTable("client_invitations", {
+  id: serial("id").primaryKey(),
+  email: varchar("email").notNull(),
+  restaurantName: varchar("restaurant_name").notNull(),
+  inviteCode: varchar("invite_code").notNull().unique(),
+  status: varchar("status").notNull().default("pending"), // "pending", "accepted", "expired"
+  invitedBy: varchar("invited_by").references(() => users.id),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  usedAt: timestamp("used_at"),
 });
 
 // Restaurant table
