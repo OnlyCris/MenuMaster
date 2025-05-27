@@ -889,6 +889,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Client invitation routes
+  app.get("/api/client-invitations", isAuthenticated, async (req, res) => {
+    try {
+      const invitations = await storage.getClientInvitations();
+      res.json(invitations);
+    } catch (error) {
+      console.error("Error fetching invitations:", error);
+      res.status(500).json({ message: "Failed to fetch invitations" });
+    }
+  });
+
+  app.post("/api/client-invitations", isAuthenticated, async (req: any, res) => {
+    try {
+      const validatedData = insertClientInvitationSchema.parse(req.body);
+      
+      // Set expiry date (30 days from now)
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+      
+      const invitationData = {
+        ...validatedData,
+        invitedBy: req.user.claims.sub,
+        expiresAt,
+      };
+      
+      const invitation = await storage.createClientInvitation(invitationData);
+      res.status(201).json(invitation);
+    } catch (error) {
+      console.error("Error creating invitation:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create invitation" });
+    }
+  });
+
+  app.delete("/api/client-invitations/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteClientInvitation(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting invitation:", error);
+      res.status(500).json({ message: "Failed to delete invitation" });
+    }
+  });
+
   // Create the server
   const httpServer = createServer(app);
   

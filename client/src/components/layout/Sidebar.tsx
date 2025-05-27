@@ -5,6 +5,7 @@ import {
   ClipboardList, 
   CircleAlert, 
   Settings,
+  Users,
   HelpCircle,
   LogOut
 } from "lucide-react";
@@ -70,6 +71,12 @@ const Sidebar = () => {
           icon={<CircleAlert size={20} />} 
           label="Allergeni" 
           active={location.startsWith("/allergens")} 
+        />
+        <SidebarLink 
+          href="/clients" 
+          icon={<Users size={20} />} 
+          label="Clienti" 
+          active={location.startsWith("/clients")} 
         />
         <SidebarLink 
           href="/settings" 
