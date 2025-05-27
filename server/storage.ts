@@ -8,6 +8,7 @@ import {
   menuItemAllergens,
   qrCodes,
   analytics,
+  clientInvitations,
   type User,
   type UpsertUser,
   type Restaurant,
@@ -23,6 +24,8 @@ import {
   type QrCode,
   type InsertQrCode,
   type Analytics,
+  type ClientInvitation,
+  type InsertClientInvitation,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, like, desc, sql, asc } from "drizzle-orm";
@@ -82,6 +85,14 @@ export interface IStorage {
   getAnalytics(restaurantId: number, days?: number): Promise<Analytics[]>;
   incrementVisits(restaurantId: number): Promise<void>;
   incrementQrScans(restaurantId: number): Promise<void>;
+  
+  // Client invitation operations
+  getClientInvitations(): Promise<ClientInvitation[]>;
+  getClientInvitation(id: number): Promise<ClientInvitation | undefined>;
+  getClientInvitationByCode(code: string): Promise<ClientInvitation | undefined>;
+  createClientInvitation(invitation: InsertClientInvitation): Promise<ClientInvitation>;
+  updateClientInvitation(id: number, invitation: Partial<InsertClientInvitation>): Promise<ClientInvitation | undefined>;
+  deleteClientInvitation(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -403,6 +414,49 @@ export class DatabaseStorage implements IStorage {
           date: today,
         });
     }
+  }
+
+  // Client invitation operations
+  async getClientInvitations(): Promise<ClientInvitation[]> {
+    return await db.select().from(clientInvitations).orderBy(desc(clientInvitations.createdAt));
+  }
+
+  async getClientInvitation(id: number): Promise<ClientInvitation | undefined> {
+    const [invitation] = await db.select().from(clientInvitations).where(eq(clientInvitations.id, id));
+    return invitation;
+  }
+
+  async getClientInvitationByCode(code: string): Promise<ClientInvitation | undefined> {
+    const [invitation] = await db.select().from(clientInvitations).where(eq(clientInvitations.inviteCode, code));
+    return invitation;
+  }
+
+  async createClientInvitation(invitation: InsertClientInvitation): Promise<ClientInvitation> {
+    // Generate unique invite code
+    const inviteCode = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    
+    const [newInvitation] = await db
+      .insert(clientInvitations)
+      .values({
+        ...invitation,
+        inviteCode,
+      })
+      .returning();
+    return newInvitation;
+  }
+
+  async updateClientInvitation(id: number, invitation: Partial<InsertClientInvitation>): Promise<ClientInvitation | undefined> {
+    const [updatedInvitation] = await db
+      .update(clientInvitations)
+      .set(invitation)
+      .where(eq(clientInvitations.id, id))
+      .returning();
+    return updatedInvitation;
+  }
+
+  async deleteClientInvitation(id: number): Promise<boolean> {
+    const result = await db.delete(clientInvitations).where(eq(clientInvitations.id, id));
+    return result.rowCount > 0;
   }
 }
 

@@ -10,7 +10,8 @@ import {
   insertCategorySchema, 
   insertMenuItemSchema, 
   insertAllergenSchema,
-  insertQrCodeSchema
+  insertQrCodeSchema,
+  insertClientInvitationSchema
 } from "@shared/schema";
 import multer from "multer";
 import path from "path";

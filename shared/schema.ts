@@ -228,9 +228,18 @@ export const insertQrCodeSchema = createInsertSchema(qrCodes).omit({
   createdAt: true,
 });
 
+export const insertClientInvitationSchema = createInsertSchema(clientInvitations).omit({
+  id: true,
+  createdAt: true,
+  usedAt: true,
+  inviteCode: true,
+});
+
 // Export types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export type ClientInvitation = typeof clientInvitations.$inferSelect;
+export type InsertClientInvitation = z.infer<typeof insertClientInvitationSchema>;
 export type Restaurant = typeof restaurants.$inferSelect;
 export type InsertRestaurant = z.infer<typeof insertRestaurantSchema>;
 export type Template = typeof templates.$inferSelect;
