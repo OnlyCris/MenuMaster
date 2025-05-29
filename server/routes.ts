@@ -2,6 +2,8 @@ import express, { type Express, type Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { sendInviteEmail, sendWelcomeEmail } from "./emailService";
+import { createSubdomain, deleteSubdomain, generateSubdomain, findAvailableSubdomain } from "./cloudflareService";
 import { insertTemplateSchema } from "../shared/schema";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
@@ -161,14 +163,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertRestaurantSchema.parse(req.body);
       
+      // Generate subdomain for the restaurant
+      const baseSubdomain = generateSubdomain(validatedData.name);
+      const availableSubdomain = await findAvailableSubdomain(baseSubdomain);
+      
       // Associate the restaurant with the current user
       const userId = req.user.claims.sub;
       const restaurantData = {
         ...validatedData,
+        subdomain: availableSubdomain,
         ownerId: userId
       };
       
       const restaurant = await storage.createRestaurant(restaurantData);
+      
+      // Create Cloudflare DNS record for the subdomain
+      const subdomainCreated = await createSubdomain(availableSubdomain);
+      if (!subdomainCreated) {
+        console.warn(`Failed to create subdomain for restaurant ${restaurant.id}, but restaurant was created`);
+      }
+      
       res.status(201).json(restaurant);
     } catch (error) {
       console.error("Error creating restaurant:", error);
@@ -921,7 +935,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       const invitation = await storage.createClientInvitation(invitationData);
-      res.status(201).json(invitation);
+      
+      // Generate invite link
+      const inviteLink = `${req.protocol}://${req.get('host')}/invite?code=${invitation.inviteCode}`;
+      
+      // Send invitation email automatically
+      const emailSent = await sendInviteEmail({
+        to: invitation.email,
+        restaurantName: invitation.restaurantName,
+        inviteLink: inviteLink
+      });
+      
+      if (!emailSent) {
+        console.warn(`Failed to send invitation email to ${invitation.email}, but invitation was created`);
+      }
+      
+      res.status(201).json({
+        ...invitation,
+        emailSent
+      });
     } catch (error) {
       console.error("Error creating invitation:", error);
       if (error instanceof z.ZodError) {
@@ -971,10 +1003,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invitation expired" });
       }
       
+      // Create restaurant for the client
+      const baseSubdomain = generateSubdomain(invitation.restaurantName);
+      const availableSubdomain = await findAvailableSubdomain(baseSubdomain);
+      
+      const restaurantData = {
+        name: invitation.restaurantName,
+        subdomain: availableSubdomain,
+        location: "Da configurare",
+        description: `Menu digitale per ${invitation.restaurantName}`,
+        ownerId: "client", // This will be updated when user registers
+      };
+      
+      const restaurant = await storage.createRestaurant(restaurantData);
+      
+      // Create Cloudflare DNS record for the subdomain
+      const subdomainCreated = await createSubdomain(availableSubdomain);
+      if (!subdomainCreated) {
+        console.warn(`Failed to create subdomain for restaurant ${restaurant.id}`);
+      }
+      
       // Mark invitation as used
       await storage.updateClientInvitation(invitation.id, { usedAt: new Date() });
       
-      res.json({ message: "Invitation accepted successfully" });
+      // Send welcome email with menu URL
+      const menuUrl = `https://${availableSubdomain}.menuisland.it`;
+      const welcomeEmailSent = await sendWelcomeEmail(
+        invitation.email,
+        invitation.restaurantName,
+        menuUrl
+      );
+      
+      if (!welcomeEmailSent) {
+        console.warn(`Failed to send welcome email to ${invitation.email}`);
+      }
+      
+      res.json({ 
+        message: "Invitation accepted successfully",
+        restaurant,
+        menuUrl,
+        emailSent: welcomeEmailSent
+      });
     } catch (error) {
       console.error("Error accepting invitation:", error);
       res.status(500).json({ message: "Failed to accept invitation" });
