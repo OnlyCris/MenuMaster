@@ -14,10 +14,18 @@ export default function ClientRegistration() {
   const params = new URLSearchParams(location.split('?')[1] || '');
   const inviteCode = params.get('code');
 
-  const { data: invitation, isLoading } = useQuery({
+  // Debug logging
+  console.log('Current location:', location);
+  console.log('URL params:', params.toString());
+  console.log('Extracted invite code:', inviteCode);
+
+  const { data: invitation, isLoading, error } = useQuery({
     queryKey: [`/api/client-invitations/verify/${inviteCode}`],
     enabled: !!inviteCode,
   });
+
+  // Debug logging for query result
+  console.log('Query result:', { invitation, isLoading, error });
 
   useEffect(() => {
     if (!isLoading && invitation) {
