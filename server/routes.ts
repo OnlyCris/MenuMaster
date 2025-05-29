@@ -1007,7 +1007,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invitation expired" });
       }
       
-      // Create restaurant for the authenticated user
+      // First, create or get the user
+      let user = await storage.getUser(userId);
+      if (!user) {
+        user = await storage.upsertUser({
+          id: userId,
+          email: userEmail,
+          firstName: null,
+          lastName: null,
+          profileImageUrl: null,
+        });
+      }
+
+      // Create restaurant for the user
       const baseSubdomain = generateSubdomain(invitation.restaurantName);
       const availableSubdomain = await findAvailableSubdomain(baseSubdomain);
       
@@ -1016,7 +1028,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subdomain: availableSubdomain,
         location: "Da configurare",
         description: `Menu digitale per ${invitation.restaurantName}`,
-        ownerId: userId,
+        ownerId: user.id,
       };
       
       const restaurant = await storage.createRestaurant(restaurantData);
