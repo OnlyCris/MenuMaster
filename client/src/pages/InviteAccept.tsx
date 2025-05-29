@@ -24,10 +24,7 @@ export default function InviteAccept() {
 
   const acceptMutation = useMutation({
     mutationFn: async (code: string) => {
-      return await apiRequest(`/api/client-invitations/accept`, {
-        method: 'POST',
-        body: JSON.stringify({ inviteCode: code }),
-      });
+      return await apiRequest('POST', `/api/client-invitations/accept`, { inviteCode: code });
     },
     onSuccess: () => {
       setStatus('success');
