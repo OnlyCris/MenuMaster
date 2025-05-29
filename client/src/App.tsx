@@ -15,6 +15,7 @@ import Allergens from "@/pages/Allergens";
 import Settings from "@/pages/Settings";
 import ClientInvitations from "@/pages/ClientInvitations";
 import ClientRegistration from "@/pages/ClientRegistration";
+import InviteAccept from "@/pages/InviteAccept";
 import NotFound from "@/pages/not-found";
 import RestaurantView from "@/pages/RestaurantView";
 import RestaurantMenu from "@/pages/RestaurantMenu";
@@ -36,13 +37,14 @@ function Router() {
   }
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/invite', '/view'];
+  const publicRoutes = ['/invite', '/accept-invite', '/view'];
   const isPublicRoute = publicRoutes.some(route => location.startsWith(route));
 
   if (isPublicRoute) {
     return (
       <Switch>
         <Route path="/invite" component={ClientRegistration} />
+        <Route path="/accept-invite" component={InviteAccept} />
         <Route path="/view/:subdomain" component={RestaurantView} />
         <Route component={NotFound} />
       </Switch>

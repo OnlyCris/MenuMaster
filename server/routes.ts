@@ -980,10 +980,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Accept invitation
-  app.post("/api/client-invitations/accept", async (req, res) => {
+  // Accept invitation (requires authentication)
+  app.post("/api/client-invitations/accept", isAuthenticated, async (req: any, res) => {
     try {
       const { inviteCode } = req.body;
+      const userId = req.user?.claims?.sub;
       
       if (!inviteCode) {
         return res.status(400).json({ message: "Invite code is required" });
@@ -1003,7 +1004,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invitation expired" });
       }
       
-      // Create restaurant for the client
+      // Create restaurant for the authenticated user
       const baseSubdomain = generateSubdomain(invitation.restaurantName);
       const availableSubdomain = await findAvailableSubdomain(baseSubdomain);
       
@@ -1012,7 +1013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subdomain: availableSubdomain,
         location: "Da configurare",
         description: `Menu digitale per ${invitation.restaurantName}`,
-        ownerId: "client", // This will be updated when user registers
+        ownerId: userId,
       };
       
       const restaurant = await storage.createRestaurant(restaurantData);

@@ -41,20 +41,8 @@ export default function ClientRegistration() {
   }, [invitation, isLoading]);
 
   const handleAcceptInvitation = async () => {
-    try {
-      const response = await fetch(`/api/client-invitations/accept`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inviteCode }),
-      });
-
-      if (response.ok) {
-        // Redirect to Replit Auth login
-        window.location.href = '/api/login';
-      }
-    } catch (error) {
-      console.error('Error accepting invitation:', error);
-    }
+    // Redirect to the new accept-invite page which handles authentication
+    window.location.href = `/accept-invite?code=${inviteCode}`;
   };
 
   if (!inviteCode) {
