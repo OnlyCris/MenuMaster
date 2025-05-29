@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/useAuth';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 
 export default function InviteAccept() {
   const [location] = useLocation();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const [status, setStatus] = useState<'loading' | 'processing' | 'success' | 'error'>('loading');
+  const [status, setStatus] = useState<'loading' | 'form' | 'processing' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
+  const [userEmail, setUserEmail] = useState('');
 
   // Extract invitation code from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -23,8 +24,8 @@ export default function InviteAccept() {
   });
 
   const acceptMutation = useMutation({
-    mutationFn: async (code: string) => {
-      return await apiRequest('POST', `/api/client-invitations/accept`, { inviteCode: code });
+    mutationFn: async (data: { inviteCode: string; userEmail: string }) => {
+      return await apiRequest('POST', `/api/client-invitations/accept`, data);
     },
     onSuccess: () => {
       setStatus('success');
@@ -43,13 +44,7 @@ export default function InviteAccept() {
       return;
     }
 
-    if (authLoading || invitationLoading) {
-      return;
-    }
-
-    if (!isAuthenticated) {
-      // Redirect to login with return URL
-      window.location.href = `/api/login?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+    if (invitationLoading) {
       return;
     }
 
@@ -66,11 +61,21 @@ export default function InviteAccept() {
         return;
       }
 
-      // Auto-accept the invitation
-      setStatus('processing');
-      acceptMutation.mutate(inviteCode);
+      // Show form to collect user email
+      setStatus('form');
     }
-  }, [isAuthenticated, authLoading, invitationLoading, invitation, inviteCode]);
+  }, [invitationLoading, invitation, inviteCode]);
+
+  const handleAcceptInvitation = () => {
+    if (!userEmail) {
+      setErrorMessage('Email richiesta');
+      return;
+    }
+
+    setStatus('processing');
+    setErrorMessage('');
+    acceptMutation.mutate({ inviteCode: inviteCode!, userEmail });
+  };
 
   if (!inviteCode) {
     return (
@@ -90,7 +95,7 @@ export default function InviteAccept() {
     );
   }
 
-  if (authLoading || invitationLoading) {
+  if (invitationLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <Card className="w-full max-w-md">
@@ -99,6 +104,44 @@ export default function InviteAccept() {
               <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
               <p className="text-center text-gray-600">Caricamento...</p>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (status === 'form' && invitation) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-blue-700">Completa Registrazione</CardTitle>
+            <CardDescription>
+              Gestisci il menu di {invitation.restaurantName}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">La tua email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={userEmail}
+                onChange={(e) => setUserEmail(e.target.value)}
+                placeholder="inserisci@email.com"
+                required
+              />
+            </div>
+            {errorMessage && (
+              <p className="text-red-600 text-sm">{errorMessage}</p>
+            )}
+            <Button 
+              onClick={handleAcceptInvitation}
+              className="w-full"
+              disabled={!userEmail}
+            >
+              Accedi al Sistema
+            </Button>
           </CardContent>
         </Card>
       </div>

@@ -980,11 +980,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Accept invitation (requires authentication)
-  app.post("/api/client-invitations/accept", isAuthenticated, async (req: any, res) => {
+  // Accept invitation (temporarily without authentication)
+  app.post("/api/client-invitations/accept", async (req: any, res) => {
     try {
-      const { inviteCode } = req.body;
-      const userId = req.user?.claims?.sub;
+      const { inviteCode, userEmail } = req.body;
+      
+      // For now, create a temporary user ID based on email
+      // In production, this would use the authenticated user's ID
+      const userId = userEmail || `temp_${Date.now()}`;
       
       if (!inviteCode) {
         return res.status(400).json({ message: "Invite code is required" });
