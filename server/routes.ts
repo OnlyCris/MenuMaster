@@ -1008,8 +1008,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // First, create or get the user
+      console.log('Creating user with ID:', userId, 'and email:', userEmail);
       let user = await storage.getUser(userId);
+      console.log('Existing user found:', user);
+      
       if (!user) {
+        console.log('Creating new user...');
         user = await storage.upsertUser({
           id: userId,
           email: userEmail,
@@ -1017,6 +1021,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastName: null,
           profileImageUrl: null,
         });
+        console.log('User created:', user);
       }
 
       // Create restaurant for the user
