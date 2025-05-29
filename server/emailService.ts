@@ -45,7 +45,7 @@ export async function sendInviteEmail({
               
               <p style="font-size: 16px; margin-bottom: 25px;">
                 Ciao! Sei stato invitato a gestire il menu digitale del ristorante <strong>${restaurantName}</strong> 
-                attraverso la piattaforma MenuMaster.
+                attraverso la piattaforma MenuIsland.
               </p>
               
               <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin: 25px 0;">
@@ -85,14 +85,14 @@ export async function sendInviteEmail({
               
               <div style="margin-top: 30px; text-align: center; color: #718096; font-size: 14px;">
                 <p>Questo invito è valido per 30 giorni.</p>
-                <p>Se hai domande, contatta il supporto MenuMaster.</p>
+                <p>Se hai domande, contatta il supporto MenuIsland.</p>
               </div>
             </div>
           </body>
         </html>
       `,
       text: `
-        Invito MenuMaster - Gestione Menu ${restaurantName}
+        Invito MenuIsland - Gestione Menu ${restaurantName}
         
         Ciao! Sei stato invitato a gestire il menu digitale del ristorante ${restaurantName}.
         
@@ -108,7 +108,7 @@ export async function sendInviteEmail({
         
         Questo invito è valido per 30 giorni.
         
-        MenuMaster Team
+        MenuIsland Team
       `
     });
 
@@ -128,20 +128,20 @@ export async function sendInviteEmail({
 export async function sendWelcomeEmail(to: string, restaurantName: string, menuUrl: string): Promise<boolean> {
   try {
     const { data, error } = await resend.emails.send({
-      from: "MenuMaster <noreply@menuisland.it>",
+      from: "MenuIsland <noreply@menuisland.it>",
       to: [to],
-      subject: `Benvenuto in MenuMaster - ${restaurantName}`,
+      subject: `Benvenuto in MenuIsland - ${restaurantName}`,
       html: `
         <!DOCTYPE html>
         <html>
           <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Benvenuto in MenuMaster</title>
+            <title>Benvenuto in MenuIsland</title>
           </head>
           <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-              <h1 style="color: white; margin: 0; font-size: 28px;">Benvenuto in MenuMaster!</h1>
+              <h1 style="color: white; margin: 0; font-size: 28px;">Benvenuto in MenuIsland!</h1>
             </div>
             
             <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
