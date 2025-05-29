@@ -10,13 +10,14 @@ export default function ClientRegistration() {
   const [location] = useLocation();
   const [status, setStatus] = useState<'loading' | 'valid' | 'expired' | 'used'>('loading');
   
-  // Extract invitation code from URL
-  const params = new URLSearchParams(location.split('?')[1] || '');
-  const inviteCode = params.get('code');
+  // Extract invitation code from URL (using window.location for public pages)
+  const urlParams = new URLSearchParams(window.location.search);
+  const inviteCode = urlParams.get('code');
 
   // Debug logging
   console.log('Current location:', location);
-  console.log('URL params:', params.toString());
+  console.log('Window location search:', window.location.search);
+  console.log('URL params:', urlParams.toString());
   console.log('Extracted invite code:', inviteCode);
 
   const { data: invitation, isLoading, error } = useQuery({
