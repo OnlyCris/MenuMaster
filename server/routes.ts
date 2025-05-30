@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupSimpleAuth, requireAuth, requireAdmin, hashPassword } from "./simpleAuth";
 import { sendInviteEmail, sendWelcomeEmail } from "./emailService";
 import { createSubdomain, deleteSubdomain, generateSubdomain, findAvailableSubdomain } from "./cloudflareService";
+import { detectLanguageFromRequest, translateRestaurant, translateCategory, SUPPORTED_LANGUAGES } from "./translationService";
 import { insertTemplateSchema } from "../shared/schema";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
@@ -81,8 +82,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await storage.getTemplate(restaurant.templateId) : 
             null;
             
+          // Detect user's preferred language
+          const userLanguage = detectLanguageFromRequest(req);
+          
           // Prepare menu data with items and allergens
-          const menuData = {
+          let menuData = {
             restaurant,
             template,
             categories: await Promise.all(
@@ -100,6 +104,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
               })
             )
           };
+
+          // Translate menu if user language is not Italian
+          if (userLanguage !== 'it') {
+            try {
+              menuData.restaurant = await translateRestaurant(menuData.restaurant, userLanguage);
+              menuData.categories = await Promise.all(
+                menuData.categories.map(category => translateCategory(category, userLanguage))
+              );
+            } catch (translationError) {
+              console.warn('Translation failed, serving original content:', translationError);
+            }
+          }
           
           // Serve the restaurant menu view
           return res.json(menuData);

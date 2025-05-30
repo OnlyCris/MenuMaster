@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { Restaurant, Template, Category, MenuItem, Allergen } from "@shared/schema";
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Globe } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 // Types for the menu data
 type MenuData = {
@@ -10,8 +12,23 @@ type MenuData = {
   categories: (Category & { items: (MenuItem & { allergens: Allergen[] })[] })[];
 };
 
+// Supported languages
+const SUPPORTED_LANGUAGES = {
+  'it': 'Italiano',
+  'en': 'English',
+  'fr': 'Français',
+  'de': 'Deutsch',
+  'es': 'Español',
+  'pt': 'Português',
+  'ru': 'Русский',
+  'zh': '中文',
+  'ja': '日本語',
+  'ar': 'العربية'
+};
+
 const RestaurantMenu = () => {
   const [isSubdomain, setIsSubdomain] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('it');
 
   // Check if we're on a restaurant subdomain
   useEffect(() => {
@@ -19,9 +36,23 @@ const RestaurantMenu = () => {
     setIsSubdomain(host.includes(".menuisland.it") && !host.startsWith("www."));
   }, []);
 
+  // Detect browser language on component mount
+  useEffect(() => {
+    const browserLang = navigator.language.substring(0, 2);
+    if (browserLang in SUPPORTED_LANGUAGES) {
+      setSelectedLanguage(browserLang);
+    }
+  }, []);
+
   // Fetch menu data if on a subdomain
   const { data: menuData, isLoading, error } = useQuery<MenuData>({
-    queryKey: ["/"],
+    queryKey: ["/", selectedLanguage],
+    queryFn: async () => {
+      const url = selectedLanguage !== 'it' ? `/?lang=${selectedLanguage}` : '/';
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch menu');
+      return response.json();
+    },
     enabled: isSubdomain,
   });
 
