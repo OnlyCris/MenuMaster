@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { usePayment } from "@/hooks/usePayment";
+import PaymentRequired from "@/components/PaymentRequired";
 
 // Pages
 import Dashboard from "@/pages/Dashboard";
@@ -26,6 +28,7 @@ function Router() {
   const [location] = useLocation();
   const [isSubdomain, setIsSubdomain] = useState(false);
   const { isAuthenticated, isLoading } = useAuth();
+  const { requiresPayment, isLoading: paymentLoading } = usePayment();
 
   useEffect(() => {
     // Check if we're on a restaurant subdomain
@@ -54,7 +57,7 @@ function Router() {
   }
 
   // Protected routes - require authentication
-  if (isLoading) {
+  if (isLoading || paymentLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -64,6 +67,11 @@ function Router() {
 
   if (!isAuthenticated) {
     return <Login />;
+  }
+
+  // Check if payment is required (except for checkout page)
+  if (requiresPayment && location !== "/checkout") {
+    return <PaymentRequired />;
   }
 
   return (
