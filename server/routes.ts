@@ -28,7 +28,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('STRIPE_SECRET_KEY environment variable is required');
 }
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-06-20',
+  apiVersion: '2025-05-28.basil',
 });
 
 // Set up multer for file uploads
@@ -178,8 +178,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Restaurant routes
-  app.get("/api/restaurants", requireAuth, async (req: any, res) => {
+  // Restaurant routes (require payment)
+  app.get("/api/restaurants", requireAuth, requirePayment, async (req: any, res) => {
     try {
       let restaurants;
       
@@ -953,6 +953,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error uploading file:", error);
       res.status(500).json({ message: "Failed to upload file" });
+    }
+  });
+
+  // Payment routes
+  app.post("/api/create-payment-intent", requireAuth, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Skip if user has already paid or is admin
+      if (user.hasPaid || user.isAdmin) {
+        return res.status(400).json({ message: "Payment not required" });
+      }
+
+      // Create or retrieve Stripe customer
+      let customerId = user.stripeCustomerId;
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: user.email || "",
+          name: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+        });
+        customerId = customer.id;
+      }
+
+      // Create payment intent for one-time access fee (€49.99)
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 4999, // €49.99 in cents
+        currency: "eur",
+        customer: customerId,
+        metadata: {
+          userId: user.id,
+          type: "platform_access"
+        },
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        customerId 
+      });
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ message: "Failed to create payment intent" });
+    }
+  });
+
+  app.post("/api/confirm-payment", requireAuth, async (req: any, res) => {
+    try {
+      const { paymentIntentId } = req.body;
+      
+      if (!paymentIntentId) {
+        return res.status(400).json({ message: "Payment intent ID required" });
+      }
+
+      // Verify payment with Stripe
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      if (paymentIntent.status === "succeeded") {
+        const userId = paymentIntent.metadata.userId;
+        
+        if (userId === req.user.id) {
+          // Update user payment status
+          await storage.updateUserPaymentStatus(
+            userId, 
+            paymentIntent.customer as string, 
+            true
+          );
+          
+          res.json({ success: true, message: "Payment confirmed" });
+        } else {
+          res.status(400).json({ message: "Payment verification failed" });
+        }
+      } else {
+        res.status(400).json({ message: "Payment not completed" });
+      }
+    } catch (error) {
+      console.error("Error confirming payment:", error);
+      res.status(500).json({ message: "Failed to confirm payment" });
+    }
+  });
+
+  app.get("/api/payment-status", requireAuth, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({
+        hasPaid: user.hasPaid || user.isAdmin,
+        paymentDate: user.paymentDate,
+        isAdmin: user.isAdmin
+      });
+    } catch (error) {
+      console.error("Error fetching payment status:", error);
+      res.status(500).json({ message: "Failed to fetch payment status" });
     }
   });
 

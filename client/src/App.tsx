@@ -20,6 +20,7 @@ import NotFound from "@/pages/not-found";
 import RestaurantView from "@/pages/RestaurantView";
 import RestaurantMenu from "@/pages/RestaurantMenu";
 import Login from "@/pages/Login";
+import Checkout from "@/pages/Checkout";
 
 function Router() {
   const [location] = useLocation();
@@ -68,6 +69,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/checkout" component={Checkout} />
       <Route path="/restaurants" component={Restaurants} />
       <Route path="/restaurants/:id/menu" component={MenuEditor} />
       <Route path="/templates" component={Templates} />
