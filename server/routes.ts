@@ -1108,6 +1108,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create the server
   const httpServer = createServer(app);
   
+  // Download endpoint for project zip
+  app.get('/download', (req, res) => {
+    const filePath = path.join(process.cwd(), 'menumaster-complete.zip');
+    res.download(filePath, 'menumaster-complete.zip', (err) => {
+      if (err) {
+        console.error('Download error:', err);
+        res.status(404).send('File not found');
+      }
+    });
+  });
+
+  // Download page
+  app.get('/download-page', (req, res) => {
+    const downloadPagePath = path.join(process.cwd(), 'download.html');
+    res.sendFile(downloadPagePath);
+  });
+
   // Serve uploaded files
   app.use('/uploads', express.static(uploadDir));
   

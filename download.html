@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download MenuMaster - Progetto Completo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+            background: #f8fafc;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1e293b;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 0.5rem;
+        }
+        .download-btn {
+            background: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 1rem 0;
+        }
+        .download-btn:hover {
+            background: #2563eb;
+        }
+        .info-box {
+            background: #f1f5f9;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .warning-box {
+            background: #fef3cd;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        code {
+            background: #e2e8f0;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MenuMaster - Progetto Completo</h1>
+        
+        <div class="info-box">
+            <strong>Versione:</strong> MenuMaster v1.0 - Sistema completo di gestione menu digitali per ristoranti
+        </div>
+
+        <a href="menumaster-complete.zip" class="download-btn" download>
+            📥 Scarica Progetto Completo (ZIP)
+        </a>
+
+        <h2>📋 Contenuto del Pacchetto</h2>
+        <ul>
+            <li><strong>Frontend React</strong> con TypeScript e Tailwind CSS</li>
+            <li><strong>Backend Node.js</strong> con Express e autenticazione custom</li>
+            <li><strong>Database PostgreSQL</strong> con Drizzle ORM</li>
+            <li><strong>Sistema di traduzione automatica</strong> per menu multilingue</li>
+            <li><strong>Gestione email</strong> con Resend API</li>
+            <li><strong>Integrazione Cloudflare</strong> per sottodomini automatici</li>
+            <li><strong>Docker configuration</strong> per deployment facile</li>
+        </ul>
+
+        <h2>🚀 Guida all'Installazione sul VPS</h2>
+
+        <h3>1. Requisiti Sistema</h3>
+        <div class="code-block">
+# Ubuntu/Debian
+sudo apt update
+sudo apt install nodejs npm postgresql nginx git
+
+# CentOS/RHEL
+sudo yum install nodejs npm postgresql nginx git</div>
+
+        <h3>2. Setup Database PostgreSQL</h3>
+        <div class="code-block">
+# Crea database e utente
+sudo -u postgres psql
+CREATE DATABASE menumaster;
+CREATE USER menumaster_user WITH PASSWORD 'your_secure_password';
+GRANT ALL PRIVILEGES ON DATABASE menumaster TO menumaster_user;
+\q</div>
+
+        <h3>3. Estrai e Configura il Progetto</h3>
+        <div class="code-block">
+# Estrai il progetto
+unzip menumaster-complete.zip
+cd menumaster-complete
+
+# Installa dipendenze
+npm install
+
+# Copia file environment
+cp .env.example .env</div>
+
+        <h3>4. Configura Environment Variables</h3>
+        <div class="warning-box">
+            <strong>Importante:</strong> Modifica il file <code>.env</code> con i tuoi dati:
+        </div>
+        <div class="code-block">
+# Database
+DATABASE_URL=postgresql://menumaster_user:your_secure_password@localhost:5432/menumaster
+
+# Session
+SESSION_SECRET=your_very_long_random_session_secret_here
+
+# Email (Resend API)
+RESEND_API_KEY=your_resend_api_key
+
+# Cloudflare (opzionale per sottodomini automatici)
+CLOUDFLARE_API_TOKEN=your_cloudflare_token
+CLOUDFLARE_ZONE_ID=your_zone_id</div>
+
+        <h3>5. Inizializza Database</h3>
+        <div class="code-block">
+# Crea tabelle database
+npm run db:push</div>
+
+        <h3>6. Build per Produzione</h3>
+        <div class="code-block">
+# Build frontend e backend
+npm run build</div>
+
+        <h3>7. Configurazione Nginx</h3>
+        <div class="code-block">
+# Copia configurazione Nginx
+sudo cp nginx.conf /etc/nginx/sites-available/menumaster
+sudo ln -s /etc/nginx/sites-available/menumaster /etc/nginx/sites-enabled/
+sudo rm /etc/nginx/sites-enabled/default
+
+# Modifica il file per il tuo dominio
+sudo nano /etc/nginx/sites-available/menumaster
+
+# Testa e ricarica Nginx
+sudo nginx -t
+sudo systemctl reload nginx</div>
+
+        <h3>8. Setup Servizio Systemd</h3>
+        <div class="code-block">
+# Crea file servizio
+sudo nano /etc/systemd/system/menumaster.service
+
+# Contenuto del file:
+[Unit]
+Description=MenuMaster Application
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/path/to/menumaster-complete
+ExecStart=/usr/bin/npm start
+Restart=always
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+
+# Abilita e avvia il servizio
+sudo systemctl enable menumaster
+sudo systemctl start menumaster</div>
+
+        <h3>9. SSL con Let's Encrypt (Raccomandato)</h3>
+        <div class="code-block">
+# Installa Certbot
+sudo apt install certbot python3-certbot-nginx
+
+# Ottieni certificato SSL
+sudo certbot --nginx -d yourdomain.com -d *.yourdomain.com</div>
+
+        <h2>⚙️ Configurazioni Aggiuntive</h2>
+
+        <h3>Domain Setup per Sottodomini</h3>
+        <div class="info-box">
+            Per abilitare i sottodomini automatici (es. ristorante.tuodominio.com):
+            <ol>
+                <li>Configura un wildcard DNS record: <code>*.tuodominio.com</code></li>
+                <li>Aggiungi le credenziali Cloudflare nel file <code>.env</code></li>
+                <li>Modifica la configurazione Nginx per gestire wildcard domains</li>
+            </ol>
+        </div>
+
+        <h3>Monitoraggio e Logs</h3>
+        <div class="code-block">
+# Visualizza logs applicazione
+sudo journalctl -u menumaster -f
+
+# Visualizza logs Nginx
+sudo tail -f /var/log/nginx/access.log
+sudo tail -f /var/log/nginx/error.log</div>
+
+        <h3>Backup Database</h3>
+        <div class="code-block">
+# Backup automatico
+pg_dump -U menumaster_user -h localhost menumaster > backup_$(date +%Y%m%d).sql
+
+# Restore
+psql -U menumaster_user -h localhost menumaster < backup_file.sql</div>
+
+        <h2>🎯 Funzionalità Principali</h2>
+        <ul>
+            <li><strong>Dashboard Admin:</strong> Gestione completa ristoranti e menu</li>
+            <li><strong>Sistema Inviti:</strong> Email automatiche per nuovi clienti</li>
+            <li><strong>Menu Digitali:</strong> Visualizzazione responsive per clienti</li>
+            <li><strong>Traduzione Automatica:</strong> Menu in 10+ lingue</li>
+            <li><strong>QR Codes:</strong> Generazione automatica per accesso menu</li>
+            <li><strong>Analytics:</strong> Statistiche visite e scansioni QR</li>
+            <li><strong>Allergen Management:</strong> Gestione allergeni per compliance</li>
+        </ul>
+
+        <div class="warning-box">
+            <strong>Nota:</strong> Assicurati di cambiare tutte le password di default e configurare firewall appropriato per la sicurezza del server.
+        </div>
+
+        <h2>📞 Support</h2>
+        <p>Per problemi durante l'installazione, controlla i logs di sistema e dell'applicazione. La maggior parte dei problemi deriva da configurazioni errate del database o delle variabili d'ambiente.</p>
+
+        <div class="info-box">
+            <strong>URL di accesso dopo l'installazione:</strong><br>
+            Admin Panel: <code>https://tuodominio.com/login</code><br>
+            Menu Ristorante: <code>https://nome-ristorante.tuodominio.com</code>
+        </div>
+    </div>
+</body>
+</html>
