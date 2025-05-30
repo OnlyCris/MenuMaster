@@ -983,7 +983,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Accept invitation (temporarily without authentication)
   app.post("/api/client-invitations/accept", async (req: any, res) => {
     try {
-      const { inviteCode, userEmail } = req.body;
+      const { inviteCode, userEmail, password } = req.body;
       
       // For now, create a temporary user ID based on email
       // In production, this would use the authenticated user's ID

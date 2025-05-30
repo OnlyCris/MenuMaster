@@ -13,6 +13,7 @@ export default function InviteAccept() {
   const [status, setStatus] = useState<'loading' | 'form' | 'processing' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   // Extract invitation code from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -24,7 +25,7 @@ export default function InviteAccept() {
   });
 
   const acceptMutation = useMutation({
-    mutationFn: async (data: { inviteCode: string; userEmail: string }) => {
+    mutationFn: async (data: { inviteCode: string; userEmail: string; password: string }) => {
       return await apiRequest('POST', `/api/client-invitations/accept`, data);
     },
     onSuccess: () => {
@@ -71,10 +72,15 @@ export default function InviteAccept() {
       setErrorMessage('Email richiesta');
       return;
     }
+    
+    if (!password) {
+      setErrorMessage('Password richiesta');
+      return;
+    }
 
     setStatus('processing');
     setErrorMessage('');
-    acceptMutation.mutate({ inviteCode: inviteCode!, userEmail });
+    acceptMutation.mutate({ inviteCode: inviteCode!, userEmail, password });
   };
 
   if (!inviteCode) {
@@ -132,13 +138,24 @@ export default function InviteAccept() {
                 required
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Crea una password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
             {errorMessage && (
               <p className="text-red-600 text-sm">{errorMessage}</p>
             )}
             <Button 
               onClick={handleAcceptInvitation}
               className="w-full"
-              disabled={!userEmail}
+              disabled={!userEmail || !password}
             >
               Accedi al Sistema
             </Button>
