@@ -41,7 +41,7 @@ const upload = multer({ storage: storage_multer });
 
 // Helper function for checking if user is admin
 async function isAdmin(req: Request): Promise<boolean> {
-  const userId = req.user?.claims?.sub;
+  const userId = (req as any).user?.id;
   if (!userId) return false;
   
   const user = await storage.getUser(userId);
@@ -114,9 +114,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -126,7 +126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Restaurant routes
-  app.get("/api/restaurants", isAuthenticated, async (req: any, res) => {
+  app.get("/api/restaurants", requireAuth, async (req: any, res) => {
     try {
       let restaurants;
       
@@ -146,7 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/restaurants/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/restaurants/:id", requireAuth, async (req, res) => {
     try {
       const restaurant = await storage.getRestaurant(Number(req.params.id));
       if (!restaurant) {
@@ -159,7 +159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/restaurants", isAuthenticated, async (req: any, res) => {
+  app.post("/api/restaurants", requireAuth, async (req: any, res) => {
     try {
       const validatedData = insertRestaurantSchema.parse(req.body);
       
@@ -193,7 +193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/restaurants/:id", isAuthenticated, async (req: any, res) => {
+  app.put("/api/restaurants/:id", requireAuth, async (req: any, res) => {
     try {
       const id = Number(req.params.id);
       const restaurant = await storage.getRestaurant(id);
@@ -222,7 +222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/restaurants/:id", isAuthenticated, adminOnly, async (req, res) => {
+  app.delete("/api/restaurants/:id", requireAuth, adminOnly, async (req, res) => {
     try {
       const id = Number(req.params.id);
       const success = await storage.deleteRestaurant(id);
@@ -238,7 +238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Template routes
-  app.get("/api/templates", isAuthenticated, async (_req, res) => {
+  app.get("/api/templates", requireAuth, async (_req, res) => {
     try {
       const templates = await storage.getTemplates();
       res.json(templates);
@@ -248,7 +248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/templates/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/templates/:id", requireAuth, async (req, res) => {
     try {
       const template = await storage.getTemplate(Number(req.params.id));
       if (!template) {
@@ -261,7 +261,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/templates", isAuthenticated, async (req: any, res) => {
+  app.post("/api/templates", requireAuth, async (req: any, res) => {
     try {
       const validatedData = insertTemplateSchema.parse(req.body);
       const template = await storage.createTemplate(validatedData);
@@ -275,7 +275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/templates/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/templates/:id", requireAuth, async (req, res) => {
     try {
       const id = Number(req.params.id);
       const template = await storage.getTemplate(id);
@@ -296,7 +296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/templates/:id", isAuthenticated, adminOnly, async (req, res) => {
+  app.delete("/api/templates/:id", requireAuth, adminOnly, async (req, res) => {
     try {
       const id = Number(req.params.id);
       const success = await storage.deleteTemplate(id);
@@ -323,7 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/categories", isAuthenticated, async (req: any, res) => {
+  app.post("/api/categories", requireAuth, async (req: any, res) => {
     try {
       const validatedData = insertCategorySchema.parse(req.body);
       
@@ -351,7 +351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/categories/:id", isAuthenticated, async (req: any, res) => {
+  app.put("/api/categories/:id", requireAuth, async (req: any, res) => {
     try {
       const id = Number(req.params.id);
       const category = await storage.getCategory(id);
@@ -385,7 +385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/categories/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/categories/:id", requireAuth, async (req: any, res) => {
     try {
       const id = Number(req.params.id);
       const category = await storage.getCategory(id);
@@ -431,7 +431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/menu-items", isAuthenticated, async (req: any, res) => {
+  app.post("/api/menu-items", requireAuth, async (req: any, res) => {
     try {
       const validatedData = insertMenuItemSchema.parse(req.body);
       
@@ -475,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/menu-items/:id/allergens/:allergenId", isAuthenticated, async (req: any, res) => {
+  app.post("/api/menu-items/:id/allergens/:allergenId", requireAuth, async (req: any, res) => {
     try {
       const menuItemId = Number(req.params.id);
       const allergenId = Number(req.params.allergenId);
@@ -511,7 +511,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/menu-items/:id/allergens/:allergenId", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/menu-items/:id/allergens/:allergenId", requireAuth, async (req: any, res) => {
     try {
       const menuItemId = Number(req.params.id);
       const allergenId = Number(req.params.allergenId);
@@ -547,7 +547,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/menu-items/:id", isAuthenticated, async (req: any, res) => {
+  app.put("/api/menu-items/:id", requireAuth, async (req: any, res) => {
     try {
       const id = Number(req.params.id);
       const menuItem = await storage.getMenuItem(id);
@@ -586,7 +586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/menu-items/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/menu-items/:id", requireAuth, async (req: any, res) => {
     try {
       const id = Number(req.params.id);
       const menuItem = await storage.getMenuItem(id);
@@ -636,7 +636,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/allergens", isAuthenticated, async (req, res) => {
+  app.post("/api/allergens", requireAuth, async (req, res) => {
     try {
       const validatedData = insertAllergenSchema.parse(req.body);
       const allergen = await storage.createAllergen(validatedData);
@@ -650,7 +650,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/allergens/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/allergens/:id", requireAuth, async (req, res) => {
     try {
       const id = Number(req.params.id);
       const validatedData = insertAllergenSchema.partial().parse(req.body);
@@ -670,7 +670,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/allergens/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/allergens/:id", requireAuth, async (req, res) => {
     try {
       const id = Number(req.params.id);
       const success = await storage.deleteAllergen(id);
@@ -687,7 +687,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // QR code routes
-  app.get("/api/restaurants/:id/qr-codes", isAuthenticated, async (req: any, res) => {
+  app.get("/api/restaurants/:id/qr-codes", requireAuth, async (req: any, res) => {
     try {
       const restaurantId = Number(req.params.id);
       const restaurant = await storage.getRestaurant(restaurantId);
@@ -712,7 +712,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/qr-codes", isAuthenticated, async (req: any, res) => {
+  app.post("/api/qr-codes", requireAuth, async (req: any, res) => {
     try {
       const validatedData = insertQrCodeSchema.parse(req.body);
       
@@ -756,7 +756,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/qr-codes/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/qr-codes/:id", requireAuth, async (req: any, res) => {
     try {
       const id = Number(req.params.id);
       
@@ -776,7 +776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Analytics routes
-  app.get("/api/restaurants/:id/analytics", isAuthenticated, async (req: any, res) => {
+  app.get("/api/restaurants/:id/analytics", requireAuth, async (req: any, res) => {
     try {
       const restaurantId = Number(req.params.id);
       const days = req.query.days ? Number(req.query.days) : 30;
@@ -870,7 +870,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // File upload route
-  app.post("/api/upload", isAuthenticated, upload.single("file"), async (req: any, res) => {
+  app.post("/api/upload", requireAuth, upload.single("file"), async (req: any, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
@@ -904,7 +904,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Client invitation routes
-  app.get("/api/client-invitations", isAuthenticated, async (req, res) => {
+  app.get("/api/client-invitations", requireAuth, async (req, res) => {
     try {
       const invitations = await storage.getClientInvitations();
       res.json(invitations);
@@ -914,7 +914,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/client-invitations", isAuthenticated, async (req: any, res) => {
+  app.post("/api/client-invitations", requireAuth, async (req: any, res) => {
     try {
       // Extract and validate only the required fields
       const { email, restaurantName } = req.body;
@@ -1071,7 +1071,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/client-invitations/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/client-invitations/:id", requireAuth, async (req, res) => {
     try {
       const id = Number(req.params.id);
       const success = await storage.deleteClientInvitation(id);

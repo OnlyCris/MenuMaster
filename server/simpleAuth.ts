@@ -61,6 +61,10 @@ export function setupSimpleAuth(app: Express) {
       }
 
       // Check password
+      if (!user.password) {
+        return res.status(401).json({ message: "Credenziali non valide" });
+      }
+      
       const passwordValid = await comparePasswords(password, user.password);
       if (!passwordValid) {
         return res.status(401).json({ message: "Credenziali non valide" });
