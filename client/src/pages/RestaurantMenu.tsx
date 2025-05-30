@@ -102,7 +102,24 @@ const RestaurantMenu = () => {
       
       <div className="min-h-screen bg-white">
         {/* Restaurant header */}
-        <header className="bg-primary text-white p-6 text-center">
+        <header className="bg-primary text-white p-6 text-center relative">
+          {/* Language selector */}
+          <div className="absolute top-4 right-4">
+            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+              <SelectTrigger className="w-32 bg-white/10 border-white/20 text-white">
+                <Globe className="w-4 h-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(SUPPORTED_LANGUAGES).map(([code, name]) => (
+                  <SelectItem key={code} value={code}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {menuData.restaurant.logoUrl && (
             <img 
               src={menuData.restaurant.logoUrl} 

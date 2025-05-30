@@ -82,8 +82,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await storage.getTemplate(restaurant.templateId) : 
             null;
             
-          // Detect user's preferred language
-          const userLanguage = detectLanguageFromRequest(req);
+          // Detect user's preferred language (from query param or browser header)
+          const userLanguage = req.query.lang as string || detectLanguageFromRequest(req);
           
           // Prepare menu data with items and allergens
           let menuData = {
