@@ -27,9 +27,9 @@ export function setupSimpleAuth(app: Express) {
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
-    createTableIfMissing: true,
+    createTableIfMissing: false,
     ttl: sessionTtl,
-    tableName: "user_sessions",
+    tableName: "sessions",
   });
 
   app.set("trust proxy", 1);
