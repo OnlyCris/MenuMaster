@@ -1,7 +1,7 @@
 import express, { type Express, type Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupSimpleAuth, requireAuth, requireAdmin } from "./simpleAuth";
+import { setupSimpleAuth, requireAuth, requireAdmin, hashPassword } from "./simpleAuth";
 import { sendInviteEmail, sendWelcomeEmail } from "./emailService";
 import { createSubdomain, deleteSubdomain, generateSubdomain, findAvailableSubdomain } from "./cloudflareService";
 import { insertTemplateSchema } from "../shared/schema";
@@ -1014,9 +1014,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!user) {
         console.log('Creating new user...');
+        const hashedPassword = await hashPassword(password);
         user = await storage.upsertUser({
           id: userId,
           email: userEmail,
+          password: hashedPassword,
           firstName: null,
           lastName: null,
           profileImageUrl: null,

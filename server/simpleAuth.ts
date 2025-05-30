@@ -8,7 +8,7 @@ import connectPg from "connect-pg-simple";
 const scryptAsync = promisify(scrypt);
 
 // Password hashing functions
-async function hashPassword(password: string): Promise<string> {
+export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16).toString("hex");
   const buf = (await scryptAsync(password, salt, 64)) as Buffer;
   return `${buf.toString("hex")}.${salt}`;
