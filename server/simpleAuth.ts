@@ -167,8 +167,8 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  // Add user ID to request for easy access
-  (req as any).userId = userId;
+  // Add user object to request for compatibility with routes
+  (req as any).user = { id: userId };
   next();
 }
 
