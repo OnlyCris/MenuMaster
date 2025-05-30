@@ -1,7 +1,7 @@
 import express, { type Express, type Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupSimpleAuth, requireAuth, requireAdmin } from "./simpleAuth";
 import { sendInviteEmail, sendWelcomeEmail } from "./emailService";
 import { createSubdomain, deleteSubdomain, generateSubdomain, findAvailableSubdomain } from "./cloudflareService";
 import { insertTemplateSchema } from "../shared/schema";
@@ -59,7 +59,7 @@ const adminOnly = async (req: any, res: any, next: any) => {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
-  await setupAuth(app);
+  setupSimpleAuth(app);
   
   // Subdomain handling for restaurant menus
   app.get("/", async (req, res, next) => {
