@@ -1043,7 +1043,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create Cloudflare DNS record for the subdomain
       const subdomainCreated = await createSubdomain(availableSubdomain);
       if (!subdomainCreated) {
-        console.warn(`Failed to create subdomain for restaurant ${restaurant.id}`);
+        console.warn(`Failed to create subdomain for restaurant ${restaurant.id} - continuing without DNS record`);
       }
       
       // Mark invitation as used
