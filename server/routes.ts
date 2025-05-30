@@ -135,7 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         restaurants = await storage.getRestaurants();
       } else {
         // Regular users see only their restaurants
-        const userId = req.user.claims.sub;
+        const userId = req.user.id;
         restaurants = await storage.getRestaurantsByOwner(userId);
       }
       
@@ -168,7 +168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const availableSubdomain = await findAvailableSubdomain(baseSubdomain);
       
       // Associate the restaurant with the current user
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const restaurantData = {
         ...validatedData,
         subdomain: availableSubdomain,
@@ -203,7 +203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has permission (admin or owner)
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const isUserAdmin = await isAdmin(req);
       
       if (!isUserAdmin && restaurant.ownerId !== userId) {
@@ -333,7 +333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Restaurant not found" });
       }
       
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const isUserAdmin = await isAdmin(req);
       
       if (!isUserAdmin && restaurant.ownerId !== userId) {
@@ -366,7 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Restaurant not found" });
       }
       
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const isUserAdmin = await isAdmin(req);
       
       if (!isUserAdmin && restaurant.ownerId !== userId) {
@@ -400,7 +400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Restaurant not found" });
       }
       
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const isUserAdmin = await isAdmin(req);
       
       if (!isUserAdmin && restaurant.ownerId !== userId) {
@@ -446,7 +446,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Restaurant not found" });
       }
       
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const isUserAdmin = await isAdmin(req);
       
       if (!isUserAdmin && restaurant.ownerId !== userId) {
@@ -496,7 +496,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Restaurant not found" });
       }
       
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const isUserAdmin = await isAdmin(req);
       
       if (!isUserAdmin && restaurant.ownerId !== userId) {
@@ -532,7 +532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Restaurant not found" });
       }
       
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const isUserAdmin = await isAdmin(req);
       
       if (!isUserAdmin && restaurant.ownerId !== userId) {
@@ -567,7 +567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Restaurant not found" });
       }
       
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const isUserAdmin = await isAdmin(req);
       
       if (!isUserAdmin && restaurant.ownerId !== userId) {
@@ -606,7 +606,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Restaurant not found" });
       }
       
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const isUserAdmin = await isAdmin(req);
       
       if (!isUserAdmin && restaurant.ownerId !== userId) {
@@ -697,7 +697,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has permission
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const isUserAdmin = await isAdmin(req);
       
       if (!isUserAdmin && restaurant.ownerId !== userId) {
@@ -722,7 +722,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Restaurant not found" });
       }
       
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const isUserAdmin = await isAdmin(req);
       
       if (!isUserAdmin && restaurant.ownerId !== userId) {
@@ -787,7 +787,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has permission
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const isUserAdmin = await isAdmin(req);
       
       if (!isUserAdmin && restaurant.ownerId !== userId) {
@@ -930,7 +930,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const invitationData = {
         email,
         restaurantName,
-        invitedBy: req.user.claims.sub,
+        invitedBy: req.user.id,
         expiresAt,
       };
       
