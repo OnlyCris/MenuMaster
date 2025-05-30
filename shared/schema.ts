@@ -35,6 +35,9 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   isAdmin: boolean("is_admin").default(false),
   role: varchar("role").default("user"), // "admin", "user", "restaurant_owner"
+  hasPaid: boolean("has_paid").default(false),
+  stripeCustomerId: varchar("stripe_customer_id"),
+  paymentDate: timestamp("payment_date"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

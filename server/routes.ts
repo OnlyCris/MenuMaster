@@ -21,6 +21,15 @@ import path from "path";
 import fs from "fs";
 import sharp from "sharp";
 import QRCode from "qrcode";
+import Stripe from "stripe";
+
+// Initialize Stripe
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY environment variable is required');
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2024-06-20',
+});
 
 // Set up multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -47,6 +56,34 @@ async function isAdmin(req: Request): Promise<boolean> {
   
   const user = await storage.getUser(userId);
   return user?.isAdmin || false;
+}
+
+// Middleware to check if user has paid
+function requirePayment(req: any, res: any, next: any) {
+  const checkPayment = async () => {
+    if (!req.user) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    const user = await storage.getUser(req.user.id);
+    
+    // Admin users bypass payment requirement
+    if (user?.isAdmin) {
+      return next();
+    }
+    
+    // Check if user has paid
+    if (!user?.hasPaid) {
+      return res.status(402).json({ 
+        message: "Payment required", 
+        redirectTo: "/checkout" 
+      });
+    }
+    
+    next();
+  };
+  
+  checkPayment().catch(next);
 }
 
 // Helper middleware for admin-only routes

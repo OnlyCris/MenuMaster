@@ -36,6 +36,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  updateUserPaymentStatus(id: string, stripeCustomerId: string, hasPaid: boolean): Promise<User | undefined>;
   
   // Restaurant operations
   getRestaurants(): Promise<Restaurant[]>;
@@ -119,6 +120,20 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         },
       })
+      .returning();
+    return user;
+  }
+
+  async updateUserPaymentStatus(id: string, stripeCustomerId: string, hasPaid: boolean): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({
+        stripeCustomerId,
+        hasPaid,
+        paymentDate: hasPaid ? new Date() : null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
       .returning();
     return user;
   }
