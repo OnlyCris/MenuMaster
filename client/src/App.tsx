@@ -27,7 +27,7 @@ import AdminPanel from "@/pages/AdminPanel";
 function Router() {
   const [location] = useLocation();
   const [isSubdomain, setIsSubdomain] = useState(false);
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     // Check if we're on a restaurant subdomain
@@ -66,6 +66,11 @@ function Router() {
 
   if (!isAuthenticated) {
     return <Login />;
+  }
+
+  // Redirect non-paying users to payment page (except admin)
+  if (user && !user.hasPaid && !user.isAdmin && location !== "/payment" && location !== "/payment-success" && location !== "/settings") {
+    return <PaymentWrapper />;
   }
 
   return (
