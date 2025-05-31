@@ -1436,5 +1436,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded files
   app.use('/uploads', express.static(uploadDir));
   
+  // Serve public files (including VPS package)
+  app.use('/public', express.static(path.join(process.cwd(), 'public')));
+  
   return httpServer;
 }
