@@ -1423,7 +1423,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.setHeader('Content-Disposition', 'attachment; filename="menuisland-vps-ready.zip"');
     
     // Stream the file directly
-    const fs = require('fs');
     if (fs.existsSync(filePath)) {
       const stream = fs.createReadStream(filePath);
       stream.pipe(res);
