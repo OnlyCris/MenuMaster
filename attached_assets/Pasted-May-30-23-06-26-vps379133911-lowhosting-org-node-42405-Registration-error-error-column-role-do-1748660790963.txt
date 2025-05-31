@@ -1,0 +1,25 @@
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]: Registration error: error: column "role" does not exist
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:     at /var/www/menuisland/node_modules/pg-pool/index.js:45:11
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:     at async file:///var/www/menuisland/node_modules/drizzle-orm/node-postgres/session.js:83:22
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:     at async DatabaseStorage.getUserByEmail (file:///var/www/menuisland/dist/index.js:276:20)
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:     at async file:///var/www/menuisland/dist/index.js:696:28 {
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   length: 104,
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   severity: 'ERROR',
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   code: '42703',
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   detail: undefined,
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   hint: undefined,
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   position: '95',
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   internalPosition: undefined,
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   internalQuery: undefined,
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   where: undefined,
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   schema: undefined,
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   table: undefined,
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   column: undefined,
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   dataType: undefined,
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   constraint: undefined,
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   file: 'parse_relation.c',
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   line: '3665',
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]:   routine: 'errorMissingColumn'
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]: }
+May 30 23:06:26 vps379133911.lowhosting.org node[42405]: 11:06:26 PM [express] POST /api/auth/register

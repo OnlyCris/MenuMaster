@@ -1,0 +1,25 @@
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]: Registration error: error: relation "users" does not exist
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:     at /var/www/menuisland/node_modules/pg-pool/index.js:45:11
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:     at async file:///var/www/menuisland/node_modules/drizzle-orm/node-postgres/session.js:83:22
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:     at async DatabaseStorage.getUserByEmail (file:///var/www/menuisland/dist/index.js:276:20)
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:     at async file:///var/www/menuisland/dist/index.js:696:28 {
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   length: 105,
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   severity: 'ERROR',
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   code: '42P01',
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   detail: undefined,
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   hint: undefined,
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   position: '185',
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   internalPosition: undefined,
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   internalQuery: undefined,
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   where: undefined,
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   schema: undefined,
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   table: undefined,
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   column: undefined,
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   dataType: undefined,
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   constraint: undefined,
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   file: 'parse_relation.c',
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   line: '1392',
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]:   routine: 'parserOpenTable'
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]: }
+May 30 23:03:31 vps379133911.lowhosting.org node[42258]: 11:03:31 PM [express] POST /api/auth/register 500 in 11ms :: {"message":"Errore durante la registrazi…

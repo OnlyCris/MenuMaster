@@ -1,0 +1,25 @@
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]: Error creating invitation: error: column "invite_code" of relation "client_invitations" does not exist
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:     at /var/www/menuisland/node_modules/pg-pool/index.js:45:11
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:     at async file:///var/www/menuisland/node_modules/drizzle-orm/node-postgres/session.js:83:22
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:     at async DatabaseStorage.createClientInvitation (file:///var/www/menuisland/dist/index.js:510:29)
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:     at async file:///var/www/menuisland/dist/index.js:2011:26 {
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   length: 142,
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   severity: 'ERROR',
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   code: '42703',
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   detail: undefined,
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   hint: undefined,
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   position: '69',
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   internalPosition: undefined,
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   internalQuery: undefined,
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   where: undefined,
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   schema: undefined,
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   table: undefined,
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   column: undefined,
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   dataType: undefined,
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   constraint: undefined,
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   file: 'parse_target.c',
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   line: '1075',
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]:   routine: 'checkInsertTargets'
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]: }
+May 30 23:09:45 vps379133911.lowhosting.org node[42486]: 11:09:45 PM [express] POST /api/client-invitations 500 in 10ms :: {"message":"Failed to create invita…
