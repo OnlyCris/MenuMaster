@@ -177,7 +177,7 @@ export class DatabaseStorage implements IStorage {
   
   async deleteRestaurant(id: number): Promise<boolean> {
     const result = await db.delete(restaurants).where(eq(restaurants.id, id));
-    return result.count > 0;
+    return result.rowCount !== null && result.rowCount > 0;
   }
   
   // Template operations
@@ -206,7 +206,7 @@ export class DatabaseStorage implements IStorage {
   
   async deleteTemplate(id: number): Promise<boolean> {
     const result = await db.delete(templates).where(eq(templates.id, id));
-    return result.count > 0;
+    return result.rowCount !== null && result.rowCount > 0;
   }
   
   // Category operations
@@ -239,7 +239,7 @@ export class DatabaseStorage implements IStorage {
   
   async deleteCategory(id: number): Promise<boolean> {
     const result = await db.delete(categories).where(eq(categories.id, id));
-    return result.count > 0;
+    return result.rowCount !== null && result.rowCount > 0;
   }
   
   // Menu Item operations

@@ -24,12 +24,14 @@ type SidebarLinkProps = {
 const SidebarLink = ({ href, icon, label, active }: SidebarLinkProps) => {
   return (
     <li>
-      <Link href={href} className={cn(
-        "flex flex-row items-center h-12 transform hover:translate-x-2 transition-transform ease-in duration-200 text-white hover:bg-accent px-4 py-2 rounded-lg mx-2",
-        active && "bg-accent bg-opacity-30"
-      )}>
-        {icon}
-        <span className="font-opensans ml-3">{label}</span>
+      <Link href={href}>
+        <div className={cn(
+          "flex flex-row items-center h-12 transform hover:translate-x-2 transition-transform ease-in duration-200 text-white hover:bg-accent px-4 py-2 rounded-lg mx-2",
+          active && "bg-accent bg-opacity-30"
+        )}>
+          {icon}
+          <span className="font-opensans ml-3">{label}</span>
+        </div>
       </Link>
     </li>
   );
