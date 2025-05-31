@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { 
   PlusCircle, 
   ChevronDown, 
@@ -61,11 +62,11 @@ const Topbar = ({ title, onNewRestaurantClick, showNewButton = true }: TopbarPro
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = '/settings'}>
               <User size={16} className="mr-2" />
               Profilo
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = '/settings'}>
               <Settings size={16} className="mr-2" />
               Impostazioni
             </DropdownMenuItem>
