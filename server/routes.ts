@@ -1253,6 +1253,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin routes
+  app.get('/api/admin/stats', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      const restaurants = await storage.getRestaurants();
+      
+      const paidUsers = users.filter(u => u.hasPaid).length;
+      const unpaidUsers = users.filter(u => !u.hasPaid).length;
+      const totalRevenue = paidUsers * 349.99;
+      const currentMonth = new Date().getMonth();
+      const monthlyRevenue = users.filter(u => 
+        u.hasPaid && u.paymentDate && 
+        new Date(u.paymentDate).getMonth() === currentMonth
+      ).length * 349.99;
+
+      const stats = {
+        totalUsers: users.length,
+        totalRestaurants: restaurants.length,
+        paidUsers,
+        unpaidUsers,
+        totalRevenue,
+        monthlyRevenue,
+        activeRestaurants: restaurants.filter(r => r.isActive).length,
+        totalMenuViews: await storage.getTotalMenuViews()
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ message: "Errore nel recupero delle statistiche" });
+    }
+  });
+
+  app.get('/api/admin/users', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const users = await storage.getAllUsersWithDetails();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Errore nel recupero degli utenti" });
+    }
+  });
+
+  app.post('/api/admin/toggle-admin', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { userId, isAdmin: newAdminStatus } = req.body;
+      const updatedUser = await storage.updateUserAdminStatus(userId, newAdminStatus);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Utente non trovato" });
+      }
+
+      res.json({ message: "Stato amministratore aggiornato", user: updatedUser });
+    } catch (error) {
+      console.error("Error toggling admin status:", error);
+      res.status(500).json({ message: "Errore nell'aggiornamento dello stato amministratore" });
+    }
+  });
+
+  app.post('/api/admin/force-payment', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { userId, hasPaid } = req.body;
+      const updatedUser = await storage.forcePaymentStatus(userId, hasPaid);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Utente non trovato" });
+      }
+
+      res.json({ message: "Stato pagamento aggiornato", user: updatedUser });
+    } catch (error) {
+      console.error("Error forcing payment status:", error);
+      res.status(500).json({ message: "Errore nell'aggiornamento dello stato pagamento" });
+    }
+  });
+
+  app.post('/api/admin/send-support-email', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { userId, subject, message } = req.body;
+      const user = await storage.getUser(userId);
+      
+      if (!user || !user.email) {
+        return res.status(404).json({ message: "Utente non trovato o email mancante" });
+      }
+
+      const emailSent = await sendSupportEmail({
+        to: user.email,
+        subject: `[MenuIsland Support] ${subject}`,
+        message,
+        fromName: "Team MenuIsland",
+        fromEmail: "support@menuisland.it"
+      });
+
+      if (emailSent) {
+        res.json({ message: "Email di supporto inviata con successo" });
+      } else {
+        res.status(500).json({ message: "Errore nell'invio dell'email" });
+      }
+    } catch (error) {
+      console.error("Error sending support email:", error);
+      res.status(500).json({ message: "Errore nell'invio dell'email di supporto" });
+    }
+  });
+
+  app.get('/api/admin/logs', requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const logs = await storage.getSystemLogs();
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching logs:", error);
+      res.status(500).json({ message: "Errore nel recupero dei log" });
+    }
+  });
+
   // Create the server
   const httpServer = createServer(app);
   
