@@ -65,6 +65,7 @@ export const restaurants = pgTable("restaurants", {
   ownerId: varchar("owner_id").references(() => users.id),
   templateId: integer("template_id").references(() => templates.id),
   category: text("category"),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

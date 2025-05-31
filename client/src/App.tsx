@@ -15,6 +15,7 @@ import MenuEditor from "@/pages/MenuEditor";
 import Templates from "@/pages/Templates";
 import Allergens from "@/pages/Allergens";
 import Settings from "@/pages/Settings";
+import AdminPanel from "@/pages/AdminPanel";
 import ClientInvitations from "@/pages/ClientInvitations";
 import ClientRegistration from "@/pages/ClientRegistration";
 import InviteAccept from "@/pages/InviteAccept";
@@ -83,6 +84,7 @@ function Router() {
       <Route path="/templates" component={Templates} />
       <Route path="/allergens" component={Allergens} />
       <Route path="/clients" component={ClientInvitations} />
+      <Route path="/admin" component={AdminPanel} />
       <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>

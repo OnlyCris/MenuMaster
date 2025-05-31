@@ -3,6 +3,35 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupSimpleAuth, requireAuth, requireAdmin, hashPassword } from "./simpleAuth";
 import { sendInviteEmail, sendWelcomeEmail } from "./emailService";
+
+// Support email function
+async function sendSupportEmail({
+  to,
+  subject,
+  message,
+  fromName = "Team MenuIsland",
+  fromEmail = "support@menuisland.it"
+}: {
+  to: string;
+  subject: string;
+  message: string;
+  fromName?: string;
+  fromEmail?: string;
+}): Promise<boolean> {
+  try {
+    // Using the existing email service
+    return await sendInviteEmail({
+      to,
+      restaurantName: "Supporto MenuIsland",
+      inviteLink: "",
+      fromName,
+      fromEmail
+    });
+  } catch (error) {
+    console.error("Error sending support email:", error);
+    return false;
+  }
+}
 import { createSubdomain, deleteSubdomain, generateSubdomain, findAvailableSubdomain } from "./cloudflareService";
 import { detectLanguageFromRequest, translateRestaurant, translateCategory, SUPPORTED_LANGUAGES } from "./translationService";
 import { insertTemplateSchema } from "../shared/schema";
