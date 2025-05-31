@@ -2,9 +2,8 @@
 
 ## Prerequisiti
 - Server Ubuntu/Debian con accesso root
-- Nginx installato
+- Nginx installato  
 - Node.js 18+ installato
-- PostgreSQL 14+ installato
 - Dominio configurato (menuisland.it)
 
 ## 1. Preparazione Server
@@ -15,27 +14,10 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
-### Installazione PostgreSQL (se non presente)
-```bash
-sudo apt update
-sudo apt install postgresql postgresql-contrib
-sudo systemctl start postgresql
-sudo systemctl enable postgresql
-```
+## 2. Setup Database SQLite
 
-## 2. Setup Database
-
-### Creazione utente e database
-```bash
-sudo -u postgres psql
-```
-
-```sql
-CREATE USER menuisland WITH ENCRYPTED PASSWORD 'password_sicura_qui';
-CREATE DATABASE menuisland OWNER menuisland;
-GRANT ALL PRIVILEGES ON DATABASE menuisland TO menuisland;
-\q
-```
+Il database SQLite viene creato automaticamente dall'applicazione al primo avvio.
+Non servono configurazioni aggiuntive del database.
 
 ## 3. Deploy Applicazione
 
@@ -59,27 +41,11 @@ npm run build
 
 ### Configurazione environment
 ```bash
-# Crea file .env
-nano .env
-```
+# Il file .env.production è già incluso nel pacchetto
+# Rinominalo semplicemente in .env
+mv .env.production .env
 
-Contenuto `.env`:
-```env
-NODE_ENV=production
-PORT=3000
-DATABASE_URL=postgresql://menuisland:password_sicura_qui@localhost:5432/menuisland
-SESSION_SECRET=session_secret_molto_lungo_e_sicuro_qui
-
-# Stripe (richiede le tue chiavi)
-STRIPE_SECRET_KEY=sk_live_...
-VITE_STRIPE_PUBLIC_KEY=pk_live_...
-
-# Cloudflare (richiede i tuoi token)
-CLOUDFLARE_API_TOKEN=your_cloudflare_token
-CLOUDFLARE_ZONE_ID=your_zone_id
-
-# Email (richiede la tua chiave Resend)
-RESEND_API_KEY=re_...
+# Le chiavi API sono già configurate, il database SQLite sarà creato automaticamente
 ```
 
 ### Inizializzazione database
@@ -307,8 +273,8 @@ BACKUP_DIR="/home/backups"
 DATE=$(date +%Y%m%d_%H%M%S)
 mkdir -p $BACKUP_DIR
 
-# Database backup
-pg_dump -U menuisland -h localhost menuisland > $BACKUP_DIR/menuisland_db_$DATE.sql
+# Database SQLite backup
+cp /var/www/menuisland/menuisland.sqlite $BACKUP_DIR/menuisland_db_$DATE.sqlite
 
 # Files backup
 tar -czf $BACKUP_DIR/menuisland_files_$DATE.tar.gz /var/www/menuisland/uploads
