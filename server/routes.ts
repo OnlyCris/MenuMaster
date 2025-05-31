@@ -3,35 +3,6 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupSimpleAuth, requireAuth, requireAdmin, hashPassword } from "./simpleAuth";
 import { sendInviteEmail, sendWelcomeEmail } from "./emailService";
-
-// Support email function
-async function sendSupportEmail({
-  to,
-  subject,
-  message,
-  fromName = "Team MenuIsland",
-  fromEmail = "support@menuisland.it"
-}: {
-  to: string;
-  subject: string;
-  message: string;
-  fromName?: string;
-  fromEmail?: string;
-}): Promise<boolean> {
-  try {
-    // Using the existing email service
-    return await sendInviteEmail({
-      to,
-      restaurantName: "Supporto MenuIsland",
-      inviteLink: "",
-      fromName,
-      fromEmail
-    });
-  } catch (error) {
-    console.error("Error sending support email:", error);
-    return false;
-  }
-}
 import { createSubdomain, deleteSubdomain, generateSubdomain, findAvailableSubdomain } from "./cloudflareService";
 import { detectLanguageFromRequest, translateRestaurant, translateCategory, SUPPORTED_LANGUAGES } from "./translationService";
 import { insertTemplateSchema } from "../shared/schema";
@@ -50,15 +21,6 @@ import path from "path";
 import fs from "fs";
 import sharp from "sharp";
 import QRCode from "qrcode";
-import Stripe from "stripe";
-
-// Initialize Stripe
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY environment variable is required');
-}
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-05-28.basil',
-});
 
 // Set up multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -85,34 +47,6 @@ async function isAdmin(req: Request): Promise<boolean> {
   
   const user = await storage.getUser(userId);
   return user?.isAdmin || false;
-}
-
-// Middleware to check if user has paid
-function requirePayment(req: any, res: any, next: any) {
-  const checkPayment = async () => {
-    if (!req.user) {
-      return res.status(401).json({ message: "Authentication required" });
-    }
-
-    const user = await storage.getUser(req.user.id);
-    
-    // Admin users bypass payment requirement
-    if (user?.isAdmin) {
-      return next();
-    }
-    
-    // Check if user has paid
-    if (!user?.hasPaid) {
-      return res.status(402).json({ 
-        message: "Payment required", 
-        redirectTo: "/checkout" 
-      });
-    }
-    
-    next();
-  };
-  
-  checkPayment().catch(next);
 }
 
 // Helper middleware for admin-only routes
@@ -207,8 +141,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Restaurant routes (require payment)
-  app.get("/api/restaurants", requireAuth, requirePayment, async (req: any, res) => {
+  // Restaurant routes
+  app.get("/api/restaurants", requireAuth, async (req: any, res) => {
     try {
       let restaurants;
       
@@ -241,20 +175,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/restaurants", requireAuth, requirePayment, async (req: any, res) => {
+  app.post("/api/restaurants", requireAuth, async (req: any, res) => {
     try {
       const validatedData = insertRestaurantSchema.parse(req.body);
-      
-      // Check restaurant limit for non-admin users
-      const isUserAdmin = await isAdmin(req);
-      if (!isUserAdmin) {
-        const userRestaurants = await storage.getRestaurantsByOwner(req.user.id);
-        if (userRestaurants.length >= 1) {
-          return res.status(403).json({ 
-            message: "Hai raggiunto il limite di 1 ristorante. Contatta il supporto per aumentare il limite." 
-          });
-        }
-      }
       
       // Generate subdomain for the restaurant
       const baseSubdomain = generateSubdomain(validatedData.name);
@@ -996,106 +919,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Payment routes
-  app.post("/api/create-payment-intent", requireAuth, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.id);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // Skip if user has already paid or is admin
-      if (user.hasPaid || user.isAdmin) {
-        return res.status(400).json({ message: "Payment not required" });
-      }
-
-      // Create or retrieve Stripe customer
-      let customerId = user.stripeCustomerId;
-      if (!customerId) {
-        const customer = await stripe.customers.create({
-          email: user.email || "",
-          name: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
-        });
-        customerId = customer.id;
-      }
-
-      // Create payment intent for one-time access fee (€349.99)
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: 34999, // €349.99 in cents
-        currency: "eur",
-        customer: customerId,
-        metadata: {
-          userId: user.id,
-          type: "platform_access"
-        },
-        automatic_payment_methods: {
-          enabled: true,
-        },
-      });
-
-      res.json({ 
-        clientSecret: paymentIntent.client_secret,
-        customerId 
-      });
-    } catch (error) {
-      console.error("Error creating payment intent:", error);
-      res.status(500).json({ message: "Failed to create payment intent" });
-    }
-  });
-
-  app.post("/api/confirm-payment", requireAuth, async (req: any, res) => {
-    try {
-      const { paymentIntentId } = req.body;
-      
-      if (!paymentIntentId) {
-        return res.status(400).json({ message: "Payment intent ID required" });
-      }
-
-      // Verify payment with Stripe
-      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-      
-      if (paymentIntent.status === "succeeded") {
-        const userId = paymentIntent.metadata.userId;
-        
-        if (userId === req.user.id) {
-          // Update user payment status
-          await storage.updateUserPaymentStatus(
-            userId, 
-            paymentIntent.customer as string, 
-            true
-          );
-          
-          res.json({ success: true, message: "Payment confirmed" });
-        } else {
-          res.status(400).json({ message: "Payment verification failed" });
-        }
-      } else {
-        res.status(400).json({ message: "Payment not completed" });
-      }
-    } catch (error) {
-      console.error("Error confirming payment:", error);
-      res.status(500).json({ message: "Failed to confirm payment" });
-    }
-  });
-
-  app.get("/api/payment-status", requireAuth, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.id);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      res.json({
-        hasPaid: user.hasPaid || user.isAdmin,
-        paymentDate: user.paymentDate,
-        isAdmin: user.isAdmin
-      });
-    } catch (error) {
-      console.error("Error fetching payment status:", error);
-      res.status(500).json({ message: "Failed to fetch payment status" });
-    }
-  });
-
   // Client invitation routes
   app.get("/api/client-invitations", requireAuth, async (req, res) => {
     try {
@@ -1279,119 +1102,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting invitation:", error);
       res.status(500).json({ message: "Failed to delete invitation" });
-    }
-  });
-
-  // Admin routes
-  app.get('/api/admin/stats', requireAuth, requireAdmin, async (req: any, res) => {
-    try {
-      const users = await storage.getAllUsers();
-      const restaurants = await storage.getRestaurants();
-      
-      const paidUsers = users.filter(u => u.hasPaid).length;
-      const unpaidUsers = users.filter(u => !u.hasPaid).length;
-      const totalRevenue = paidUsers * 349.99;
-      const currentMonth = new Date().getMonth();
-      const monthlyRevenue = users.filter(u => 
-        u.hasPaid && u.paymentDate && 
-        new Date(u.paymentDate).getMonth() === currentMonth
-      ).length * 349.99;
-
-      const stats = {
-        totalUsers: users.length,
-        totalRestaurants: restaurants.length,
-        paidUsers,
-        unpaidUsers,
-        totalRevenue,
-        monthlyRevenue,
-        activeRestaurants: restaurants.filter(r => r.isActive).length,
-        totalMenuViews: await storage.getTotalMenuViews()
-      };
-
-      res.json(stats);
-    } catch (error) {
-      console.error("Error fetching admin stats:", error);
-      res.status(500).json({ message: "Errore nel recupero delle statistiche" });
-    }
-  });
-
-  app.get('/api/admin/users', requireAuth, requireAdmin, async (req: any, res) => {
-    try {
-      const users = await storage.getAllUsersWithDetails();
-      res.json(users);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      res.status(500).json({ message: "Errore nel recupero degli utenti" });
-    }
-  });
-
-  app.post('/api/admin/toggle-admin', requireAuth, requireAdmin, async (req: any, res) => {
-    try {
-      const { userId, isAdmin: newAdminStatus } = req.body;
-      const updatedUser = await storage.updateUserAdminStatus(userId, newAdminStatus);
-      
-      if (!updatedUser) {
-        return res.status(404).json({ message: "Utente non trovato" });
-      }
-
-      res.json({ message: "Stato amministratore aggiornato", user: updatedUser });
-    } catch (error) {
-      console.error("Error toggling admin status:", error);
-      res.status(500).json({ message: "Errore nell'aggiornamento dello stato amministratore" });
-    }
-  });
-
-  app.post('/api/admin/force-payment', requireAuth, requireAdmin, async (req: any, res) => {
-    try {
-      const { userId, hasPaid } = req.body;
-      const updatedUser = await storage.forcePaymentStatus(userId, hasPaid);
-      
-      if (!updatedUser) {
-        return res.status(404).json({ message: "Utente non trovato" });
-      }
-
-      res.json({ message: "Stato pagamento aggiornato", user: updatedUser });
-    } catch (error) {
-      console.error("Error forcing payment status:", error);
-      res.status(500).json({ message: "Errore nell'aggiornamento dello stato pagamento" });
-    }
-  });
-
-  app.post('/api/admin/send-support-email', requireAuth, requireAdmin, async (req: any, res) => {
-    try {
-      const { userId, subject, message } = req.body;
-      const user = await storage.getUser(userId);
-      
-      if (!user || !user.email) {
-        return res.status(404).json({ message: "Utente non trovato o email mancante" });
-      }
-
-      const emailSent = await sendSupportEmail({
-        to: user.email,
-        subject: `[MenuIsland Support] ${subject}`,
-        message,
-        fromName: "Team MenuIsland",
-        fromEmail: "support@menuisland.it"
-      });
-
-      if (emailSent) {
-        res.json({ message: "Email di supporto inviata con successo" });
-      } else {
-        res.status(500).json({ message: "Errore nell'invio dell'email" });
-      }
-    } catch (error) {
-      console.error("Error sending support email:", error);
-      res.status(500).json({ message: "Errore nell'invio dell'email di supporto" });
-    }
-  });
-
-  app.get('/api/admin/logs', requireAuth, requireAdmin, async (req: any, res) => {
-    try {
-      const logs = await storage.getSystemLogs();
-      res.json(logs);
-    } catch (error) {
-      console.error("Error fetching logs:", error);
-      res.status(500).json({ message: "Errore nel recupero dei log" });
     }
   });
 

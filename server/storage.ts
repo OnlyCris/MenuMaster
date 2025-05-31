@@ -36,7 +36,6 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
-  updateUserPaymentStatus(id: string, stripeCustomerId: string, hasPaid: boolean): Promise<User | undefined>;
   
   // Restaurant operations
   getRestaurants(): Promise<Restaurant[]>;
@@ -95,14 +94,6 @@ export interface IStorage {
   createClientInvitation(invitation: InsertClientInvitation): Promise<ClientInvitation>;
   updateClientInvitation(id: number, invitation: Partial<InsertClientInvitation>): Promise<ClientInvitation | undefined>;
   deleteClientInvitation(id: number): Promise<boolean>;
-  
-  // Admin operations
-  getAllUsers(): Promise<User[]>;
-  getAllUsersWithDetails(): Promise<any[]>;
-  updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<User | undefined>;
-  forcePaymentStatus(userId: string, hasPaid: boolean): Promise<User | undefined>;
-  getTotalMenuViews(): Promise<number>;
-  getSystemLogs(): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -128,20 +119,6 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         },
       })
-      .returning();
-    return user;
-  }
-
-  async updateUserPaymentStatus(id: string, stripeCustomerId: string, hasPaid: boolean): Promise<User | undefined> {
-    const [user] = await db
-      .update(users)
-      .set({
-        stripeCustomerId,
-        hasPaid,
-        paymentDate: hasPaid ? new Date() : null,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, id))
       .returning();
     return user;
   }
@@ -489,125 +466,6 @@ export class DatabaseStorage implements IStorage {
   async deleteClientInvitation(id: number): Promise<boolean> {
     const result = await db.delete(clientInvitations).where(eq(clientInvitations.id, id));
     return result.rowCount > 0;
-  }
-
-  // Admin operations
-  async getAllUsers(): Promise<User[]> {
-    try {
-      return await db.select().from(users);
-    } catch (error) {
-      console.error("Error getting all users:", error);
-      return [];
-    }
-  }
-
-  async getAllUsersWithDetails(): Promise<any[]> {
-    try {
-      const allUsers = await db.select().from(users);
-      const result = [];
-
-      for (const user of allUsers) {
-        const userRestaurants = await this.getRestaurantsByOwner(user.id);
-        result.push({
-          ...user,
-          restaurantCount: userRestaurants.length
-        });
-      }
-
-      return result;
-    } catch (error) {
-      console.error("Error getting users with details:", error);
-      return [];
-    }
-  }
-
-  async updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<User | undefined> {
-    try {
-      const [updatedUser] = await db
-        .update(users)
-        .set({ isAdmin, updatedAt: new Date() })
-        .where(eq(users.id, userId))
-        .returning();
-      return updatedUser;
-    } catch (error) {
-      console.error("Error updating user admin status:", error);
-      return undefined;
-    }
-  }
-
-  async forcePaymentStatus(userId: string, hasPaid: boolean): Promise<User | undefined> {
-    try {
-      const updateData: any = { 
-        hasPaid, 
-        updatedAt: new Date() 
-      };
-      
-      if (hasPaid) {
-        updateData.paymentDate = new Date();
-      } else {
-        updateData.paymentDate = null;
-        updateData.stripeCustomerId = null;
-      }
-
-      const [updatedUser] = await db
-        .update(users)
-        .set(updateData)
-        .where(eq(users.id, userId))
-        .returning();
-      return updatedUser;
-    } catch (error) {
-      console.error("Error forcing payment status:", error);
-      return undefined;
-    }
-  }
-
-  async getTotalMenuViews(): Promise<number> {
-    try {
-      const result = await db
-        .select({ totalViews: sql<number>`sum(${analytics.visits})` })
-        .from(analytics);
-      
-      return result[0]?.totalViews || 0;
-    } catch (error) {
-      console.error("Error getting total menu views:", error);
-      return 0;
-    }
-  }
-
-  async getSystemLogs(): Promise<any[]> {
-    try {
-      // Per ora restituiamo alcuni log di esempio
-      // In futuro si potrebbe implementare una tabella dedicata ai log
-      return [
-        {
-          id: 1,
-          level: 'info',
-          message: 'Sistema avviato correttamente',
-          timestamp: new Date().toISOString(),
-          userId: null,
-          metadata: null
-        },
-        {
-          id: 2,
-          level: 'info',
-          message: 'Database PostgreSQL connesso',
-          timestamp: new Date().toISOString(),
-          userId: null,
-          metadata: null
-        },
-        {
-          id: 3,
-          level: 'info',
-          message: 'Servizi di pagamento Stripe attivi',
-          timestamp: new Date().toISOString(),
-          userId: null,
-          metadata: null
-        }
-      ];
-    } catch (error) {
-      console.error("Error getting system logs:", error);
-      return [];
-    }
   }
 }
 

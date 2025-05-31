@@ -7,12 +7,10 @@ import {
   Settings,
   Users,
   HelpCircle,
-  LogOut,
-  Shield
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
 
 type SidebarLinkProps = {
   href: string;
@@ -39,15 +37,7 @@ const SidebarLink = ({ href, icon, label, active }: SidebarLinkProps) => {
 
 const Sidebar = () => {
   const [location] = useLocation();
-  const { isAuthenticated, user } = useAuth();
-
-  // Check if user is admin
-  const { data: userData } = useQuery({
-    queryKey: ["/api/auth/user"],
-    enabled: isAuthenticated,
-  });
-
-  const isAdmin = userData?.isAdmin || false;
+  const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) return null;
 
@@ -88,14 +78,6 @@ const Sidebar = () => {
           label="Clienti" 
           active={location.startsWith("/clients")} 
         />
-        {isAdmin && (
-          <SidebarLink 
-            href="/admin" 
-            icon={<Shield size={20} />} 
-            label="Amministrazione" 
-            active={location.startsWith("/admin")} 
-          />
-        )}
         <SidebarLink 
           href="/settings" 
           icon={<Settings size={20} />} 

@@ -35,9 +35,6 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   isAdmin: boolean("is_admin").default(false),
   role: varchar("role").default("user"), // "admin", "user", "restaurant_owner"
-  hasPaid: boolean("has_paid").default(false),
-  stripeCustomerId: varchar("stripe_customer_id"),
-  paymentDate: timestamp("payment_date"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -65,7 +62,6 @@ export const restaurants = pgTable("restaurants", {
   ownerId: varchar("owner_id").references(() => users.id),
   templateId: integer("template_id").references(() => templates.id),
   category: text("category"),
-  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -79,8 +75,6 @@ export const templates = pgTable("templates", {
   cssStyles: text("css_styles"),
   isPopular: boolean("is_popular").default(false),
   isNew: boolean("is_new").default(false),
-  customizable: boolean("customizable").default(true),
-  colorVariables: text("color_variables"), // JSON string of customizable color variables
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

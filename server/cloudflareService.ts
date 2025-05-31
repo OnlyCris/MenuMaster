@@ -17,7 +17,7 @@ interface CloudflareResponse {
   result?: any;
 }
 
-export async function createSubdomain(subdomain: string, targetIp: string = "152.89.254.16"): Promise<boolean> {
+export async function createSubdomain(subdomain: string, targetIp: string = "1.1.1.1"): Promise<boolean> {
   try {
     const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/dns_records`, {
       method: 'POST',

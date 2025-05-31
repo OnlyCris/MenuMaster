@@ -5,8 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { usePayment } from "@/hooks/usePayment";
-import PaymentRequired from "@/components/PaymentRequired";
 
 // Pages
 import Dashboard from "@/pages/Dashboard";
@@ -15,7 +13,6 @@ import MenuEditor from "@/pages/MenuEditor";
 import Templates from "@/pages/Templates";
 import Allergens from "@/pages/Allergens";
 import Settings from "@/pages/Settings";
-import AdminPanel from "@/pages/AdminPanel";
 import ClientInvitations from "@/pages/ClientInvitations";
 import ClientRegistration from "@/pages/ClientRegistration";
 import InviteAccept from "@/pages/InviteAccept";
@@ -23,13 +20,11 @@ import NotFound from "@/pages/not-found";
 import RestaurantView from "@/pages/RestaurantView";
 import RestaurantMenu from "@/pages/RestaurantMenu";
 import Login from "@/pages/Login";
-import Checkout from "@/pages/Checkout";
 
 function Router() {
   const [location] = useLocation();
   const [isSubdomain, setIsSubdomain] = useState(false);
   const { isAuthenticated, isLoading } = useAuth();
-  const { requiresPayment, isLoading: paymentLoading } = usePayment();
 
   useEffect(() => {
     // Check if we're on a restaurant subdomain
@@ -58,7 +53,7 @@ function Router() {
   }
 
   // Protected routes - require authentication
-  if (isLoading || paymentLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -70,21 +65,14 @@ function Router() {
     return <Login />;
   }
 
-  // Check if payment is required (except for checkout page)
-  if (requiresPayment && location !== "/checkout") {
-    return <PaymentRequired />;
-  }
-
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
-      <Route path="/checkout" component={Checkout} />
       <Route path="/restaurants" component={Restaurants} />
       <Route path="/restaurants/:id/menu" component={MenuEditor} />
       <Route path="/templates" component={Templates} />
       <Route path="/allergens" component={Allergens} />
       <Route path="/clients" component={ClientInvitations} />
-      <Route path="/admin" component={AdminPanel} />
       <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
