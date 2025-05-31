@@ -1398,15 +1398,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create the server
   const httpServer = createServer(app);
   
-  // Download endpoint for VPS deployment zip
-  app.get('/download-vps', (req, res) => {
+  // Public download endpoint for VPS deployment zip (no auth required)
+  app.get('/vps-package.zip', (req, res) => {
     const filePath = path.join(process.cwd(), 'menuisland-vps-ready.zip');
-    res.download(filePath, 'menuisland-vps-ready.zip', (err) => {
-      if (err) {
-        console.error('Download error:', err);
-        res.status(404).send('File not found');
-      }
-    });
+    
+    // Set headers for direct file download
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename="menuisland-vps-ready.zip"');
+    
+    // Stream the file directly
+    const fs = require('fs');
+    if (fs.existsSync(filePath)) {
+      const stream = fs.createReadStream(filePath);
+      stream.pipe(res);
+    } else {
+      res.status(404).send('Package not found');
+    }
   });
 
   // Download endpoint for project zip
