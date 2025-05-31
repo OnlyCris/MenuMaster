@@ -2,6 +2,7 @@ import {
   sqliteTable,
   text,
   integer,
+  real,
   index,
   primaryKey,
 } from "drizzle-orm/sqlite-core";
@@ -29,145 +30,137 @@ export const users = sqliteTable("users", {
   lastName: text("last_name"),
   profileImageUrl: text("profile_image_url"),
   isAdmin: integer("is_admin", { mode: "boolean" }).default(false),
-  role: text("role").default("user"), // "admin", "user", "restaurant_owner"
+  role: text("role").default("user"),
   hasPaid: integer("has_paid", { mode: "boolean" }).default(false),
   stripeCustomerId: text("stripe_customer_id"),
   paymentDate: text("payment_date"),
-  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
-  updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
+  createdAt: text("created_at"),
+  updatedAt: text("updated_at"),
 });
 
 // Client invitations table
-export const clientInvitations = pgTable("client_invitations", {
-  id: serial("id").primaryKey(),
-  email: varchar("email").notNull(),
-  restaurantName: varchar("restaurant_name").notNull(),
-  inviteCode: varchar("invite_code").notNull().unique(),
-  status: varchar("status").notNull().default("pending"), // "pending", "accepted", "expired"
-  invitedBy: varchar("invited_by").references(() => users.id),
-  expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  usedAt: timestamp("used_at"),
+export const clientInvitations = sqliteTable("client_invitations", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  email: text("email").notNull(),
+  restaurantName: text("restaurant_name").notNull(),
+  inviteCode: text("invite_code").notNull().unique(),
+  status: text("status").notNull().default("pending"),
+  invitedBy: text("invited_by"),
+  expiresAt: text("expires_at").notNull(),
+  createdAt: text("created_at"),
+  usedAt: text("used_at"),
 });
 
 // Restaurant table
-export const restaurants = pgTable("restaurants", {
-  id: serial("id").primaryKey(),
+export const restaurants = sqliteTable("restaurants", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   location: text("location"),
   subdomain: text("subdomain").notNull().unique(),
   logoUrl: text("logo_url"),
-  ownerId: varchar("owner_id").references(() => users.id),
-  templateId: integer("template_id").references(() => templates.id),
+  ownerId: text("owner_id").notNull(),
+  templateId: integer("template_id").default(1),
   category: text("category"),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  isActive: integer("is_active", { mode: "boolean" }).default(true),
+  createdAt: text("created_at"),
+  updatedAt: text("updated_at"),
 });
 
 // Template table
-export const templates = pgTable("templates", {
-  id: serial("id").primaryKey(),
+export const templates = sqliteTable("templates", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   description: text("description"),
   thumbnailUrl: text("thumbnail_url"),
   cssStyles: text("css_styles"),
-  isPopular: boolean("is_popular").default(false),
-  isNew: boolean("is_new").default(false),
-  customizable: boolean("customizable").default(true),
-  colorVariables: text("color_variables"), // JSON string of customizable color variables
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  isPopular: integer("is_popular", { mode: "boolean" }).default(false),
+  isNew: integer("is_new", { mode: "boolean" }).default(false),
+  customizable: integer("customizable", { mode: "boolean" }).default(true),
+  colorVariables: text("color_variables"),
+  createdAt: text("created_at"),
+  updatedAt: text("updated_at"),
 });
 
-// Menu Categories table
-export const categories = pgTable("categories", {
-  id: serial("id").primaryKey(),
+// Category table
+export const categories = sqliteTable("categories", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   description: text("description"),
-  restaurantId: integer("restaurant_id").references(() => restaurants.id).notNull(),
-  order: integer("order").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  restaurantId: integer("restaurant_id").notNull(),
+  sortOrder: integer("sort_order").default(0),
+  isVisible: integer("is_visible", { mode: "boolean" }).default(true),
+  createdAt: text("created_at"),
+  updatedAt: text("updated_at"),
 });
 
-// Menu Items table
-export const menuItems = pgTable("menu_items", {
-  id: serial("id").primaryKey(),
+// Menu item table
+export const menuItems = sqliteTable("menu_items", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   description: text("description"),
-  price: text("price").notNull(),
+  price: real("price").notNull(),
   imageUrl: text("image_url"),
-  categoryId: integer("category_id").references(() => categories.id).notNull(),
-  order: integer("order").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  categoryId: integer("category_id").notNull(),
+  isAvailable: integer("is_available", { mode: "boolean" }).default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: text("created_at"),
+  updatedAt: text("updated_at"),
 });
 
-// Allergens table
-export const allergens = pgTable("allergens", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
+// Allergen table
+export const allergens = sqliteTable("allergens", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull().unique(),
   icon: text("icon"),
-  description: text("description"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: text("created_at"),
+  updatedAt: text("updated_at"),
 });
 
-// Junction table for menu items and allergens (many-to-many)
-export const menuItemAllergens = pgTable("menu_item_allergens", {
-  menuItemId: integer("menu_item_id").references(() => menuItems.id).notNull(),
-  allergenId: integer("allergen_id").references(() => allergens.id).notNull(),
-}, (table) => ({
-  pk: primaryKey(table.menuItemId, table.allergenId),
-}));
+// Menu item allergens junction table
+export const menuItemAllergens = sqliteTable(
+  "menu_item_allergens",
+  {
+    menuItemId: integer("menu_item_id").notNull(),
+    allergenId: integer("allergen_id").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.menuItemId, table.allergenId] })],
+);
 
-// QR Codes table
-export const qrCodes = pgTable("qr_codes", {
-  id: serial("id").primaryKey(),
-  restaurantId: integer("restaurant_id").references(() => restaurants.id).notNull(),
+// QR code table
+export const qrCodes = sqliteTable("qr_codes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  restaurantId: integer("restaurant_id").notNull(),
   name: text("name").notNull(),
-  qrData: text("qr_data").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
+  url: text("url").notNull(),
+  createdAt: text("created_at"),
 });
 
 // Analytics table
-export const analytics = pgTable("analytics", {
-  id: serial("id").primaryKey(),
-  restaurantId: integer("restaurant_id").references(() => restaurants.id),
+export const analytics = sqliteTable("analytics", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  restaurantId: integer("restaurant_id").notNull(),
+  date: text("date").notNull(),
   visits: integer("visits").default(0),
   qrScans: integer("qr_scans").default(0),
-  date: timestamp("date").defaultNow(),
+  createdAt: text("created_at"),
 });
 
-// Define Relations
+// Relations
 export const restaurantsRelations = relations(restaurants, ({ one, many }) => ({
-  owner: one(users, {
-    fields: [restaurants.ownerId],
-    references: [users.id],
-  }),
-  template: one(templates, {
-    fields: [restaurants.templateId],
-    references: [templates.id],
-  }),
+  owner: one(users, { fields: [restaurants.ownerId], references: [users.id] }),
+  template: one(templates, { fields: [restaurants.templateId], references: [templates.id] }),
   categories: many(categories),
   qrCodes: many(qrCodes),
   analytics: many(analytics),
 }));
 
 export const categoriesRelations = relations(categories, ({ one, many }) => ({
-  restaurant: one(restaurants, {
-    fields: [categories.restaurantId],
-    references: [restaurants.id],
-  }),
+  restaurant: one(restaurants, { fields: [categories.restaurantId], references: [restaurants.id] }),
   menuItems: many(menuItems),
 }));
 
 export const menuItemsRelations = relations(menuItems, ({ one, many }) => ({
-  category: one(categories, {
-    fields: [menuItems.categoryId],
-    references: [categories.id],
-  }),
+  category: one(categories, { fields: [menuItems.categoryId], references: [categories.id] }),
   allergens: many(menuItemAllergens),
 }));
 
@@ -176,23 +169,16 @@ export const allergensRelations = relations(allergens, ({ many }) => ({
 }));
 
 export const menuItemAllergensRelations = relations(menuItemAllergens, ({ one }) => ({
-  menuItem: one(menuItems, {
-    fields: [menuItemAllergens.menuItemId],
-    references: [menuItems.id],
-  }),
-  allergen: one(allergens, {
-    fields: [menuItemAllergens.allergenId],
-    references: [allergens.id],
-  }),
+  menuItem: one(menuItems, { fields: [menuItemAllergens.menuItemId], references: [menuItems.id] }),
+  allergen: one(allergens, { fields: [menuItemAllergens.allergenId], references: [allergens.id] }),
 }));
 
-// Create schemas for insertion and validation
+// Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
+  password: true,
   firstName: true,
   lastName: true,
-  profileImageUrl: true,
-  isAdmin: true,
 });
 
 export const insertRestaurantSchema = createInsertSchema(restaurants).omit({
@@ -233,13 +219,9 @@ export const insertQrCodeSchema = createInsertSchema(qrCodes).omit({
 export const insertClientInvitationSchema = createInsertSchema(clientInvitations).omit({
   id: true,
   createdAt: true,
-  usedAt: true,
-  inviteCode: true,
-  expiresAt: true,
-  invitedBy: true,
 });
 
-// Export types
+// Type exports
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type ClientInvitation = typeof clientInvitations.$inferSelect;
