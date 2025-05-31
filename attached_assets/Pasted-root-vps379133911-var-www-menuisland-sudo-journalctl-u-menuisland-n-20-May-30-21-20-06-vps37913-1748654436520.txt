@@ -1,0 +1,21 @@
+root@vps379133911:/var/www/menuisland# sudo journalctl -u menuisland -n 20
+May 30 21:20:06 vps379133911.lowhosting.org node[34200]:     at ModuleJob.run (node:internal/module>
+May 30 21:20:06 vps379133911.lowhosting.org node[34200]:     at async ModuleLoader.import (node:int>
+May 30 21:20:06 vps379133911.lowhosting.org node[34200]:     at async asyncRunEntryPointWithESMLoad>
+May 30 21:20:06 vps379133911.lowhosting.org node[34200]: Node.js v20.19.2
+May 30 21:20:06 vps379133911.lowhosting.org systemd[1]: menuisland.service: Main process exited, co>
+May 30 21:20:06 vps379133911.lowhosting.org systemd[1]: menuisland.service: Failed with result 'exi>
+May 30 21:20:16 vps379133911.lowhosting.org systemd[1]: menuisland.service: Scheduled restart job, >
+May 30 21:20:16 vps379133911.lowhosting.org systemd[1]: Stopped menuisland.service - MenuIsland App>
+May 30 21:20:16 vps379133911.lowhosting.org systemd[1]: Started menuisland.service - MenuIsland App>
+May 30 21:20:17 vps379133911.lowhosting.org node[34212]: file:///var/www/menuisland/dist/index.js:2>
+May 30 21:20:17 vps379133911.lowhosting.org node[34212]:   throw new Error(
+May 30 21:20:17 vps379133911.lowhosting.org node[34212]:         ^
+May 30 21:20:17 vps379133911.lowhosting.org node[34212]: Error: DATABASE_URL must be set. Did you f>
+May 30 21:20:17 vps379133911.lowhosting.org node[34212]:     at file:///var/www/menuisland/dist/ind>
+May 30 21:20:17 vps379133911.lowhosting.org node[34212]:     at ModuleJob.run (node:internal/module>
+May 30 21:20:17 vps379133911.lowhosting.org node[34212]:     at async ModuleLoader.import (node:int>
+May 30 21:20:17 vps379133911.lowhosting.org node[34212]:     at async asyncRunEntryPointWithESMLoad>
+May 30 21:20:17 vps379133911.lowhosting.org node[34212]: Node.js v20.19.2
+May 30 21:20:17 vps379133911.lowhosting.org systemd[1]: menuisland.service: Main process exited, co>
+May 30 21:20:17 vps379133911.lowhosting.org systemd[1]: menuisland.service: Failed with result 'exi>
