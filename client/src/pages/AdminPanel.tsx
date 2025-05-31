@@ -13,8 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import Sidebar from "@/components/layout/Sidebar";
-import Topbar from "@/components/layout/Topbar";
+import { Link } from "wouter";
+import { ArrowLeft } from "lucide-react";
 import { 
   Users, 
   CreditCard, 
@@ -61,25 +61,35 @@ export default function AdminPanel() {
   // Verify admin access
   if (!user?.isAdmin) {
     return (
-      <div className="flex h-screen bg-gray-100 dark:bg-gray-950">
-        <Sidebar />
-        <div className="flex-1 pl-64 overflow-y-auto">
-          <Topbar title="Accesso Negato" showNewButton={false} />
-          <div className="p-6">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <AlertTriangle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    Accesso Non Autorizzato
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Solo gli amministratori possono accedere a questa sezione.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-950">
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Torna alla Dashboard
+              </Link>
+            </Button>
+            <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              Accesso Negato
+            </h1>
           </div>
+        </div>
+        <div className="p-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <AlertTriangle className="mx-auto h-12 w-12 text-red-500 mb-4" />
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Accesso Non Autorizzato
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Solo gli amministratori possono accedere a questa sezione.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -204,17 +214,25 @@ export default function AdminPanel() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-950">
-      <Sidebar />
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-950">
+      {/* Header with back navigation */}
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Torna alla Dashboard
+            </Link>
+          </Button>
+          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Pannello Amministrativo
+          </h1>
+        </div>
+      </div>
       
-      <div className="flex-1 pl-64 overflow-y-auto">
-        <Topbar 
-          title="Pannello Amministrativo" 
-          showNewButton={false}
-        />
-        
-        <div className="p-6 space-y-6">
-          {/* Stats Overview */}
+      <div className="p-6 space-y-6">
+        {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

@@ -856,8 +856,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         basicStats: analytics,
         mostViewedItems,
         languageStats,
-        totalViews: analytics.reduce((sum, day) => sum + day.visits, 0),
-        totalQrScans: analytics.reduce((sum, day) => sum + day.qrScans, 0)
+        totalViews: analytics.reduce((sum, day) => sum + (day.visits || 0), 0),
+        totalQrScans: analytics.reduce((sum, day) => sum + (day.qrScans || 0), 0)
       };
       
       res.json(analyticsData);
