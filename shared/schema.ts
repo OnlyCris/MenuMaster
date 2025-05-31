@@ -154,6 +154,26 @@ export const analytics = pgTable("analytics", {
   date: timestamp("date").defaultNow(),
 });
 
+// Menu Item Views (for tracking most viewed items)
+export const menuItemViews = pgTable("menu_item_views", {
+  id: serial("id").primaryKey(),
+  menuItemId: integer("menu_item_id").references(() => menuItems.id).notNull(),
+  restaurantId: integer("restaurant_id").references(() => restaurants.id).notNull(),
+  viewerLanguage: text("viewer_language").default("it"),
+  viewedAt: timestamp("viewed_at").defaultNow(),
+  userAgent: text("user_agent"),
+  ipAddress: text("ip_address"),
+});
+
+// Menu Language Usage
+export const menuLanguageUsage = pgTable("menu_language_usage", {
+  id: serial("id").primaryKey(),
+  restaurantId: integer("restaurant_id").references(() => restaurants.id).notNull(),
+  language: text("language").notNull(),
+  viewCount: integer("view_count").default(1),
+  lastUsed: timestamp("last_used").defaultNow(),
+});
+
 // Define Relations
 export const restaurantsRelations = relations(restaurants, ({ one, many }) => ({
   owner: one(users, {
@@ -183,6 +203,7 @@ export const menuItemsRelations = relations(menuItems, ({ one, many }) => ({
     references: [categories.id],
   }),
   allergens: many(menuItemAllergens),
+  views: many(menuItemViews),
 }));
 
 export const allergensRelations = relations(allergens, ({ many }) => ({

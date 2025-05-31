@@ -204,12 +204,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertRestaurantSchema.parse(req.body);
       
+      const userId = req.user.id;
+      const isUserAdmin = await isAdmin(req);
+      
+      // Check restaurant limit for non-admin users
+      if (!isUserAdmin) {
+        const userRestaurants = await storage.getRestaurantsByOwner(userId);
+        if (userRestaurants.length >= 1) {
+          return res.status(403).json({ 
+            message: "Puoi creare solo un ristorante. Per crearne di più contatta l'amministratore." 
+          });
+        }
+      }
+      
       // Generate subdomain for the restaurant
       const baseSubdomain = generateSubdomain(validatedData.name);
       const availableSubdomain = await findAvailableSubdomain(baseSubdomain);
       
       // Associate the restaurant with the current user
-      const userId = req.user.id;
       const restaurantData = {
         ...validatedData,
         subdomain: availableSubdomain,
@@ -1280,6 +1292,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting user:", error);
       res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // Create database backup (admin only)
+  app.post("/api/admin/backup", requireAdmin, async (req, res) => {
+    try {
+      const { exec } = require('child_process');
+      const fs = require('fs');
+      const path = require('path');
+      
+      const backupFileName = `menuisland-backup-${new Date().toISOString().split('T')[0]}.sql`;
+      const backupPath = path.join(process.cwd(), backupFileName);
+      
+      // Use pg_dump to create backup
+      const databaseUrl = process.env.DATABASE_URL;
+      if (!databaseUrl) {
+        return res.status(500).json({ message: "Database URL not configured" });
+      }
+      
+      const command = `pg_dump "${databaseUrl}" > "${backupPath}"`;
+      
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error("Backup error:", error);
+          return res.status(500).json({ message: "Failed to create backup" });
+        }
+        
+        // Send the backup file
+        res.download(backupPath, backupFileName, (err) => {
+          if (err) {
+            console.error("Download error:", err);
+            return res.status(500).json({ message: "Failed to download backup" });
+          }
+          
+          // Clean up the backup file after download
+          fs.unlink(backupPath, (unlinkErr) => {
+            if (unlinkErr) console.error("Failed to clean up backup file:", unlinkErr);
+          });
+        });
+      });
+    } catch (error) {
+      console.error("Error creating backup:", error);
+      res.status(500).json({ message: "Failed to create backup" });
+    }
+  });
+
+  // Fix admin email endpoint to use correct parameter
+  app.post("/api/admin/send-email", requireAdmin, async (req, res) => {
+    try {
+      const { to, subject, message } = req.body;
+      
+      if (!to || !subject || !message) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Use the admin support email service
+      const { sendAdminSupportEmail } = await import('./emailService');
+      const emailSent = await sendAdminSupportEmail(to, subject, message);
+      
+      if (emailSent) {
+        res.json({ success: true });
+      } else {
+        res.status(500).json({ message: "Failed to send email" });
+      }
+    } catch (error) {
+      console.error("Error sending email:", error);
+      res.status(500).json({ message: "Failed to send email" });
     }
   });
 
