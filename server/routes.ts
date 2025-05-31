@@ -125,22 +125,6 @@ const adminOnly = async (req: any, res: any, next: any) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
-  // Public VPS package download (must be before auth middleware)
-  app.get('/vps-download', (req, res) => {
-    const filePath = path.join(process.cwd(), 'menuisland-vps-ready.zip');
-    
-    if (fs.existsSync(filePath)) {
-      res.setHeader('Content-Type', 'application/zip');
-      res.setHeader('Content-Disposition', 'attachment; filename="menuisland-vps-ready.zip"');
-      
-      const stream = fs.createReadStream(filePath);
-      stream.pipe(res);
-    } else {
-      res.status(404).send('Package not found');
-    }
-  });
-
   // Auth middleware
   setupSimpleAuth(app);
   
@@ -1414,23 +1398,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create the server
   const httpServer = createServer(app);
   
-  // Public download endpoint for VPS deployment zip (no auth required)
-  app.get('/vps-package.zip', (req, res) => {
-    const filePath = path.join(process.cwd(), 'menuisland-vps-ready.zip');
-    
-    // Set headers for direct file download
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', 'attachment; filename="menuisland-vps-ready.zip"');
-    
-    // Stream the file directly
-    if (fs.existsSync(filePath)) {
-      const stream = fs.createReadStream(filePath);
-      stream.pipe(res);
-    } else {
-      res.status(404).send('Package not found');
-    }
-  });
-
   // Download endpoint for project zip
   app.get('/download', (req, res) => {
     const filePath = path.join(process.cwd(), 'menumaster-complete.zip');
@@ -1450,9 +1417,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Serve uploaded files
   app.use('/uploads', express.static(uploadDir));
-  
-  // Serve public files (including VPS package)
-  app.use('/public', express.static(path.join(process.cwd(), 'public')));
   
   return httpServer;
 }

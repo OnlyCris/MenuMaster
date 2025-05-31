@@ -2,7 +2,7 @@
 
 ## Prerequisiti
 - Server Ubuntu/Debian con accesso root
-- Nginx installato  
+- Nginx installato
 - Node.js 18+ installato
 - PostgreSQL 14+ installato
 - Dominio configurato (menuisland.it)
@@ -23,7 +23,7 @@ sudo systemctl start postgresql
 sudo systemctl enable postgresql
 ```
 
-## 2. Setup Database PostgreSQL
+## 2. Setup Database
 
 ### Creazione utente e database
 ```bash
@@ -68,17 +68,17 @@ Contenuto `.env`:
 NODE_ENV=production
 PORT=3000
 DATABASE_URL=postgresql://menuisland:password_sicura_qui@localhost:5432/menuisland
-SESSION_SECRET=menuisland_session_secret_molto_lungo_e_sicuro_per_produzione_2024
+SESSION_SECRET=session_secret_molto_lungo_e_sicuro_qui
 
-# Stripe (le tue chiavi)
+# Stripe (richiede le tue chiavi)
 STRIPE_SECRET_KEY=sk_live_...
 VITE_STRIPE_PUBLIC_KEY=pk_live_...
 
-# Cloudflare (i tuoi token)
+# Cloudflare (richiede i tuoi token)
 CLOUDFLARE_API_TOKEN=your_cloudflare_token
 CLOUDFLARE_ZONE_ID=your_zone_id
 
-# Email (la tua chiave Resend)
+# Email (richiede la tua chiave Resend)
 RESEND_API_KEY=re_...
 ```
 
