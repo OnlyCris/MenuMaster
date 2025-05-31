@@ -35,6 +35,10 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   isAdmin: boolean("is_admin").default(false),
   role: varchar("role").default("user"), // "admin", "user", "restaurant_owner"
+  hasPaid: boolean("has_paid").default(false),
+  stripeCustomerId: varchar("stripe_customer_id"),
+  stripePaymentIntentId: varchar("stripe_payment_intent_id"),
+  paymentDate: timestamp("payment_date"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -73,8 +77,19 @@ export const templates = pgTable("templates", {
   description: text("description"),
   thumbnailUrl: text("thumbnail_url"),
   cssStyles: text("css_styles"),
+  colorScheme: jsonb("color_scheme"), // Stores customizable colors
   isPopular: boolean("is_popular").default(false),
   isNew: boolean("is_new").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Restaurant template customizations
+export const restaurantTemplateCustomizations = pgTable("restaurant_template_customizations", {
+  id: serial("id").primaryKey(),
+  restaurantId: integer("restaurant_id").notNull().references(() => restaurants.id, { onDelete: "cascade" }),
+  templateId: integer("template_id").notNull().references(() => templates.id),
+  customColors: jsonb("custom_colors"), // User's custom color palette
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -185,6 +200,17 @@ export const menuItemAllergensRelations = relations(menuItemAllergens, ({ one })
   }),
 }));
 
+export const restaurantTemplateCustomizationsRelations = relations(restaurantTemplateCustomizations, ({ one }) => ({
+  restaurant: one(restaurants, {
+    fields: [restaurantTemplateCustomizations.restaurantId],
+    references: [restaurants.id],
+  }),
+  template: one(templates, {
+    fields: [restaurantTemplateCustomizations.templateId],
+    references: [templates.id],
+  }),
+}));
+
 // Create schemas for insertion and validation
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
@@ -256,3 +282,5 @@ export type InsertAllergen = z.infer<typeof insertAllergenSchema>;
 export type QrCode = typeof qrCodes.$inferSelect;
 export type InsertQrCode = z.infer<typeof insertQrCodeSchema>;
 export type Analytics = typeof analytics.$inferSelect;
+export type RestaurantTemplateCustomization = typeof restaurantTemplateCustomizations.$inferSelect;
+export type InsertRestaurantTemplateCustomization = typeof restaurantTemplateCustomizations.$inferInsert;
