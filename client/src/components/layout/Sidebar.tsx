@@ -80,6 +80,27 @@ const Sidebar = () => {
           label="Clienti" 
           active={location.startsWith("/clients")} 
         />
+        
+        {/* Payment link for users who haven't paid */}
+        {user && !user.hasPaid && (
+          <SidebarLink 
+            href="/payment" 
+            icon={<CreditCard size={20} />} 
+            label="Attiva Servizio" 
+            active={location.startsWith("/payment")} 
+          />
+        )}
+        
+        {/* Admin panel for admin users */}
+        {user?.isAdmin && (
+          <SidebarLink 
+            href="/admin" 
+            icon={<Shield size={20} />} 
+            label="Pannello Admin" 
+            active={location.startsWith("/admin")} 
+          />
+        )}
+        
         <SidebarLink 
           href="/settings" 
           icon={<Settings size={20} />} 
