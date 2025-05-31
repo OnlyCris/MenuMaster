@@ -1,8 +1,5 @@
-import Database from 'better-sqlite3';
-import { drizzle as drizzleSQLite } from 'drizzle-orm/better-sqlite3';
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle as drizzleNeon } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 
 if (!process.env.DATABASE_URL) {
@@ -11,22 +8,8 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Check if using SQLite (file: prefix) or PostgreSQL
-const isSQLite = process.env.DATABASE_URL.startsWith('file:');
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
-let db: any;
-let pool: any;
-
-if (isSQLite) {
-  // SQLite setup for production
-  const dbPath = process.env.DATABASE_URL.replace('file:', '');
-  const sqlite = new Database(dbPath);
-  db = drizzleSQLite({ client: sqlite, schema });
-} else {
-  // PostgreSQL setup for development
-  neonConfig.webSocketConstructor = ws;
-  pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  db = drizzleNeon({ client: pool, schema });
-}
-
-export { db, pool };
+export const db = drizzle({ client: pool, schema });
