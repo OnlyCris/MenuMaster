@@ -272,7 +272,7 @@ export class DatabaseStorage implements IStorage {
   
   async deleteMenuItem(id: number): Promise<boolean> {
     const result = await db.delete(menuItems).where(eq(menuItems.id, id));
-    return result.count > 0;
+    return result.rowCount !== null && result.rowCount > 0;
   }
   
   // Allergen operations
@@ -322,7 +322,7 @@ export class DatabaseStorage implements IStorage {
   
   async deleteAllergen(id: number): Promise<boolean> {
     const result = await db.delete(allergens).where(eq(allergens.id, id));
-    return result.count > 0;
+    return result.rowCount !== null && result.rowCount > 0;
   }
   
   async addAllergenToMenuItem(menuItemId: number, allergenId: number): Promise<void> {
@@ -359,7 +359,7 @@ export class DatabaseStorage implements IStorage {
   
   async deleteQrCode(id: number): Promise<boolean> {
     const result = await db.delete(qrCodes).where(eq(qrCodes.id, id));
-    return result.count > 0;
+    return result.rowCount !== null && result.rowCount > 0;
   }
   
   // Analytics operations
@@ -465,9 +465,10 @@ export class DatabaseStorage implements IStorage {
       .values({
         email: invitation.email,
         restaurantName: invitation.restaurantName,
+        inviteCode,
+        status: invitation.status || "pending",
         invitedBy: invitation.invitedBy,
         expiresAt: invitation.expiresAt,
-        inviteCode,
       })
       .returning();
     return newInvitation;
@@ -484,7 +485,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteClientInvitation(id: number): Promise<boolean> {
     const result = await db.delete(clientInvitations).where(eq(clientInvitations.id, id));
-    return result.rowCount > 0;
+    return result.rowCount !== null && result.rowCount > 0;
   }
 
   // Admin and payment operations
