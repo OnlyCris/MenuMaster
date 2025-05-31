@@ -23,12 +23,12 @@ export function PaymentGuard({ children, feature = "questa funzionalità" }: Pay
               Accesso Limitato
             </CardTitle>
             <CardDescription>
-              Per utilizzare {feature}, devi attivare il servizio MenuMaster
+              Per utilizzare {feature}, devi attivare il servizio MenuIsland
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <p className="text-gray-600 dark:text-gray-400">
-              Il servizio MenuMaster richiede un pagamento unico di <strong>€349</strong> per accedere a tutte le funzionalità della piattaforma.
+              Il servizio MenuIsland richiede un pagamento unico di <strong>€349</strong> per accedere a tutte le funzionalità della piattaforma.
             </p>
             <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
               <h4 className="font-semibold mb-2">Con l'attivazione ottieni:</h4>

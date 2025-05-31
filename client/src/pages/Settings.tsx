@@ -22,6 +22,16 @@ export default function Settings() {
     email: user?.email || "",
   });
 
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+      });
+    }
+  }, [user]);
+
   const updateProfileMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const response = await apiRequest("PATCH", "/api/auth/profile", data);

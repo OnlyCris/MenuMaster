@@ -44,7 +44,7 @@ const Sidebar = () => {
   return (
     <div className="sidebar bg-primary w-64 h-screen flex flex-col fixed">
       <div className="flex items-center justify-center h-20 shadow-md">
-        <h1 className="text-white font-poppins font-bold text-2xl">MenuMaster</h1>
+        <h1 className="text-white font-poppins font-bold text-2xl">MenuIsland</h1>
       </div>
       
       <ul className="flex flex-col py-4">
