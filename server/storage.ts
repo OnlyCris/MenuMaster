@@ -37,6 +37,12 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   
+  // Admin and payment operations
+  getAllUsers(): Promise<User[]>;
+  updateUserPaymentInfo(id: string, paymentInfo: { hasPaid?: boolean; paymentDate?: Date | null; stripePaymentIntentId?: string; stripeCustomerId?: string }): Promise<void>;
+  getPaymentStats(): Promise<{ totalUsers: number; paidUsers: number; activeUsers: number }>;
+  deleteUser(id: string): Promise<void>;
+  
   // Restaurant operations
   getRestaurants(): Promise<Restaurant[]>;
   getRestaurant(id: number): Promise<Restaurant | undefined>;
@@ -466,6 +472,44 @@ export class DatabaseStorage implements IStorage {
   async deleteClientInvitation(id: number): Promise<boolean> {
     const result = await db.delete(clientInvitations).where(eq(clientInvitations.id, id));
     return result.rowCount > 0;
+  }
+
+  // Admin and payment operations
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async updateUserPaymentInfo(id: string, paymentInfo: { 
+    hasPaid?: boolean; 
+    paymentDate?: Date | null; 
+    stripePaymentIntentId?: string; 
+    stripeCustomerId?: string; 
+  }): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        ...paymentInfo, 
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, id));
+  }
+
+  async getPaymentStats(): Promise<{ totalUsers: number; paidUsers: number; activeUsers: number }> {
+    const totalUsersResult = await db.select({ count: sql<number>`count(*)` }).from(users);
+    const paidUsersResult = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.hasPaid, true));
+    
+    const totalUsers = totalUsersResult[0]?.count || 0;
+    const paidUsers = paidUsersResult[0]?.count || 0;
+    
+    return {
+      totalUsers,
+      paidUsers,
+      activeUsers: paidUsers, // For now, active users = paid users
+    };
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
   }
 }
 

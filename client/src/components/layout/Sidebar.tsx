@@ -7,7 +7,9 @@ import {
   Settings,
   Users,
   HelpCircle,
-  LogOut
+  LogOut,
+  Shield,
+  CreditCard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,7 +39,7 @@ const SidebarLink = ({ href, icon, label, active }: SidebarLinkProps) => {
 
 const Sidebar = () => {
   const [location] = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   if (!isAuthenticated) return null;
 

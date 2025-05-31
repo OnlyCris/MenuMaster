@@ -1286,8 +1286,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendFile(downloadPagePath);
   });
 
+  // Initialize additional templates on startup
+  initializeAdditionalTemplates();
+
   // Serve uploaded files
   app.use('/uploads', express.static(uploadDir));
   
   return httpServer;
+}
+
+// Function to initialize additional restaurant templates
+async function initializeAdditionalTemplates() {
+  try {
+    const existingTemplates = await storage.getTemplates();
+    
+    // Only add templates if there are less than 5 in total
+    if (existingTemplates.length < 5) {
+      const newTemplates = [
+        {
+          name: "Template Elegante",
+          description: "Design raffinato con tipografia elegante e layout pulito",
+          colorScheme: {
+            primary: "#2C3E50",
+            secondary: "#E8F4FD",
+            accent: "#3498DB",
+            text: "#2C3E50",
+            background: "#FFFFFF"
+          },
+          cssStyles: `
+            .restaurant-header { background: linear-gradient(135deg, #2C3E50 0%, #3498DB 100%); }
+            .menu-category { border-left: 4px solid #3498DB; background: #E8F4FD; }
+            .menu-item { border-bottom: 1px solid #E8F4FD; padding: 1rem; }
+            .menu-item:hover { background: #F8FBFF; }
+            .price { color: #2C3E50; font-weight: bold; }
+          `,
+          isPopular: true,
+          isNew: false
+        },
+        {
+          name: "Template Rustico",
+          description: "Stile caldo e accogliente con tonalità terrose",
+          colorScheme: {
+            primary: "#8B4513",
+            secondary: "#F5DEB3",
+            accent: "#CD853F",
+            text: "#5D4037",
+            background: "#FFF8E1"
+          },
+          cssStyles: `
+            .restaurant-header { background: linear-gradient(135deg, #8B4513 0%, #CD853F 100%); }
+            .menu-category { background: #F5DEB3; border: 2px solid #CD853F; border-radius: 8px; }
+            .menu-item { background: #FFF8E1; margin: 0.5rem 0; border-radius: 6px; padding: 1rem; }
+            .menu-item:hover { background: #F5DEB3; }
+            .price { color: #8B4513; font-weight: bold; }
+          `,
+          isPopular: false,
+          isNew: true
+        },
+        {
+          name: "Template Marino",
+          description: "Colori del mare per ristoranti di pesce",
+          colorScheme: {
+            primary: "#0077BE",
+            secondary: "#B3E5FC",
+            accent: "#00ACC1",
+            text: "#01579B",
+            background: "#E1F5FE"
+          },
+          cssStyles: `
+            .restaurant-header { background: linear-gradient(135deg, #0077BE 0%, #00ACC1 100%); }
+            .menu-category { background: #B3E5FC; border-radius: 12px; }
+            .menu-item { background: white; margin: 0.5rem 0; box-shadow: 0 2px 4px rgba(0,119,190,0.1); border-radius: 8px; padding: 1rem; }
+            .menu-item:hover { box-shadow: 0 4px 8px rgba(0,119,190,0.2); }
+            .price { color: #0077BE; font-weight: bold; }
+          `,
+          isPopular: true,
+          isNew: false
+        },
+        {
+          name: "Template Vintage",
+          description: "Stile retrò con carattere classico",
+          colorScheme: {
+            primary: "#704214",
+            secondary: "#F4F1E8",
+            accent: "#D4AF37",
+            text: "#3E2723",
+            background: "#FAF8F3"
+          },
+          cssStyles: `
+            .restaurant-header { background: linear-gradient(135deg, #704214 0%, #D4AF37 100%); font-family: serif; }
+            .menu-category { background: #F4F1E8; border: 1px solid #D4AF37; font-family: serif; }
+            .menu-item { background: #FAF8F3; border-bottom: 1px dotted #D4AF37; padding: 1.2rem; font-family: serif; }
+            .menu-item:hover { background: #F4F1E8; }
+            .price { color: #704214; font-weight: bold; font-family: serif; }
+          `,
+          isPopular: false,
+          isNew: true
+        }
+      ];
+
+      for (const template of newTemplates) {
+        await storage.createTemplate(template);
+      }
+      
+      console.log("Additional templates initialized successfully");
+    }
+  } catch (error) {
+    console.error("Error initializing additional templates:", error);
+  }
 }
