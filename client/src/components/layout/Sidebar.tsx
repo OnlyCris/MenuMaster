@@ -74,12 +74,15 @@ const Sidebar = () => {
           label="Allergeni" 
           active={location.startsWith("/allergens")} 
         />
-        <SidebarLink 
-          href="/clients" 
-          icon={<Users size={20} />} 
-          label="Clienti" 
-          active={location.startsWith("/clients")} 
-        />
+        {/* Client invitations for admin users only */}
+        {user?.isAdmin && (
+          <SidebarLink 
+            href="/clients" 
+            icon={<Users size={20} />} 
+            label="Clienti" 
+            active={location.startsWith("/clients")} 
+          />
+        )}
         
         {/* Payment link for users who haven't paid */}
         {user && !user.hasPaid && (
