@@ -210,9 +210,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check restaurant limit for non-admin users
       if (!isUserAdmin) {
         const userRestaurants = await storage.getRestaurantsByOwner(userId);
-        if (userRestaurants.length >= 1) {
+        const userProfile = await storage.getUser(userId);
+        const maxRestaurants = userProfile?.maxRestaurants || 1;
+        
+        if (userRestaurants.length >= maxRestaurants) {
           return res.status(403).json({ 
-            message: "Puoi creare solo un ristorante. Per crearne di più contatta l'amministratore." 
+            message: `Hai raggiunto il limite di ${maxRestaurants} ristorante${maxRestaurants > 1 ? 'i' : ''}. Contatta l'amministratore per aumentare il limite.` 
           });
         }
       }

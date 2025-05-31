@@ -39,6 +39,7 @@ export const users = pgTable("users", {
   stripeCustomerId: varchar("stripe_customer_id"),
   stripePaymentIntentId: varchar("stripe_payment_intent_id"),
   paymentDate: timestamp("payment_date"),
+  maxRestaurants: integer("max_restaurants").default(1),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

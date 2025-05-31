@@ -25,9 +25,19 @@ import PaymentSuccess from "@/pages/PaymentSuccess";
 import AdminPanel from "@/pages/AdminPanel";
 
 function Router() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [isSubdomain, setIsSubdomain] = useState(false);
   const { user, isAuthenticated, isLoading } = useAuth();
+
+  // Redirect non-paying users to payment immediately after authentication
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user && !user.isAdmin && !user.hasPaid) {
+      // Don't redirect if already on payment pages
+      if (!location.startsWith('/payment') && !location.startsWith('/invite')) {
+        setLocation('/payment');
+      }
+    }
+  }, [user, isAuthenticated, isLoading, location, setLocation]);
 
   useEffect(() => {
     // Check if we're on a restaurant subdomain

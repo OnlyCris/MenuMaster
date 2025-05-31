@@ -47,6 +47,7 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   updateUserProfile(id: string, profile: { firstName?: string; lastName?: string; email?: string }): Promise<User>;
   updateUserPaymentInfo(id: string, paymentInfo: { hasPaid?: boolean; paymentDate?: Date | null; stripePaymentIntentId?: string; stripeCustomerId?: string }): Promise<void>;
+  updateUserMaxRestaurants(id: string, maxRestaurants: number): Promise<User>;
   getPaymentStats(): Promise<{ totalUsers: number; paidUsers: number; activeUsers: number }>;
   deleteUser(id: string): Promise<void>;
   
@@ -516,6 +517,18 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date() 
       })
       .where(eq(users.id, id));
+  }
+
+  async updateUserMaxRestaurants(id: string, maxRestaurants: number): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        maxRestaurants, 
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
   }
 
   async getPaymentStats(): Promise<{ totalUsers: number; paidUsers: number; activeUsers: number }> {
