@@ -28,10 +28,9 @@ import {
   AlertTriangle,
   Eye,
   Trash2,
+  UserCheck,
   Database,
-  Server,
-  Download,
-  Upload
+  Shield
 } from "lucide-react";
 
 interface User {
@@ -52,7 +51,7 @@ interface PaymentStats {
 }
 
 export default function AdminPanel() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
@@ -96,13 +95,15 @@ export default function AdminPanel() {
   }
 
   // Fetch users data
-  const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
+  const { data: users = [], isLoading: usersLoading, refetch: refetchUsers } = useQuery<User[]>({
     queryKey: ["/api/admin/users"],
+    retry: false,
   });
 
   // Fetch payment stats
   const { data: paymentStats, isLoading: statsLoading } = useQuery<PaymentStats>({
     queryKey: ["/api/admin/payment-stats"],
+    retry: false,
   });
 
   // Delete user mutation
@@ -111,98 +112,51 @@ export default function AdminPanel() {
       await apiRequest("DELETE", `/api/admin/users/${userId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/payment-stats"] });
       toast({
-        title: "Utente eliminato",
-        description: "L'utente è stato rimosso dal sistema.",
+        title: "Successo",
+        description: "Utente eliminato con successo",
       });
+      refetchUsers();
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: "Errore",
-        description: error instanceof Error ? error.message : "Errore durante l'eliminazione",
+        description: "Errore nell'eliminazione dell'utente",
         variant: "destructive",
       });
     },
   });
 
-  // Update user payment status mutation
-  const updatePaymentMutation = useMutation({
+  // Toggle user payment status
+  const togglePaymentMutation = useMutation({
     mutationFn: async ({ userId, hasPaid }: { userId: string; hasPaid: boolean }) => {
-      await apiRequest("PUT", `/api/admin/users/${userId}/payment`, { hasPaid });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/payment-stats"] });
-      toast({
-        title: "Stato pagamento aggiornato",
-        description: "Lo stato del pagamento è stato modificato con successo.",
+      await apiRequest("PATCH", `/api/admin/users/${userId}/payment`, {
+        hasPaid,
+        paymentDate: hasPaid ? new Date().toISOString() : null,
       });
     },
-    onError: (error) => {
+    onSuccess: () => {
+      toast({
+        title: "Successo",
+        description: "Stato pagamento aggiornato",
+      });
+      refetchUsers();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/payment-stats"] });
+    },
+    onError: () => {
       toast({
         title: "Errore",
-        description: error instanceof Error ? error.message : "Errore durante l'aggiornamento",
+        description: "Errore nell'aggiornamento dello stato pagamento",
         variant: "destructive",
       });
     },
   });
 
-  // Send admin email mutation
-  const sendEmailMutation = useMutation({
-    mutationFn: async ({ to, subject, message }: { to: string; subject: string; message: string }) => {
-      await apiRequest("POST", "/api/admin/send-email", { to, subject, message });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Email inviata",
-        description: "Il messaggio è stato inviato con successo.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Errore invio email",
-        description: error instanceof Error ? error.message : "Errore durante l'invio",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Backup system mutations
-  const createBackupMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/admin/backup");
-      return response.blob();
-    },
-    onSuccess: (blob) => {
-      // Download the backup file
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `menuisland-backup-${new Date().toISOString().split('T')[0]}.sql`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Backup creato",
-        description: "Il backup è stato generato e scaricato con successo.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Errore backup",
-        description: error instanceof Error ? error.message : "Errore durante la creazione del backup",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const filteredUsers = users.filter(u => 
-    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filter users based on search term
+  const filteredUsers = users.filter(user => 
+    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const formatDate = (dateString: string) => {
@@ -233,300 +187,256 @@ export default function AdminPanel() {
       
       <div className="p-6 space-y-6">
         {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Utenti Totali</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {statsLoading ? "..." : paymentStats?.totalUsers || 0}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Utenti Paganti</CardTitle>
-                <CreditCard className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {statsLoading ? "..." : paymentStats?.paidUsers || 0}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Ricavi Totali</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  €{statsLoading ? "..." : ((paymentStats?.paidUsers || 0) * 349).toLocaleString()}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Utenti Totali</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {statsLoading ? "..." : paymentStats?.totalUsers || 0}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Utenti Paganti</CardTitle>
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {statsLoading ? "..." : paymentStats?.paidUsers || 0}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Ricavi Totali</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                €{statsLoading ? "..." : ((paymentStats?.paidUsers || 0) * 349).toLocaleString()}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-          {/* Admin Tabs */}
-          <Tabs defaultValue="users" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="users">Gestione Utenti</TabsTrigger>
-              <TabsTrigger value="system">Sistema</TabsTrigger>
-              <TabsTrigger value="maintenance">Manutenzione</TabsTrigger>
-            </TabsList>
-
-            {/* Users Management Tab */}
-            <TabsContent value="users" className="space-y-4">
-              <Card>
-                <CardHeader>
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="users" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="users">Gestione Utenti</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="maintenance">Manutenzione</TabsTrigger>
+            <TabsTrigger value="support">Supporto</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="users" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
                   <CardTitle>Gestione Utenti</CardTitle>
                   <div className="flex items-center space-x-2">
-                    <Search className="h-4 w-4 text-gray-400" />
+                    <Search className="h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Cerca utenti..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="max-w-sm"
+                      className="w-64"
                     />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  {usersLoading ? (
-                    <div className="text-center py-8">Caricamento utenti...</div>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Utente</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Stato Pagamento</TableHead>
-                          <TableHead>Ruolo</TableHead>
-                          <TableHead>Registrato</TableHead>
-                          <TableHead>Azioni</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredUsers.map((u) => (
-                          <TableRow key={u.id}>
-                            <TableCell>
-                              <div className="font-medium">
-                                {u.firstName && u.lastName 
-                                  ? `${u.firstName} ${u.lastName}` 
-                                  : "Nome non impostato"
-                                }
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center space-x-2">
-                                <Mail className="h-4 w-4 text-gray-400" />
-                                <span>{u.email}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center space-x-2">
-                                <Switch
-                                  checked={u.hasPaid}
-                                  onCheckedChange={(checked) => 
-                                    updatePaymentMutation.mutate({ userId: u.id, hasPaid: checked })
-                                  }
-                                  disabled={updatePaymentMutation.isPending}
-                                />
-                                {u.hasPaid ? (
-                                  <Badge variant="default" className="bg-green-500">
-                                    <CheckCircle className="h-3 w-3 mr-1" />
-                                    Pagato
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="destructive">
-                                    <Ban className="h-3 w-3 mr-1" />
-                                    Non Pagato
-                                  </Badge>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {u.isAdmin ? (
-                                <Badge variant="secondary">
-                                  <Settings className="h-3 w-3 mr-1" />
-                                  Admin
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline">Utente</Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center space-x-1">
-                                <Calendar className="h-4 w-4 text-gray-400" />
-                                <span className="text-sm">{formatDate(u.createdAt)}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex space-x-2">
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button variant="ghost" size="sm">
-                                      <Mail className="h-4 w-4" />
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent>
-                                    <DialogHeader>
-                                      <DialogTitle>Invia Email a {u.email}</DialogTitle>
-                                    </DialogHeader>
-                                    <AdminEmailForm 
-                                      userEmail={u.email}
-                                      onSend={sendEmailMutation.mutate}
-                                      isLoading={sendEmailMutation.isPending}
-                                    />
-                                  </DialogContent>
-                                </Dialog>
-                                
-                                {!u.isAdmin && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => deleteUserMutation.mutate(u.id)}
-                                    disabled={deleteUserMutation.isPending}
-                                    className="text-red-600 hover:text-red-800"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* System Management Tab */}
-            <TabsContent value="system" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Database className="h-5 w-5" />
-                      Gestione Database
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Crea backup del database e gestisci i dati del sistema.
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Stato Pagamento</TableHead>
+                      <TableHead>Data Registrazione</TableHead>
+                      <TableHead>Azioni</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">{user.email}</TableCell>
+                        <TableCell>
+                          {user.firstName && user.lastName 
+                            ? `${user.firstName} ${user.lastName}` 
+                            : "N/A"
+                          }
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={user.hasPaid ? "default" : "secondary"}>
+                              {user.hasPaid ? "Pagato" : "Non Pagato"}
+                            </Badge>
+                            <Switch
+                              checked={user.hasPaid}
+                              onCheckedChange={(checked) => 
+                                togglePaymentMutation.mutate({ userId: user.id, hasPaid: checked })
+                              }
+                              disabled={togglePaymentMutation.isPending}
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell>{formatDate(user.createdAt)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => deleteUserMutation.mutate(user.id)}
+                              disabled={deleteUserMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="analytics" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Analytics di Sistema</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Database className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">
+                    Analytics avanzate in sviluppo
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="maintenance" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Manutenzione Sistema</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="maintenance-mode">Modalità Manutenzione</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Disabilita l'accesso per tutti gli utenti non amministratori
                     </p>
-                    <div className="space-y-2">
-                      <Button 
-                        onClick={() => createBackupMutation.mutate()}
-                        disabled={createBackupMutation.isPending}
-                        className="w-full"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        {createBackupMutation.isPending ? "Creando Backup..." : "Crea Backup"}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Server className="h-5 w-5" />
-                      Stato Sistema
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Modalità Manutenzione</span>
-                      <Switch
-                        checked={isMaintenanceMode}
-                        onCheckedChange={setIsMaintenanceMode}
-                      />
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Quando attiva, solo gli admin possono accedere al sistema.
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* Maintenance Tab */}
-            <TabsContent value="maintenance" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-orange-500" />
-                    Manutenzione Sistema
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Funzionalità di manutenzione avanzata per la gestione del sistema MenuIsland.
-                    </p>
-                    
-                    <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                      <div className="flex items-start space-x-3">
-                        <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
-                        <div>
-                          <h4 className="font-medium text-yellow-800 dark:text-yellow-200">
-                            Funzionalità in Sviluppo
-                          </h4>
-                          <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                            Le funzionalità di manutenzione avanzata saranno disponibili nella prossima versione.
-                            Include: pulizia cache, ottimizzazione database, gestione log di sistema.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+                  <Switch
+                    id="maintenance-mode"
+                    checked={isMaintenanceMode}
+                    onCheckedChange={setIsMaintenanceMode}
+                  />
+                </div>
+                
+                <div className="pt-4 border-t">
+                  <Button variant="outline" className="w-full">
+                    <Database className="h-4 w-4 mr-2" />
+                    Backup Database
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="support" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Supporto Clienti</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Mail className="h-4 w-4 mr-2" />
+                      Invia Email di Supporto
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Invia Email di Supporto</DialogTitle>
+                    </DialogHeader>
+                    <AdminEmailForm />
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
 }
 
 // Admin Email Form Component
-function AdminEmailForm({ 
-  userEmail, 
-  onSend, 
-  isLoading 
-}: { 
-  userEmail: string; 
-  onSend: (data: { to: string; subject: string; message: string }) => void; 
-  isLoading: boolean;
-}) {
+function AdminEmailForm() {
+  const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (subject.trim() && message.trim()) {
-      onSend({ to: userEmail, subject, message });
+    setIsLoading(true);
+    
+    try {
+      await apiRequest("POST", "/api/admin/send-support-email", {
+        to: email,
+        subject,
+        message,
+      });
+      
+      toast({
+        title: "Successo",
+        description: "Email inviata con successo",
+      });
+      
+      setEmail("");
       setSubject("");
       setMessage("");
+    } catch (error) {
+      toast({
+        title: "Errore",
+        description: "Errore nell'invio dell'email",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
+        <Label htmlFor="email">Email Destinatario</Label>
+        <Input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </div>
+      <div>
         <Label htmlFor="subject">Oggetto</Label>
         <Input
           id="subject"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
-          placeholder="Oggetto dell'email"
           required
         />
       </div>
@@ -536,7 +446,6 @@ function AdminEmailForm({
           id="message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Scrivi il tuo messaggio..."
           rows={4}
           required
         />

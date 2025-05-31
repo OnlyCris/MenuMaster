@@ -8,10 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { User, Mail, Calendar, Shield, CreditCard, LogOut } from "lucide-react";
+import { User, Mail, Calendar, Shield, CreditCard, LogOut, ArrowLeft } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import Sidebar from "@/components/layout/Sidebar";
-import Topbar from "@/components/layout/Topbar";
+import { Link } from "wouter";
 
 export default function Settings() {
   const { user } = useAuth();
@@ -84,24 +83,32 @@ export default function Settings() {
   if (!user) return null;
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-950">
-      <Sidebar />
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-950">
+      {/* Header with back navigation */}
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Torna alla Dashboard
+            </Link>
+          </Button>
+          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Impostazioni
+          </h1>
+        </div>
+      </div>
       
-      <div className="flex-1 pl-64 overflow-y-auto">
-        <Topbar 
-          title="Impostazioni" 
-          showNewButton={false}
-        />
-        
-        <div className="p-6 space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Impostazioni Account</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Gestisci le tue informazioni personali e le preferenze dell'account
-            </p>
-          </div>
+      <div className="p-6 space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Impostazioni Account</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Gestisci le tue informazioni personali e le preferenze dell'account
+          </p>
+        </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Profile Information */}
             <div className="lg:col-span-2">
               <Card>
