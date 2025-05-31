@@ -771,7 +771,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Generate QR code
-      const qrUrl = `https://${restaurant.subdomain}.menumaster.com`;
+      const qrUrl = `https://${restaurant.subdomain}.menuisland.it`;
       const qrDataUrl = await QRCode.toDataURL(qrUrl, {
         width: 300,
         margin: 2,
@@ -944,8 +944,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Client invitation routes
-  app.get("/api/client-invitations", requireAuth, async (req, res) => {
+  // Client invitation routes (admin only)
+  app.get("/api/client-invitations", requireAdmin, async (req, res) => {
     try {
       const invitations = await storage.getClientInvitations();
       res.json(invitations);
@@ -955,7 +955,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/client-invitations", requireAuth, async (req: any, res) => {
+  app.post("/api/client-invitations", requireAdmin, async (req: any, res) => {
     try {
       // Extract and validate only the required fields
       const { email, restaurantName } = req.body;
@@ -1114,7 +1114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/client-invitations/:id", requireAuth, async (req, res) => {
+  app.delete("/api/client-invitations/:id", requireAdmin, async (req, res) => {
     try {
       const id = Number(req.params.id);
       const success = await storage.deleteClientInvitation(id);

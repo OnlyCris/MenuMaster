@@ -124,7 +124,7 @@ export function setupSimpleAuth(app: Express) {
     }
   });
 
-  // Logout endpoint
+  // Logout endpoint (POST)
   app.post("/api/auth/logout", (req: Request, res: Response) => {
     req.session.destroy((err) => {
       if (err) {
@@ -132,6 +132,17 @@ export function setupSimpleAuth(app: Express) {
         return res.status(500).json({ message: "Errore durante il logout" });
       }
       res.json({ message: "Logout effettuato" });
+    });
+  });
+
+  // Logout endpoint (GET) for direct navigation
+  app.get("/api/logout", (req: Request, res: Response) => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+        return res.redirect("/?error=logout_failed");
+      }
+      res.redirect("/login");
     });
   });
 
