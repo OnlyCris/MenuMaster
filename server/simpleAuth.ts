@@ -194,3 +194,38 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
     res.status(500).json({ message: "Errore durante la verifica admin" });
   }
 }
+
+// Payment check middleware
+export async function requirePayment(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = (req.session as any)?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    // Admin users bypass payment requirement
+    if (user.isAdmin) {
+      (req as any).user = user;
+      return next();
+    }
+    
+    if (!user.hasPaid) {
+      return res.status(402).json({ 
+        message: "Payment required", 
+        redirectTo: "/payment" 
+      });
+    }
+
+    (req as any).user = user;
+    next();
+  } catch (error) {
+    console.error("Payment check error:", error);
+    res.status(500).json({ message: "Errore durante la verifica pagamento" });
+  }
+}

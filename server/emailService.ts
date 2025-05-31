@@ -179,7 +179,12 @@ export async function sendAdminSupportEmail(to: string, subject: string, message
       html,
     };
 
-    await sgMail.send(msg);
+    const { data, error } = await resend.emails.send(msg);
+    
+    if (error) {
+      console.error('Resend email error:', error);
+      return false;
+    }
     console.log(`Support email sent to ${to}`);
     return true;
   } catch (error) {

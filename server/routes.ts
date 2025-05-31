@@ -1251,8 +1251,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found or no email" });
       }
 
-      // Use email service to send message
-      const emailSent = await sendWelcomeEmail(user.email, subject, message);
+      // Use the new admin support email template
+      const { sendAdminSupportEmail } = await import('./emailService');
+      const emailSent = await sendAdminSupportEmail(user.email, subject, message);
       
       if (emailSent) {
         res.json({ success: true });
