@@ -78,6 +78,8 @@ export const templates = pgTable("templates", {
   cssStyles: text("css_styles"),
   isPopular: boolean("is_popular").default(false),
   isNew: boolean("is_new").default(false),
+  customizable: boolean("customizable").default(true),
+  colorVariables: text("color_variables"), // JSON string of customizable color variables
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
