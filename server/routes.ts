@@ -212,9 +212,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/restaurants", requireAuth, async (req: any, res) => {
+  app.post("/api/restaurants", requireAuth, requirePayment, async (req: any, res) => {
     try {
       const validatedData = insertRestaurantSchema.parse(req.body);
+      
+      // Check restaurant limit for non-admin users
+      const isUserAdmin = await isAdmin(req);
+      if (!isUserAdmin) {
+        const userRestaurants = await storage.getRestaurantsByOwner(req.user.id);
+        if (userRestaurants.length >= 1) {
+          return res.status(403).json({ 
+            message: "Hai raggiunto il limite di 1 ristorante. Contatta il supporto per aumentare il limite." 
+          });
+        }
+      }
       
       // Generate subdomain for the restaurant
       const baseSubdomain = generateSubdomain(validatedData.name);
@@ -979,9 +990,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         customerId = customer.id;
       }
 
-      // Create payment intent for one-time access fee (€49.99)
+      // Create payment intent for one-time access fee (€349.99)
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: 4999, // €49.99 in cents
+        amount: 34999, // €349.99 in cents
         currency: "eur",
         customer: customerId,
         metadata: {

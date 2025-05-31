@@ -89,7 +89,7 @@ const CheckoutForm = ({ clientSecret }: { clientSecret: string }) => {
         ) : (
           <>
             <CreditCard className="mr-2 h-4 w-4" />
-            Paga €49.99
+            Paga €349.99
           </>
         )}
       </Button>
@@ -196,10 +196,10 @@ export default function Checkout() {
             <div className="bg-primary/5 p-4 rounded-lg">
               <div className="flex justify-between items-center">
                 <span className="font-medium">Accesso completo alla piattaforma</span>
-                <span className="text-2xl font-bold">€49.99</span>
+                <span className="text-2xl font-bold">€349.99</span>
               </div>
               <ul className="mt-3 text-sm text-muted-foreground space-y-1">
-                <li>• Gestione ristoranti illimitati</li>
+                <li>• Gestione 1 ristorante completo</li>
                 <li>• Menu digitali personalizzabili</li>
                 <li>• QR codes e analytics</li>
                 <li>• Traduzione automatica</li>
