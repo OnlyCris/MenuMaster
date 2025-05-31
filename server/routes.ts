@@ -967,6 +967,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Maintenance mode routes (admin only)
+  app.get("/api/admin/maintenance", requireAdmin, async (req, res) => {
+    try {
+      // Check if maintenance mode is enabled (you can store this in database or environment variable)
+      const maintenanceMode = process.env.MAINTENANCE_MODE === 'true';
+      res.json({ maintenanceMode });
+    } catch (error) {
+      console.error("Error checking maintenance mode:", error);
+      res.status(500).json({ message: "Failed to check maintenance mode" });
+    }
+  });
+
+  app.post("/api/admin/maintenance/toggle", requireAdmin, async (req, res) => {
+    try {
+      const { enabled } = req.body;
+      // In a real application, you might want to store this in the database
+      // For now, we'll use environment variables
+      process.env.MAINTENANCE_MODE = enabled ? 'true' : 'false';
+      res.json({ maintenanceMode: enabled });
+    } catch (error) {
+      console.error("Error toggling maintenance mode:", error);
+      res.status(500).json({ message: "Failed to toggle maintenance mode" });
+    }
+  });
+
   // File upload route
   app.post("/api/upload", requireAuth, upload.single("file"), async (req: any, res) => {
     try {
@@ -1321,6 +1346,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user's restaurant limit (admin only)
+  app.patch("/api/admin/users/:userId/max-restaurants", requireAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { maxRestaurants } = req.body;
+      
+      if (!maxRestaurants || maxRestaurants < 1) {
+        return res.status(400).json({ message: "Il numero massimo di ristoranti deve essere almeno 1" });
+      }
+      
+      const updatedUser = await storage.updateUserMaxRestaurants(userId, maxRestaurants);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user restaurant limit:", error);
+      res.status(500).json({ message: "Failed to update restaurant limit" });
+    }
+  });
+
   // Delete user (admin only)
   app.delete("/api/admin/users/:userId", requireAdmin, async (req, res) => {
     try {
@@ -1358,7 +1401,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const command = `pg_dump "${databaseUrl}" > "${backupPath}"`;
       
-      exec(command, (error, stdout, stderr) => {
+      exec(command, (error: any, stdout: any, stderr: any) => {
         if (error) {
           console.error("Backup error:", error);
           return res.status(500).json({ message: "Failed to create backup" });
@@ -1372,7 +1415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           
           // Clean up the backup file after download
-          fs.unlink(backupPath, (unlinkErr) => {
+          fs.unlink(backupPath, (unlinkErr: any) => {
             if (unlinkErr) console.error("Failed to clean up backup file:", unlinkErr);
           });
         });
