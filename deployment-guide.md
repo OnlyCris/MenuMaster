@@ -50,6 +50,10 @@ mv .env.production .env
 
 ### Inizializzazione database
 ```bash
+# Rinomina il file di configurazione per SQLite
+mv drizzle.config.sqlite.ts drizzle.config.ts
+
+# Inizializza il database SQLite
 npm run db:push
 ```
 

@@ -47,7 +47,7 @@ const filesToInclude = [
   'tailwind.config.ts',
   'postcss.config.js',
   'components.json',
-  'drizzle.config.ts',
+  'drizzle.config.sqlite.ts',
   '.env.production',
   'deployment-guide.md'
 ];
