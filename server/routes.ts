@@ -45,9 +45,7 @@ const upload = multer({ storage: storage_multer });
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('STRIPE_SECRET_KEY environment variable must be set');
 }
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Helper function for checking if user is admin
 async function isAdmin(req: Request): Promise<boolean> {
@@ -1090,7 +1088,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Mark invitation as used
-      await storage.updateClientInvitation(invitation.id, { usedAt: new Date() });
+      await storage.updateClientInvitation(invitation.id, { status: "accepted" });
       
       // Send welcome email with menu URL
       const menuUrl = `https://${availableSubdomain}.menuisland.it`;

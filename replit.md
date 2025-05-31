@@ -1,8 +1,8 @@
-# MenuMaster - Restaurant Menu Management System
+# MenuIsland - Restaurant Menu Management System
 
 ## Overview
 
-MenuMaster is a web application for restaurant menu management. It allows restaurant owners to create digital menus, customize their appearance using templates, manage items and categories, and generate QR codes for customers to access menus.
+MenuIsland is a web application for restaurant menu management. It allows restaurant owners to create digital menus, customize their appearance using templates, manage items and categories, and generate QR codes for customers to access menus.
 
 The application is built with:
 - **Frontend**: React, Tailwind CSS, shadcn/ui component library

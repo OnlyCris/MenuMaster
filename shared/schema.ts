@@ -260,8 +260,6 @@ export const insertClientInvitationSchema = createInsertSchema(clientInvitations
   createdAt: true,
   usedAt: true,
   inviteCode: true,
-  expiresAt: true,
-  invitedBy: true,
 });
 
 // Export types
