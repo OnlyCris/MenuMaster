@@ -1398,6 +1398,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create the server
   const httpServer = createServer(app);
   
+  // Download endpoint for VPS deployment zip
+  app.get('/download-vps', (req, res) => {
+    const filePath = path.join(process.cwd(), 'menuisland-vps-ready.zip');
+    res.download(filePath, 'menuisland-vps-ready.zip', (err) => {
+      if (err) {
+        console.error('Download error:', err);
+        res.status(404).send('File not found');
+      }
+    });
+  });
+
   // Download endpoint for project zip
   app.get('/download', (req, res) => {
     const filePath = path.join(process.cwd(), 'menumaster-complete.zip');
