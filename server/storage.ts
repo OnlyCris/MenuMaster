@@ -93,6 +93,10 @@ export interface IStorage {
   getAnalytics(restaurantId: number, days?: number): Promise<Analytics[]>;
   incrementVisits(restaurantId: number): Promise<void>;
   incrementQrScans(restaurantId: number): Promise<void>;
+  getMostViewedMenuItems(restaurantId: number, days?: number): Promise<any[]>;
+  getMenuLanguageStats(restaurantId: number, days?: number): Promise<any[]>;
+  trackMenuItemView(view: InsertMenuItemView): Promise<void>;
+  trackLanguageUsage(restaurantId: number, language: string): Promise<void>;
   
   // Client invitation operations
   getClientInvitations(): Promise<ClientInvitation[]>;
@@ -524,6 +528,94 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(id: string): Promise<void> {
     await db.delete(users).where(eq(users.id, id));
+  }
+
+  // Advanced Analytics methods
+  async getMostViewedMenuItems(restaurantId: number, days = 30): Promise<any[]> {
+    const date = new Date();
+    date.setDate(date.getDate() - days);
+    
+    return await db
+      .select({
+        menuItemId: menuItemViews.menuItemId,
+        name: menuItems.name,
+        description: menuItems.description,
+        price: menuItems.price,
+        viewCount: sql<number>`count(*)`,
+        categoryName: categories.name
+      })
+      .from(menuItemViews)
+      .leftJoin(menuItems, eq(menuItemViews.menuItemId, menuItems.id))
+      .leftJoin(categories, eq(menuItems.categoryId, categories.id))
+      .where(
+        and(
+          eq(menuItemViews.restaurantId, restaurantId),
+          sql`${menuItemViews.viewedAt} >= ${date}`
+        )
+      )
+      .groupBy(menuItemViews.menuItemId, menuItems.name, menuItems.description, menuItems.price, categories.name)
+      .orderBy(sql`count(*) DESC`)
+      .limit(10);
+  }
+
+  async getMenuLanguageStats(restaurantId: number, days = 30): Promise<any[]> {
+    const date = new Date();
+    date.setDate(date.getDate() - days);
+    
+    return await db
+      .select({
+        language: menuLanguageUsage.language,
+        viewCount: sql<number>`sum(${menuLanguageUsage.viewCount})`,
+        lastUsed: sql<Date>`max(${menuLanguageUsage.lastUsed})`
+      })
+      .from(menuLanguageUsage)
+      .where(
+        and(
+          eq(menuLanguageUsage.restaurantId, restaurantId),
+          sql`${menuLanguageUsage.lastUsed} >= ${date}`
+        )
+      )
+      .groupBy(menuLanguageUsage.language)
+      .orderBy(sql`sum(${menuLanguageUsage.viewCount}) DESC`);
+  }
+
+  async trackMenuItemView(view: InsertMenuItemView): Promise<void> {
+    await db.insert(menuItemViews).values(view);
+  }
+
+  async trackLanguageUsage(restaurantId: number, language: string): Promise<void> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const [existing] = await db
+      .select()
+      .from(menuLanguageUsage)
+      .where(
+        and(
+          eq(menuLanguageUsage.restaurantId, restaurantId),
+          eq(menuLanguageUsage.language, language),
+          sql`DATE(${menuLanguageUsage.lastUsed}) = DATE(${today})`
+        )
+      );
+    
+    if (existing) {
+      await db
+        .update(menuLanguageUsage)
+        .set({ 
+          viewCount: sql`${menuLanguageUsage.viewCount} + 1`,
+          lastUsed: new Date()
+        })
+        .where(eq(menuLanguageUsage.id, existing.id));
+    } else {
+      await db
+        .insert(menuLanguageUsage)
+        .values({
+          restaurantId,
+          language,
+          viewCount: 1,
+          lastUsed: new Date(),
+        });
+    }
   }
 }
 

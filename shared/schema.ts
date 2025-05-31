@@ -187,6 +187,8 @@ export const restaurantsRelations = relations(restaurants, ({ one, many }) => ({
   categories: many(categories),
   qrCodes: many(qrCodes),
   analytics: many(analytics),
+  menuItemViews: many(menuItemViews),
+  languageUsage: many(menuLanguageUsage),
 }));
 
 export const categoriesRelations = relations(categories, ({ one, many }) => ({
@@ -301,5 +303,9 @@ export type InsertAllergen = z.infer<typeof insertAllergenSchema>;
 export type QrCode = typeof qrCodes.$inferSelect;
 export type InsertQrCode = z.infer<typeof insertQrCodeSchema>;
 export type Analytics = typeof analytics.$inferSelect;
+export type MenuItemView = typeof menuItemViews.$inferSelect;
+export type InsertMenuItemView = typeof menuItemViews.$inferInsert;
+export type MenuLanguageUsage = typeof menuLanguageUsage.$inferSelect;
+export type InsertMenuLanguageUsage = typeof menuLanguageUsage.$inferInsert;
 export type RestaurantTemplateCustomization = typeof restaurantTemplateCustomizations.$inferSelect;
 export type InsertRestaurantTemplateCustomization = typeof restaurantTemplateCustomizations.$inferInsert;

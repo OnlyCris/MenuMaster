@@ -847,11 +847,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Permission denied" });
       }
       
+      // Get comprehensive analytics data
       const analytics = await storage.getAnalytics(restaurantId, days);
-      res.json(analytics);
+      const mostViewedItems = await storage.getMostViewedMenuItems(restaurantId, days);
+      const languageStats = await storage.getMenuLanguageStats(restaurantId, days);
+      
+      const analyticsData = {
+        basicStats: analytics,
+        mostViewedItems,
+        languageStats,
+        totalViews: analytics.reduce((sum, day) => sum + day.visits, 0),
+        totalQrScans: analytics.reduce((sum, day) => sum + day.qrScans, 0)
+      };
+      
+      res.json(analyticsData);
     } catch (error) {
       console.error("Error fetching analytics:", error);
       res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
+  // Track menu item view
+  app.post("/api/restaurants/:id/track-view", async (req, res) => {
+    try {
+      const restaurantId = Number(req.params.id);
+      const { menuItemId, language, userAgent } = req.body;
+      const ipAddress = req.ip || req.connection.remoteAddress;
+      
+      // Track menu item view
+      if (menuItemId) {
+        await storage.trackMenuItemView({
+          menuItemId: Number(menuItemId),
+          restaurantId,
+          viewerLanguage: language || 'it',
+          userAgent,
+          ipAddress: ipAddress?.substring(0, 45) // Limit IP length for database
+        });
+      }
+      
+      // Track language usage
+      if (language) {
+        await storage.trackLanguageUsage(restaurantId, language);
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error tracking view:", error);
+      res.status(500).json({ message: "Failed to track view" });
     }
   });
 
