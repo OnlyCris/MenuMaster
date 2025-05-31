@@ -6,6 +6,7 @@ import { sendInviteEmail, sendWelcomeEmail } from "./emailService";
 import { createSubdomain, deleteSubdomain, generateSubdomain, findAvailableSubdomain } from "./cloudflareService";
 import { detectLanguageFromRequest, translateRestaurant, translateCategory, SUPPORTED_LANGUAGES } from "./translationService";
 import { insertTemplateSchema } from "../shared/schema";
+import Stripe from "stripe";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { 
@@ -39,6 +40,14 @@ const storage_multer = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage_multer });
+
+// Initialize Stripe
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY environment variable must be set');
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2024-06-20',
+});
 
 // Helper function for checking if user is admin
 async function isAdmin(req: Request): Promise<boolean> {
@@ -1102,6 +1111,158 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting invitation:", error);
       res.status(500).json({ message: "Failed to delete invitation" });
+    }
+  });
+
+  // STRIPE PAYMENT ENDPOINTS
+  
+  // Create payment intent for €349 one-time payment
+  app.post("/api/create-payment-intent", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (user.hasPaid) {
+        return res.status(400).json({ message: "User has already paid" });
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 34900, // €349 in cents
+        currency: 'eur',
+        metadata: {
+          userId: user.id,
+          userEmail: user.email || '',
+        },
+      });
+
+      // Update user with payment intent ID
+      await storage.updateUserPaymentInfo(user.id, {
+        stripePaymentIntentId: paymentIntent.id,
+      });
+
+      res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ message: "Failed to create payment intent" });
+    }
+  });
+
+  // Confirm payment after successful Stripe transaction
+  app.post("/api/confirm-payment", requireAuth, async (req, res) => {
+    try {
+      const { paymentIntentId } = req.body;
+      const userId = (req as any).user?.id;
+
+      if (!paymentIntentId) {
+        return res.status(400).json({ message: "Payment intent ID required" });
+      }
+
+      // Verify payment with Stripe
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      if (paymentIntent.status === 'succeeded' && paymentIntent.metadata.userId === userId) {
+        // Update user payment status
+        await storage.updateUserPaymentInfo(userId, {
+          hasPaid: true,
+          paymentDate: new Date(),
+        });
+
+        res.json({ success: true, message: "Payment confirmed" });
+      } else {
+        res.status(400).json({ message: "Payment not successful" });
+      }
+    } catch (error) {
+      console.error("Error confirming payment:", error);
+      res.status(500).json({ message: "Failed to confirm payment" });
+    }
+  });
+
+  // ADMIN ENDPOINTS
+
+  // Get all users (admin only)
+  app.get("/api/admin/users", requireAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // Get payment statistics (admin only)
+  app.get("/api/admin/payment-stats", requireAdmin, async (req, res) => {
+    try {
+      const stats = await storage.getPaymentStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching payment stats:", error);
+      res.status(500).json({ message: "Failed to fetch payment stats" });
+    }
+  });
+
+  // Toggle user payment status (admin only)
+  app.patch("/api/admin/users/:userId/payment", requireAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { hasPaid } = req.body;
+
+      await storage.updateUserPaymentInfo(userId, {
+        hasPaid,
+        paymentDate: hasPaid ? new Date() : null,
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating payment status:", error);
+      res.status(500).json({ message: "Failed to update payment status" });
+    }
+  });
+
+  // Send email to user (admin only)
+  app.post("/api/admin/send-email", requireAdmin, async (req, res) => {
+    try {
+      const { userId, subject, message } = req.body;
+      const user = await storage.getUser(userId);
+      
+      if (!user || !user.email) {
+        return res.status(404).json({ message: "User not found or no email" });
+      }
+
+      // Use email service to send message
+      const emailSent = await sendWelcomeEmail(user.email, subject, message);
+      
+      if (emailSent) {
+        res.json({ success: true });
+      } else {
+        res.status(500).json({ message: "Failed to send email" });
+      }
+    } catch (error) {
+      console.error("Error sending email:", error);
+      res.status(500).json({ message: "Failed to send email" });
+    }
+  });
+
+  // Delete user (admin only)
+  app.delete("/api/admin/users/:userId", requireAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const currentUserId = (req as any).user?.id;
+      
+      // Prevent admin from deleting themselves
+      if (userId === currentUserId) {
+        return res.status(400).json({ message: "Cannot delete your own account" });
+      }
+
+      await storage.deleteUser(userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
     }
   });
 
