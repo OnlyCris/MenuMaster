@@ -1386,40 +1386,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create database backup (admin only)
   app.post("/api/admin/backup", requireAdmin, async (req, res) => {
     try {
-      const { exec } = require('child_process');
+      const { Pool } = require('pg');
       const fs = require('fs');
       const path = require('path');
       
-      const backupFileName = `menuisland-backup-${new Date().toISOString().split('T')[0]}.sql`;
+      const backupFileName = `menuisland-backup-${new Date().toISOString().split('T')[0]}.json`;
       const backupPath = path.join(process.cwd(), backupFileName);
       
-      // Use pg_dump to create backup
-      const databaseUrl = process.env.DATABASE_URL;
-      if (!databaseUrl) {
-        return res.status(500).json({ message: "Database URL not configured" });
+      // Get all data from database
+      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      
+      const tables = [
+        'users', 'restaurants', 'categories', 'menu_items', 
+        'allergens', 'menu_item_allergens', 'qr_codes', 
+        'analytics', 'menu_item_views', 'menu_language_usage',
+        'client_invitations', 'templates'
+      ];
+      
+      const backup: any = {};
+      
+      for (const table of tables) {
+        try {
+          const result = await pool.query(`SELECT * FROM ${table}`);
+          backup[table] = result.rows;
+        } catch (err) {
+          console.warn(`Table ${table} not found or error:`, err);
+          backup[table] = [];
+        }
       }
       
-      const command = `pg_dump "${databaseUrl}" > "${backupPath}"`;
+      // Write backup to file
+      fs.writeFileSync(backupPath, JSON.stringify(backup, null, 2));
       
-      exec(command, (error: any, stdout: any, stderr: any) => {
-        if (error) {
-          console.error("Backup error:", error);
-          return res.status(500).json({ message: "Failed to create backup" });
+      // Send the backup file
+      res.download(backupPath, backupFileName, (err) => {
+        if (err) {
+          console.error("Download error:", err);
+          return res.status(500).json({ message: "Failed to download backup" });
         }
         
-        // Send the backup file
-        res.download(backupPath, backupFileName, (err) => {
-          if (err) {
-            console.error("Download error:", err);
-            return res.status(500).json({ message: "Failed to download backup" });
-          }
-          
-          // Clean up the backup file after download
-          fs.unlink(backupPath, (unlinkErr: any) => {
-            if (unlinkErr) console.error("Failed to clean up backup file:", unlinkErr);
-          });
+        // Clean up the backup file after download
+        fs.unlink(backupPath, (unlinkErr: any) => {
+          if (unlinkErr) console.error("Failed to clean up backup file:", unlinkErr);
         });
       });
+      
+      await pool.end();
     } catch (error) {
       console.error("Error creating backup:", error);
       res.status(500).json({ message: "Failed to create backup" });

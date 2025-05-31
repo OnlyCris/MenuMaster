@@ -23,14 +23,18 @@ const RestaurantView = () => {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
   
-  // Track QR scan
+  // Track QR scan and language usage
   useEffect(() => {
-    // This simulates a QR scan when the page is loaded
-    // In a real scenario, this would be triggered by a specific query parameter
     const trackScan = async () => {
       try {
-        if (subdomain) {
+        if (subdomain && data?.restaurant?.id) {
           await apiRequest("GET", `/api/scan/${subdomain}`);
+          
+          // Track language usage
+          await apiRequest("POST", `/api/restaurants/${data.restaurant.id}/track-view`, {
+            language: 'it', // Default language for public menu
+            userAgent: navigator.userAgent
+          });
         }
       } catch (error) {
         console.error("Failed to track QR scan:", error);
@@ -41,6 +45,21 @@ const RestaurantView = () => {
       trackScan();
     }
   }, [subdomain, isLoading, data]);
+
+  // Track menu item views when user clicks on items
+  const trackMenuItemView = async (menuItemId: number) => {
+    try {
+      if (data?.restaurant?.id) {
+        await apiRequest("POST", `/api/restaurants/${data.restaurant.id}/track-view`, {
+          menuItemId,
+          language: 'it',
+          userAgent: navigator.userAgent
+        });
+      }
+    } catch (error) {
+      console.error("Failed to track menu item view:", error);
+    }
+  };
   
   // Set first category as active when data loads
   useEffect(() => {
@@ -153,7 +172,11 @@ const RestaurantView = () => {
               </div>
             ) : (
               activeItems.map((item) => (
-                <div key={item.id} className="flex border-b border-neutral-100 dark:border-gray-700 pb-4">
+                <div 
+                  key={item.id} 
+                  className="flex border-b border-neutral-100 dark:border-gray-700 pb-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors rounded-lg p-2 -m-2"
+                  onClick={() => trackMenuItemView(item.id)}
+                >
                   <div className="h-20 w-20 rounded-lg overflow-hidden flex-shrink-0">
                     <img 
                       src={item.imageUrl || "https://via.placeholder.com/150?text=Piatto"} 
