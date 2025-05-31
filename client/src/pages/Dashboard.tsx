@@ -10,6 +10,7 @@ import RestaurantList from "@/components/dashboard/RestaurantList";
 import TemplateGallery from "@/components/templates/TemplateGallery";
 import MenuPreview from "@/components/menu/MenuPreview";
 import RestaurantForm from "@/components/restaurants/RestaurantForm";
+import { PaymentGuard } from "@/components/PaymentGuard";
 import {
   Dialog,
   DialogContent,

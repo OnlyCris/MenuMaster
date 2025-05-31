@@ -125,6 +125,69 @@ export async function sendInviteEmail({
   }
 }
 
+export async function sendAdminSupportEmail(to: string, subject: string, message: string, fromName: string = "MenuMaster Support"): Promise<boolean> {
+  try {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Supporto MenuMaster</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white;">
+          
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">MenuMaster</h1>
+            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Supporto Tecnico</p>
+          </div>
+          
+          <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h2 style="color: #4a5568; margin-top: 0;">${subject}</h2>
+            
+            <div style="font-size: 16px; line-height: 1.6; color: #2d3748; margin-bottom: 25px;">
+              ${message.replace(/\n/g, '<br>')}
+            </div>
+            
+            <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #667eea;">
+              <h3 style="color: #2d3748; margin-top: 0; font-size: 16px;">Informazioni di contatto:</h3>
+              <p style="color: #4a5568; margin-bottom: 5px;"><strong>Email:</strong> support@menumaster.it</p>
+              <p style="color: #4a5568; margin-bottom: 5px;"><strong>Telefono:</strong> +39 02 1234 5678</p>
+              <p style="color: #4a5568; margin: 0;"><strong>Orari:</strong> Lun-Ven 9:00-18:00</p>
+            </div>
+            
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 30px;">
+              <p style="font-size: 14px; color: #718096; margin-bottom: 10px;">
+                Questa email è stata inviata dal team di supporto di MenuMaster.
+              </p>
+              <p style="font-size: 12px; color: #a0aec0; margin: 0;">
+                © 2024 MenuMaster. Tutti i diritti riservati.
+              </p>
+            </div>
+          </div>
+          
+        </div>
+      </body>
+      </html>
+    `;
+
+    const msg = {
+      to,
+      from: 'noreply@menumaster.it',
+      subject: `[MenuMaster Support] ${subject}`,
+      html,
+    };
+
+    await sgMail.send(msg);
+    console.log(`Support email sent to ${to}`);
+    return true;
+  } catch (error) {
+    console.error('Error sending support email:', error);
+    return false;
+  }
+}
+
 export async function sendWelcomeEmail(to: string, restaurantName: string, menuUrl: string): Promise<boolean> {
   try {
     const { data, error } = await resend.emails.send({
