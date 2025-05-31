@@ -125,6 +125,22 @@ const adminOnly = async (req: any, res: any, next: any) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Public VPS package download (must be before auth middleware)
+  app.get('/vps-download', (req, res) => {
+    const filePath = path.join(process.cwd(), 'menuisland-vps-ready.zip');
+    
+    if (fs.existsSync(filePath)) {
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="menuisland-vps-ready.zip"');
+      
+      const stream = fs.createReadStream(filePath);
+      stream.pipe(res);
+    } else {
+      res.status(404).send('Package not found');
+    }
+  });
+
   // Auth middleware
   setupSimpleAuth(app);
   
