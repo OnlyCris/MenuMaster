@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { TemplatePreview } from "./TemplatePreview";
+import { TemplateCardPreview } from "./TemplateCardPreview";
+import { TemplateModalPreview } from "./TemplateModalPreview";
 
 type TemplateCardProps = {
   template: Template;
@@ -17,8 +18,16 @@ type TemplateCardProps = {
 const TemplateCard = ({ template, onSelect, onPreview }: TemplateCardProps) => {
   return (
     <Card className="template-card overflow-hidden hover:shadow-lg transition-all duration-300 group">
-      <div className="relative h-48 overflow-hidden">
-        <TemplatePreview template={template} />
+      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-700">
+        {template.thumbnailUrl ? (
+          <img 
+            src={template.thumbnailUrl} 
+            alt={template.name} 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+          />
+        ) : (
+          <TemplateCardPreview template={template} />
+        )}
         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
           <Button 
             size="sm"
@@ -174,10 +183,9 @@ const TemplateGallery = ({ onSelect, onPreview, limit }: TemplateGalleryProps) =
             <DialogTitle>Anteprima Template - {previewTemplate?.name}</DialogTitle>
           </DialogHeader>
           {previewTemplate && (
-            <TemplatePreview 
+            <TemplateModalPreview 
               template={previewTemplate} 
               onSelect={onSelect}
-              showColorSelector={true}
             />
           )}
         </DialogContent>
