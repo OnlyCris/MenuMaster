@@ -107,6 +107,8 @@ const Dashboard = () => {
             restaurantsCount={restaurants.length} 
             visitsToday={visitsToday}
             scansToday={scansToday}
+            totalMenuItems={analyticsData?.totalMenuItems || 0}
+            totalCategories={analyticsData?.totalCategories || 0}
           />
           
           {/* Restaurants List */}
