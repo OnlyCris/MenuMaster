@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Template } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { TemplatePreview } from "./TemplatePreview";
 
 type TemplateCardProps = {
   template: Template;
@@ -14,25 +17,8 @@ type TemplateCardProps = {
 const TemplateCard = ({ template, onSelect, onPreview }: TemplateCardProps) => {
   return (
     <Card className="template-card overflow-hidden hover:shadow-lg transition-all duration-300 group">
-      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-700">
-        {template.thumbnailUrl ? (
-          <img 
-            src={template.thumbnailUrl} 
-            alt={template.name} 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-primary/20 flex items-center justify-center">
-                <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{template.name}</p>
-            </div>
-          </div>
-        )}
+      <div className="relative h-48 overflow-hidden">
+        <TemplatePreview template={template} />
         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
           <Button 
             size="sm"
@@ -98,11 +84,18 @@ type TemplateGalleryProps = {
 };
 
 const TemplateGallery = ({ onSelect, onPreview, limit }: TemplateGalleryProps) => {
+  const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
+  
   const { data: templates = [], isLoading } = useQuery<Template[]>({
     queryKey: ["/api/templates"],
   });
   
   const displayTemplates = limit ? templates.slice(0, limit) : templates;
+
+  const handlePreview = (template: Template) => {
+    setPreviewTemplate(template);
+    onPreview(template);
+  };
   
   return (
     <Card className="shadow-sm overflow-hidden mb-8">
@@ -139,7 +132,7 @@ const TemplateGallery = ({ onSelect, onPreview, limit }: TemplateGalleryProps) =
                 key={template.id}
                 template={template}
                 onSelect={onSelect}
-                onPreview={onPreview}
+                onPreview={handlePreview}
               />
             ))}
           </div>
@@ -173,6 +166,22 @@ const TemplateGallery = ({ onSelect, onPreview, limit }: TemplateGalleryProps) =
           </div>
         )}
       </CardContent>
+      
+      {/* Preview Modal */}
+      <Dialog open={!!previewTemplate} onOpenChange={() => setPreviewTemplate(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Anteprima Template - {previewTemplate?.name}</DialogTitle>
+          </DialogHeader>
+          {previewTemplate && (
+            <TemplatePreview 
+              template={previewTemplate} 
+              onSelect={onSelect}
+              showColorSelector={true}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
