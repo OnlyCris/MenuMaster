@@ -97,7 +97,7 @@ const MenuEditor = () => {
               <>
                 <div className="bg-white p-4 rounded-lg">
                   <img 
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://${restaurant.subdomain}.menumaster.com`}
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://${restaurant.subdomain}.menuisland.it`}
                     alt="QR Code"
                     className="w-48 h-48"
                   />
@@ -105,7 +105,7 @@ const MenuEditor = () => {
                 <p className="mt-4 text-sm text-center text-muted-foreground">
                   Questo codice QR reindirizza a<br />
                   <span className="font-medium text-primary">
-                    https://{restaurant.subdomain}.menumaster.com
+                    https://{restaurant.subdomain}.menuisland.it
                   </span>
                 </p>
                 <div className="mt-4 flex space-x-2">

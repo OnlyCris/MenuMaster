@@ -78,6 +78,7 @@ const MenuPreview = ({ restaurantId, onGenerateQR }: MenuPreviewProps) => {
       await apiRequest("POST", "/api/qr-codes", {
         restaurantId: restaurant.id,
         name: `QR per ${restaurant.name}`,
+        qrData: `https://${restaurant.subdomain}.menuisland.it`,
       });
       
       toast({
