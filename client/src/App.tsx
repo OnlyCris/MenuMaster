@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Dashboard from "@/pages/Dashboard";
 import Restaurants from "@/pages/Restaurants";
 import MenuEditor from "@/pages/MenuEditor";
+import Analytics from "@/pages/Analytics";
 import Templates from "@/pages/Templates";
 import Allergens from "@/pages/Allergens";
 import Settings from "@/pages/Settings";
@@ -91,6 +92,7 @@ function Router() {
       <Route path="/admin" component={AdminPanel} />
       <Route path="/restaurants" component={Restaurants} />
       <Route path="/restaurants/:id/menu" component={MenuEditor} />
+      <Route path="/restaurants/:id/analytics" component={Analytics} />
       <Route path="/templates" component={Templates} />
       <Route path="/allergens" component={Allergens} />
       <Route path="/clients" component={ClientInvitations} />

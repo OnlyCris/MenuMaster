@@ -145,23 +145,29 @@ const TemplateGallery = ({ onSelect, onPreview, limit }: TemplateGalleryProps) =
         )}
         
         {limit && templates.length > limit && (
-          <div className="border-t border-neutral-100 pt-6 mt-6 flex justify-center">
-            <Button variant="link" className="text-accent font-opensans flex items-center">
-              Vedi tutti i template 
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 ml-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+          <div className="border-t border-neutral-100 dark:border-gray-700 pt-6 mt-6 flex justify-center">
+            <Button 
+              variant="link" 
+              className="text-primary hover:text-primary/80 font-medium flex items-center"
+              asChild
+            >
+              <Link href="/templates">
+                Vedi tutti i template 
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 ml-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
             </Button>
           </div>
         )}
