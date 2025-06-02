@@ -831,6 +831,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dashboard analytics - aggregated data for all user's restaurants
+  app.get("/api/analytics/dashboard", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Get all user's restaurants
+      const userRestaurants = await storage.getRestaurantsByOwner(userId);
+      
+      if (userRestaurants.length === 0) {
+        return res.json({
+          totalVisits: 0,
+          totalScans: 0,
+          totalMenuItems: 0,
+          totalCategories: 0,
+          chartData: []
+        });
+      }
+
+      // Calculate totals for the last 30 days
+      let totalVisits = 0;
+      let totalScans = 0;
+      let totalMenuItems = 0;
+      let totalCategories = 0;
+
+      for (const restaurant of userRestaurants) {
+        const analytics = await storage.getAnalytics(restaurant.id, 30);
+        const categories = await storage.getCategories(restaurant.id);
+        
+        // Sum up visits and scans
+        totalVisits += analytics.reduce((sum, day) => sum + (day.visits || 0), 0);
+        totalScans += analytics.reduce((sum, day) => sum + (day.qrScans || 0), 0);
+        totalCategories += categories.length;
+        
+        // Count menu items for this restaurant
+        for (const category of categories) {
+          const items = await storage.getMenuItems(category.id);
+          totalMenuItems += items.length;
+        }
+      }
+
+      // Create chart data for the last 7 days
+      const last7Days = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        let dayVisits = 0;
+        let dayScans = 0;
+        
+        for (const restaurant of userRestaurants) {
+          const analytics = await storage.getAnalytics(restaurant.id, 7);
+          const dayData = analytics.find(a => a.date && a.date.toISOString().split('T')[0] === dateStr);
+          if (dayData) {
+            dayVisits += dayData.visits || 0;
+            dayScans += dayData.qrScans || 0;
+          }
+        }
+        
+        last7Days.push({
+          date: date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' }),
+          visits: dayVisits,
+          scans: dayScans
+        });
+      }
+
+      res.json({
+        totalVisits,
+        totalScans,
+        totalMenuItems,
+        totalCategories,
+        chartData: last7Days
+      });
+    } catch (error) {
+      console.error("Error fetching dashboard analytics:", error);
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
   // Analytics routes
   app.get("/api/restaurants/:id/analytics", requireAuth, async (req: any, res) => {
     try {

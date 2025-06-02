@@ -35,18 +35,25 @@ const Dashboard = () => {
     enabled: isAuthenticated,
   });
 
-  // Analytics data - for simplicity, using stats for all restaurants
-  const [visitsToday, setVisitsToday] = useState(0);
-  const [scansToday, setScansToday] = useState(0);
-  
-  // Simulate fetching analytics data
-  useEffect(() => {
-    if (restaurants.length > 0) {
-      // Randomize for demo purposes - in real app, fetch from API
-      setVisitsToday(Math.floor(Math.random() * 500) + 100);
-      setScansToday(Math.floor(Math.random() * 200) + 50);
-    }
-  }, [restaurants]);
+  // Fetch real analytics data for all user's restaurants
+  const { data: analyticsData } = useQuery<{
+    totalVisits: number;
+    totalScans: number;
+    totalMenuItems: number;
+    totalCategories: number;
+    chartData: Array<{
+      date: string;
+      visits: number;
+      scans: number;
+    }>;
+  }>({
+    queryKey: ["/api/analytics/dashboard"],
+    enabled: isAuthenticated && restaurants.length > 0,
+  });
+
+  // Calculate totals from real data
+  const visitsToday = analyticsData?.totalVisits || 0;
+  const scansToday = analyticsData?.totalScans || 0;
 
   // Handle restaurant edit/create
   const handleEditRestaurant = (restaurant: Restaurant) => {
@@ -124,15 +131,14 @@ const Dashboard = () => {
             <div className="p-6">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart
-                  data={[
-                    { name: 'Lun', visite: Math.floor(Math.random() * 100) + 50, scansioni: Math.floor(Math.random() * 50) + 20 },
-                    { name: 'Mar', visite: Math.floor(Math.random() * 100) + 50, scansioni: Math.floor(Math.random() * 50) + 20 },
-                    { name: 'Mer', visite: Math.floor(Math.random() * 100) + 50, scansioni: Math.floor(Math.random() * 50) + 20 },
-                    { name: 'Gio', visite: Math.floor(Math.random() * 100) + 50, scansioni: Math.floor(Math.random() * 50) + 20 },
-                    { name: 'Ven', visite: Math.floor(Math.random() * 100) + 50, scansioni: Math.floor(Math.random() * 50) + 20 },
-                    { name: 'Sab', visite: Math.floor(Math.random() * 100) + 50, scansioni: Math.floor(Math.random() * 50) + 20 },
-                    { name: 'Dom', visite: Math.floor(Math.random() * 100) + 50, scansioni: Math.floor(Math.random() * 50) + 20 },
-                  ]}
+                  data={analyticsData?.chartData?.length ? 
+                    analyticsData.chartData.map(day => ({
+                      name: day.date,
+                      visite: day.visits,
+                      scansioni: day.scans
+                    })) : 
+                    [{ name: 'Nessun dato', visite: 0, scansioni: 0 }]
+                  }
                   margin={{
                     top: 20,
                     right: 30,
