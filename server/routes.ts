@@ -952,6 +952,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate test analytics data for a restaurant (for testing purposes)
+  app.post("/api/restaurants/:id/generate-test-data", requireAuth, async (req, res) => {
+    try {
+      const restaurantId = Number(req.params.id);
+      const restaurant = await storage.getRestaurant(restaurantId);
+      
+      if (!restaurant) {
+        return res.status(404).json({ message: "Restaurant not found" });
+      }
+
+      // Check if user owns this restaurant
+      const userId = (req.user as any)?.id;
+      if (restaurant.ownerId !== userId) {
+        return res.status(403).json({ message: "Permission denied" });
+      }
+
+      // Generate some realistic test data for the last 7 days
+      const languages = ['it', 'en', 'fr', 'es', 'de'];
+      const userAgents = [
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)',
+        'Mozilla/5.0 (Android 12; Mobile; rv:94.0)',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
+      ];
+
+      // Generate visits and QR scans for the last 7 days
+      for (let i = 0; i < 7; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        
+        const dailyVisits = Math.floor(Math.random() * 20) + 5;
+        const dailyScans = Math.floor(Math.random() * 10) + 2;
+        
+        // Create analytics entries
+        for (let v = 0; v < dailyVisits; v++) {
+          await storage.incrementVisits(restaurantId);
+        }
+        
+        for (let s = 0; s < dailyScans; s++) {
+          await storage.incrementQrScans(restaurantId);
+        }
+
+        // Track language usage
+        for (let l = 0; l < Math.floor(dailyVisits / 2); l++) {
+          const randomLang = languages[Math.floor(Math.random() * languages.length)];
+          await storage.trackLanguageUsage(restaurantId, randomLang);
+        }
+      }
+
+      // Generate menu item views for existing items
+      const categories = await storage.getCategories(restaurantId);
+      for (const category of categories) {
+        const items = await storage.getMenuItems(category.id);
+        for (const item of items) {
+          const viewCount = Math.floor(Math.random() * 50) + 10;
+          for (let v = 0; v < viewCount; v++) {
+            const randomLang = languages[Math.floor(Math.random() * languages.length)];
+            const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+            
+            await storage.trackMenuItemView({
+              menuItemId: item.id,
+              restaurantId,
+              viewerLanguage: randomLang,
+              userAgent: randomUserAgent,
+              ipAddress: `192.168.1.${Math.floor(Math.random() * 255)}`
+            });
+          }
+        }
+      }
+
+      res.json({ message: "Test data generated successfully" });
+    } catch (error) {
+      console.error("Error generating test data:", error);
+      res.status(500).json({ message: "Failed to generate test data" });
+    }
+  });
+
   // Track menu item view
   app.post("/api/restaurants/:id/track-view", async (req, res) => {
     try {
