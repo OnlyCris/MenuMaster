@@ -1687,18 +1687,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Fix admin email endpoint to use correct parameter
+  // Email template management endpoints (admin only)
+  app.get("/api/admin/email-templates", requireAdmin, async (req, res) => {
+    try {
+      const templates = await storage.getEmailTemplates();
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching email templates:", error);
+      res.status(500).json({ message: "Failed to fetch email templates" });
+    }
+  });
+
+  app.get("/api/admin/email-templates/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const template = await storage.getEmailTemplate(parseInt(id));
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      res.json(template);
+    } catch (error) {
+      console.error("Error fetching email template:", error);
+      res.status(500).json({ message: "Failed to fetch email template" });
+    }
+  });
+
+  app.post("/api/admin/email-templates", requireAdmin, async (req, res) => {
+    try {
+      const template = await storage.createEmailTemplate(req.body);
+      res.status(201).json(template);
+    } catch (error) {
+      console.error("Error creating email template:", error);
+      res.status(500).json({ message: "Failed to create email template" });
+    }
+  });
+
+  app.put("/api/admin/email-templates/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const template = await storage.updateEmailTemplate(parseInt(id), req.body);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      res.json(template);
+    } catch (error) {
+      console.error("Error updating email template:", error);
+      res.status(500).json({ message: "Failed to update email template" });
+    }
+  });
+
+  app.delete("/api/admin/email-templates/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteEmailTemplate(parseInt(id));
+      if (!deleted) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting email template:", error);
+      res.status(500).json({ message: "Failed to delete email template" });
+    }
+  });
+
+  // Send email using template (admin only)
   app.post("/api/admin/send-email", requireAdmin, async (req, res) => {
     try {
-      const { to, subject, message } = req.body;
+      const { to, subject, message, templateId, variables } = req.body;
       
-      if (!to || !subject || !message) {
+      let emailContent = message;
+      let emailSubject = subject;
+
+      // If using a template, get it and replace variables
+      if (templateId) {
+        const template = await storage.getEmailTemplate(templateId);
+        if (!template) {
+          return res.status(404).json({ message: "Template not found" });
+        }
+        
+        emailContent = template.htmlContent;
+        emailSubject = template.subject;
+
+        // Replace variables in content and subject
+        if (variables) {
+          Object.keys(variables).forEach(key => {
+            const value = variables[key];
+            emailContent = emailContent.replace(new RegExp(`{{${key}}}`, 'g'), value);
+            emailSubject = emailSubject.replace(new RegExp(`{{${key}}}`, 'g'), value);
+          });
+        }
+      }
+      
+      if (!to || !emailSubject || !emailContent) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
-      // Use the admin support email service
+      // Use the email service with processed content
       const { sendAdminSupportEmail } = await import('./emailService');
-      const emailSent = await sendAdminSupportEmail(to, subject, message);
+      const emailSent = await sendAdminSupportEmail(to, emailSubject, emailContent);
       
       if (emailSent) {
         res.json({ success: true });

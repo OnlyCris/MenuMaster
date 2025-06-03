@@ -310,3 +310,27 @@ export type MenuLanguageUsage = typeof menuLanguageUsage.$inferSelect;
 export type InsertMenuLanguageUsage = typeof menuLanguageUsage.$inferInsert;
 export type RestaurantTemplateCustomization = typeof restaurantTemplateCustomizations.$inferSelect;
 export type InsertRestaurantTemplateCustomization = typeof restaurantTemplateCustomizations.$inferInsert;
+
+// Email templates table
+export const emailTemplates = pgTable("email_templates", {
+  id: serial("id").primaryKey(),
+  type: varchar("type").notNull(), // 'support', 'welcome', 'invitation', 'payment_confirmation'
+  name: varchar("name").notNull(),
+  subject: varchar("subject").notNull(),
+  htmlContent: text("html_content").notNull(),
+  textContent: text("text_content"),
+  variables: jsonb("variables").default([]), // Array of available variables like {{name}}, {{email}}
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Email template schema
+export const insertEmailTemplateSchema = createInsertSchema(emailTemplates, {
+  subject: z.string().min(1, "Subject is required"),
+  htmlContent: z.string().min(1, "HTML content is required"),
+  type: z.enum(["support", "welcome", "invitation", "payment_confirmation"]),
+});
+
+export type EmailTemplate = typeof emailTemplates.$inferSelect;
+export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
