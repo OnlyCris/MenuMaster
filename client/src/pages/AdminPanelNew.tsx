@@ -55,6 +55,19 @@ interface Restaurant {
   ownerEmail: string;
 }
 
+interface EmailTemplate {
+  id: number;
+  type: string;
+  name: string;
+  subject: string;
+  htmlContent: string;
+  textContent?: string;
+  variables: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function AdminPanel() {
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
@@ -104,6 +117,11 @@ export default function AdminPanel() {
 
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
     queryKey: ["/api/admin/restaurants"],
+    retry: false,
+  });
+
+  const { data: emailTemplates = [], isLoading: emailTemplatesLoading, refetch: refetchEmailTemplates } = useQuery<EmailTemplate[]>({
+    queryKey: ["/api/admin/email-templates"],
     retry: false,
   });
 
@@ -187,6 +205,70 @@ export default function AdminPanel() {
       toast({
         title: "Successo",
         description: "Limite ristoranti aggiornato",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Email template mutations
+  const createEmailTemplateMutation = useMutation({
+    mutationFn: async (template: Partial<EmailTemplate>) => {
+      const response = await apiRequest("POST", "/api/admin/email-templates", template);
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchEmailTemplates();
+      toast({
+        title: "Successo",
+        description: "Template email creato",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateEmailTemplateMutation = useMutation({
+    mutationFn: async ({ id, template }: { id: number; template: Partial<EmailTemplate> }) => {
+      const response = await apiRequest("PUT", `/api/admin/email-templates/${id}`, template);
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchEmailTemplates();
+      toast({
+        title: "Successo",
+        description: "Template email aggiornato",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteEmailTemplateMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/admin/email-templates/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchEmailTemplates();
+      toast({
+        title: "Successo",
+        description: "Template email eliminato",
       });
     },
     onError: (error: Error) => {
@@ -372,9 +454,10 @@ export default function AdminPanel() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="users">Gestione Utenti</TabsTrigger>
             <TabsTrigger value="restaurants">Ristoranti</TabsTrigger>
+            <TabsTrigger value="emails">Template Email</TabsTrigger>
             <TabsTrigger value="support">Supporto Tecnico</TabsTrigger>
             <TabsTrigger value="settings">Impostazioni</TabsTrigger>
           </TabsList>
@@ -475,6 +558,122 @@ export default function AdminPanel() {
                               updateMaxRestaurantsMutation={updateMaxRestaurantsMutation}
                               deleteUserMutation={deleteUserMutation}
                             />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="emails" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Gestione Template Email</CardTitle>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Nuovo Template
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl">
+                      <DialogHeader>
+                        <DialogTitle>Crea Nuovo Template Email</DialogTitle>
+                      </DialogHeader>
+                      <EmailTemplateForm 
+                        onSubmit={(template: any) => createEmailTemplateMutation.mutate(template)}
+                        isLoading={createEmailTemplateMutation.isPending}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Oggetto</TableHead>
+                      <TableHead>Stato</TableHead>
+                      <TableHead>Data Creazione</TableHead>
+                      <TableHead>Azioni</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {emailTemplatesLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          Caricamento template...
+                        </TableCell>
+                      </TableRow>
+                    ) : emailTemplates.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          Nessun template trovato
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      emailTemplates.map((template) => (
+                        <TableRow key={template.id}>
+                          <TableCell className="font-medium">{template.name}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {template.type === 'support' && 'Supporto'}
+                              {template.type === 'welcome' && 'Benvenuto'}
+                              {template.type === 'invitation' && 'Invito'}
+                              {template.type === 'payment_confirmation' && 'Conferma Pagamento'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="max-w-xs truncate">{template.subject}</TableCell>
+                          <TableCell>
+                            <Badge variant={template.isActive ? "default" : "secondary"}>
+                              {template.isActive ? "Attivo" : "Inattivo"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatDate(template.createdAt)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="outline" size="sm">
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-4xl">
+                                  <DialogHeader>
+                                    <DialogTitle>Modifica Template: {template.name}</DialogTitle>
+                                  </DialogHeader>
+                                  <EmailTemplateForm 
+                                    template={template}
+                                    onSubmit={(updatedTemplate) => 
+                                      updateEmailTemplateMutation.mutate({ 
+                                        id: template.id, 
+                                        template: updatedTemplate 
+                                      })
+                                    }
+                                    isLoading={updateEmailTemplateMutation.isPending}
+                                  />
+                                </DialogContent>
+                              </Dialog>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  if (confirm("Sei sicuro di voler eliminare questo template?")) {
+                                    deleteEmailTemplateMutation.mutate(template.id);
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))
@@ -699,6 +898,138 @@ function SupportEmailForm() {
       >
         {sendEmailMutation.isPending ? "Invio..." : "Invia Email"}
       </Button>
+    </form>
+  );
+}
+
+// Email Template Form Component
+function EmailTemplateForm({ 
+  template, 
+  onSubmit, 
+  isLoading 
+}: { 
+  template?: EmailTemplate;
+  onSubmit: (template: Partial<EmailTemplate>) => void;
+  isLoading: boolean;
+}) {
+  const [name, setName] = useState(template?.name || "");
+  const [type, setType] = useState(template?.type || "support");
+  const [subject, setSubject] = useState(template?.subject || "");
+  const [htmlContent, setHtmlContent] = useState(template?.htmlContent || "");
+  const [textContent, setTextContent] = useState(template?.textContent || "");
+  const [isActive, setIsActive] = useState(template?.isActive ?? true);
+  const [variables, setVariables] = useState(template?.variables?.join(", ") || "");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!name || !subject || !htmlContent) {
+      alert("Nome, oggetto e contenuto HTML sono obbligatori");
+      return;
+    }
+
+    onSubmit({
+      name,
+      type,
+      subject,
+      htmlContent,
+      textContent: textContent || undefined,
+      isActive,
+      variables: variables ? variables.split(",").map(v => v.trim()).filter(Boolean) : [],
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="name">Nome Template</Label>
+          <Input
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="es. Email di supporto"
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="type">Tipo</Label>
+          <Select value={type} onValueChange={setType}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="support">Supporto</SelectItem>
+              <SelectItem value="welcome">Benvenuto</SelectItem>
+              <SelectItem value="invitation">Invito</SelectItem>
+              <SelectItem value="payment_confirmation">Conferma Pagamento</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="subject">Oggetto</Label>
+        <Input
+          id="subject"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          placeholder="Oggetto dell'email"
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="variables">Variabili disponibili (separate da virgola)</Label>
+        <Input
+          id="variables"
+          value={variables}
+          onChange={(e) => setVariables(e.target.value)}
+          placeholder="name, email, restaurantName, supportMessage"
+        />
+        <p className="text-sm text-muted-foreground mt-1">
+          Usa {`{{variableName}}`} nel contenuto per sostituire i valori dinamici
+        </p>
+      </div>
+
+      <div>
+        <Label htmlFor="htmlContent">Contenuto HTML</Label>
+        <Textarea
+          id="htmlContent"
+          value={htmlContent}
+          onChange={(e) => setHtmlContent(e.target.value)}
+          placeholder="<html><body><h1>Ciao {{name}}!</h1><p>{{message}}</p></body></html>"
+          rows={12}
+          className="font-mono text-sm"
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="textContent">Contenuto Testo (opzionale)</Label>
+        <Textarea
+          id="textContent"
+          value={textContent}
+          onChange={(e) => setTextContent(e.target.value)}
+          placeholder="Versione testuale dell'email..."
+          rows={6}
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="isActive"
+          checked={isActive}
+          onCheckedChange={setIsActive}
+        />
+        <Label htmlFor="isActive">Template attivo</Label>
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Salvataggio..." : template ? "Aggiorna Template" : "Crea Template"}
+        </Button>
+      </div>
     </form>
   );
 }
