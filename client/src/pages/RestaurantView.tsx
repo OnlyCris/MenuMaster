@@ -221,7 +221,7 @@ const RestaurantView = () => {
             Menu aggiornato il {new Date(restaurant.updatedAt || Date.now()).toLocaleDateString()}
           </div>
           <div className="text-xs text-accent font-lato mt-1">
-            Powered by MenuMaster
+            Powered by MenuIsland
           </div>
         </div>
       </div>

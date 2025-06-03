@@ -211,7 +211,7 @@ const MenuPreview = ({ restaurantId, onGenerateQR }: MenuPreviewProps) => {
                     Menu aggiornato il {new Date().toLocaleDateString()}
                   </div>
                   <div className="text-xs text-accent font-lato mt-1">
-                    Powered by MenuMaster
+                    Powered by MenuIsland
                   </div>
                 </div>
               </>
