@@ -1480,30 +1480,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Send email to user (admin only)
-  app.post("/api/admin/send-email", requireAdmin, async (req, res) => {
-    try {
-      const { userId, subject, message } = req.body;
-      const user = await storage.getUser(userId);
-      
-      if (!user || !user.email) {
-        return res.status(404).json({ message: "User not found or no email" });
-      }
 
-      // Use the new admin support email template
-      const { sendAdminSupportEmail } = await import('./emailService');
-      const emailSent = await sendAdminSupportEmail(user.email, subject, message);
-      
-      if (emailSent) {
-        res.json({ success: true });
-      } else {
-        res.status(500).json({ message: "Failed to send email" });
-      }
-    } catch (error) {
-      console.error("Error sending email:", error);
-      res.status(500).json({ message: "Failed to send email" });
-    }
-  });
 
   // Update user's restaurant limit (admin only)
   app.patch("/api/admin/users/:userId/max-restaurants", requireAdmin, async (req, res) => {
