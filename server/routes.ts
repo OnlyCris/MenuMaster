@@ -1967,7 +1967,7 @@ async function initializeAdditionalTemplates() {
           isActive: true
         },
         {
-          type: "payment_confirmation",
+          type: "payment_confirmation" as const,
           name: "Conferma Pagamento",
           subject: "Pagamento confermato - MenuIsland",
           htmlContent: `
