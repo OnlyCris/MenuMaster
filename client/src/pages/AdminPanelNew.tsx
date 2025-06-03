@@ -771,7 +771,7 @@ export default function AdminPanel() {
                       <DialogHeader>
                         <DialogTitle>Invia Email di Supporto</DialogTitle>
                       </DialogHeader>
-                      <SupportEmailForm />
+                      <SupportEmailForm emailTemplates={emailTemplates} />
                     </DialogContent>
                   </Dialog>
                 </div>
@@ -815,15 +815,31 @@ export default function AdminPanel() {
 }
 
 // Support Email Form Component
-function SupportEmailForm() {
+function SupportEmailForm({ emailTemplates }: { emailTemplates: EmailTemplate[] }) {
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [useTemplate, setUseTemplate] = useState(true);
   const { toast } = useToast();
 
+  // Get the active support template
+  const supportTemplate = emailTemplates.find((t: EmailTemplate) => t.type === 'support' && t.isActive);
+
   const sendEmailMutation = useMutation({
-    mutationFn: async ({ to, subject, message }: { to: string; subject: string; message: string }) => {
-      const response = await apiRequest("POST", "/api/admin/send-email", { to, subject, message });
+    mutationFn: async ({ to, subject, message, templateId, variables }: { 
+      to: string; 
+      subject: string; 
+      message: string;
+      templateId?: number;
+      variables?: Record<string, string>;
+    }) => {
+      const response = await apiRequest("POST", "/api/admin/send-email", { 
+        to, 
+        subject, 
+        message,
+        templateId,
+        variables
+      });
       return response.json();
     },
     onSuccess: () => {
@@ -846,15 +862,41 @@ function SupportEmailForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !subject || !message) {
+    if (!email || !message) {
       toast({
         title: "Errore",
-        description: "Tutti i campi sono obbligatori",
+        description: "Email destinatario e messaggio sono obbligatori",
         variant: "destructive",
       });
       return;
     }
-    sendEmailMutation.mutate({ to: email, subject, message });
+
+    if (useTemplate && supportTemplate) {
+      // Use template with variables
+      const variables = {
+        name: email.split('@')[0], // Extract name from email
+        supportMessage: message
+      };
+      
+      sendEmailMutation.mutate({ 
+        to: email, 
+        subject: supportTemplate.subject, 
+        message: "",
+        templateId: supportTemplate.id,
+        variables
+      });
+    } else {
+      // Use custom subject and message
+      if (!subject) {
+        toast({
+          title: "Errore",
+          description: "Oggetto è obbligatorio quando non si usa un template",
+          variant: "destructive",
+        });
+        return;
+      }
+      sendEmailMutation.mutate({ to: email, subject, message });
+    }
   };
 
   return (
@@ -870,27 +912,50 @@ function SupportEmailForm() {
           required
         />
       </div>
-      <div>
-        <Label htmlFor="subject">Oggetto</Label>
-        <Input
-          id="subject"
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          placeholder="Oggetto dell'email"
-          required
+      
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="useTemplate"
+          checked={useTemplate}
+          onCheckedChange={setUseTemplate}
         />
+        <Label htmlFor="useTemplate">
+          Usa template di supporto {supportTemplate ? `(${supportTemplate.name})` : "(Nessun template attivo)"}
+        </Label>
       </div>
+
+      {!useTemplate && (
+        <div>
+          <Label htmlFor="subject">Oggetto</Label>
+          <Input
+            id="subject"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder="Oggetto dell'email"
+            required={!useTemplate}
+          />
+        </div>
+      )}
+
       <div>
-        <Label htmlFor="message">Messaggio</Label>
+        <Label htmlFor="message">
+          {useTemplate ? "Messaggio di supporto" : "Messaggio"}
+        </Label>
         <Textarea
           id="message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Il tuo messaggio di supporto..."
+          placeholder={useTemplate ? "Il messaggio sarà inserito nel template..." : "Il tuo messaggio..."}
           rows={6}
           required
         />
+        {useTemplate && supportTemplate && (
+          <p className="text-sm text-muted-foreground mt-1">
+            Variabili disponibili: {supportTemplate.variables.join(", ")}
+          </p>
+        )}
       </div>
+
       <Button 
         type="submit" 
         className="w-full"

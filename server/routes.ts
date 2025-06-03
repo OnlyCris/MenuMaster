@@ -1929,7 +1929,7 @@ async function initializeAdditionalTemplates() {
     if (existingEmailTemplates.length === 0) {
       const emailTemplates = [
         {
-          type: "welcome",
+          type: "welcome" as const,
           name: "Benvenuto su MenuIsland",
           subject: "Benvenuto su MenuIsland - Il tuo account è stato creato!",
           htmlContent: `
@@ -1948,7 +1948,7 @@ async function initializeAdditionalTemplates() {
           isActive: true
         },
         {
-          type: "support",
+          type: "support" as const,
           name: "Template Supporto Tecnico",
           subject: "Richiesta di supporto - MenuIsland",
           htmlContent: `
