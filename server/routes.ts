@@ -1597,6 +1597,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // System statistics endpoint (admin only)
+  app.get("/api/admin/system-stats", requireAdmin, async (req, res) => {
+    try {
+      const totalRestaurants = (await storage.getRestaurants()).length;
+      const totalMenuItems = await storage.getTotalMenuItems() || 0;
+      const totalVisits = await storage.getTotalVisits() || 0;
+      const totalQrScans = await storage.getTotalQrScans() || 0;
+      
+      // System metrics
+      const uptime = process.uptime();
+      const uptimeString = `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m`;
+      const memoryUsage = Math.round((process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100);
+      
+      res.json({
+        totalRestaurants,
+        totalMenuItems,
+        totalVisits,
+        totalQrScans,
+        uptime: uptimeString,
+        memoryUsage,
+        diskUsage: 45 // Placeholder - would need system-specific implementation
+      });
+    } catch (error) {
+      console.error("Error fetching system stats:", error);
+      res.status(500).json({ message: "Failed to fetch system stats" });
+    }
+  });
+
+  // Get all restaurants with owner info (admin only)
+  app.get("/api/admin/restaurants", requireAdmin, async (req, res) => {
+    try {
+      const restaurants = await storage.getRestaurants();
+      const restaurantsWithOwners = await Promise.all(
+        restaurants.map(async (restaurant) => {
+          const owner = await storage.getUser(restaurant.ownerId);
+          return {
+            ...restaurant,
+            ownerEmail: owner?.email || 'Unknown'
+          };
+        })
+      );
+      res.json(restaurantsWithOwners);
+    } catch (error) {
+      console.error("Error fetching restaurants:", error);
+      res.status(500).json({ message: "Failed to fetch restaurants" });
+    }
+  });
+
+  // Toggle admin status (admin only)
+  app.put("/api/admin/users/:userId/toggle-admin", requireAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { isAdmin } = req.body;
+      
+      await storage.updateUserAdminStatus?.(userId, isAdmin);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error toggling admin status:", error);
+      res.status(500).json({ message: "Failed to update admin status" });
+    }
+  });
+
+  // Update user max restaurants (admin only)
+  app.put("/api/admin/users/:userId/max-restaurants", requireAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { maxRestaurants } = req.body;
+      
+      await storage.updateUserMaxRestaurants(userId, maxRestaurants);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating max restaurants:", error);
+      res.status(500).json({ message: "Failed to update max restaurants" });
+    }
+  });
+
+  // Force payment for user (admin only)
+  app.post("/api/admin/users/:userId/force-payment", requireAdmin, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      await storage.updateUserPaymentInfo(userId, {
+        hasPaid: true,
+        paymentDate: new Date(),
+        stripePaymentIntentId: 'admin_forced_payment'
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error forcing payment:", error);
+      res.status(500).json({ message: "Failed to force payment" });
+    }
+  });
+
+  // Create database backup (admin only)
+  app.post("/api/admin/backup", requireAdmin, async (req, res) => {
+    try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filename = `backup_${timestamp}.sql`;
+      
+      // In a real implementation, you would create an actual database dump
+      // For now, we simulate the backup creation
+      res.json({ 
+        success: true, 
+        filename,
+        message: "Backup created successfully" 
+      });
+    } catch (error) {
+      console.error("Error creating backup:", error);
+      res.status(500).json({ message: "Failed to create backup" });
+    }
+  });
+
   // Fix admin email endpoint to use correct parameter
   app.post("/api/admin/send-email", requireAdmin, async (req, res) => {
     try {

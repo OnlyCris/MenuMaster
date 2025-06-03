@@ -112,6 +112,12 @@ export interface IStorage {
   createClientInvitation(invitation: InsertClientInvitation): Promise<ClientInvitation>;
   updateClientInvitation(id: number, invitation: Partial<InsertClientInvitation>): Promise<ClientInvitation | undefined>;
   deleteClientInvitation(id: number): Promise<boolean>;
+  
+  // Admin system operations
+  updateUserAdminStatus?(userId: string, isAdmin: boolean): Promise<void>;
+  getTotalMenuItems?(): Promise<number>;
+  getTotalVisits?(): Promise<number>;
+  getTotalQrScans?(): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -635,6 +641,30 @@ export class DatabaseStorage implements IStorage {
           lastUsed: new Date(),
         });
     }
+  }
+
+  // Admin system operations
+  async updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<void> {
+    await db.update(users).set({ isAdmin }).where(eq(users.id, userId));
+  }
+
+  async getTotalMenuItems(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(menuItems);
+    return result[0]?.count || 0;
+  }
+
+  async getTotalVisits(): Promise<number> {
+    const result = await db.select({ 
+      total: sql<number>`sum(${analytics.visits})` 
+    }).from(analytics);
+    return result[0]?.total || 0;
+  }
+
+  async getTotalQrScans(): Promise<number> {
+    const result = await db.select({ 
+      total: sql<number>`sum(${analytics.qrScans})` 
+    }).from(analytics);
+    return result[0]?.total || 0;
   }
 }
 
