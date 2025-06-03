@@ -1826,7 +1826,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   return httpServer;
 }
 
-// Function to initialize additional restaurant templates
+// Function to initialize additional restaurant templates and email templates
 async function initializeAdditionalTemplates() {
   try {
     const existingTemplates = await storage.getTemplates();
@@ -1921,6 +1921,77 @@ async function initializeAdditionalTemplates() {
       }
       
       console.log("Additional templates initialized successfully");
+    }
+
+    // Initialize email templates if they don't exist
+    const existingEmailTemplates = await storage.getEmailTemplates();
+    
+    if (existingEmailTemplates.length === 0) {
+      const emailTemplates = [
+        {
+          type: "welcome",
+          name: "Benvenuto su MenuIsland",
+          subject: "Benvenuto su MenuIsland - Il tuo account è stato creato!",
+          htmlContent: `
+            <html>
+              <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h1 style="color: #2C3E50;">Benvenuto su MenuIsland!</h1>
+                <p>Ciao <strong>{{name}}</strong>,</p>
+                <p>Il tuo account è stato creato con successo. Ora puoi iniziare a creare i tuoi menu digitali.</p>
+                <p>Per completare la configurazione del tuo account, ricorda di effettuare il pagamento di €349.</p>
+                <p>Cordiali saluti,<br>Il team di MenuIsland</p>
+              </body>
+            </html>
+          `,
+          textContent: "Benvenuto su MenuIsland! Il tuo account è stato creato con successo.",
+          variables: ["name"],
+          isActive: true
+        },
+        {
+          type: "support",
+          name: "Template Supporto Tecnico",
+          subject: "Richiesta di supporto - MenuIsland",
+          htmlContent: `
+            <html>
+              <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h1 style="color: #2C3E50;">Supporto Tecnico MenuIsland</h1>
+                <p>Ciao <strong>{{name}}</strong>,</p>
+                <p>{{supportMessage}}</p>
+                <p>Se hai bisogno di ulteriore assistenza, non esitare a contattarci.</p>
+                <p>Cordiali saluti,<br>Il team di supporto MenuIsland</p>
+              </body>
+            </html>
+          `,
+          textContent: "Supporto tecnico MenuIsland",
+          variables: ["name", "supportMessage"],
+          isActive: true
+        },
+        {
+          type: "payment_confirmation",
+          name: "Conferma Pagamento",
+          subject: "Pagamento confermato - MenuIsland",
+          htmlContent: `
+            <html>
+              <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h1 style="color: #27AE60;">Pagamento Confermato!</h1>
+                <p>Ciao <strong>{{name}}</strong>,</p>
+                <p>Il tuo pagamento di €349 è stato confermato con successo.</p>
+                <p>Ora puoi accedere a tutte le funzionalità di MenuIsland e creare i tuoi menu digitali.</p>
+                <p>Cordiali saluti,<br>Il team di MenuIsland</p>
+              </body>
+            </html>
+          `,
+          textContent: "Il tuo pagamento di €349 è stato confermato con successo.",
+          variables: ["name"],
+          isActive: true
+        }
+      ];
+
+      for (const template of emailTemplates) {
+        await storage.createEmailTemplate(template);
+      }
+      
+      console.log("Email templates initialized successfully");
     }
   } catch (error) {
     console.error("Error initializing additional templates:", error);
