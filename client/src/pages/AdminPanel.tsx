@@ -12,26 +12,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
-import { ArrowLeft } from "lucide-react";
-import { 
-  Users, 
-  CreditCard, 
-  Settings, 
-  Search, 
-  Ban, 
-  CheckCircle, 
-  Mail, 
-  Calendar,
-  DollarSign,
-  AlertTriangle,
-  Eye,
-  Trash2,
-  UserCheck,
-  Database,
-  Shield
-} from "lucide-react";
+import { ArrowLeft, Users, CreditCard, Settings, Search, Ban, CheckCircle, Mail, Calendar, DollarSign, AlertTriangle, Eye, Trash2, UserCheck, Database, Shield, Server, HardDrive, Activity, Globe } from "lucide-react";
 
 interface User {
   id: string;
@@ -42,12 +26,32 @@ interface User {
   hasPaid: boolean;
   paymentDate?: string;
   createdAt: string;
+  maxRestaurants: number;
 }
 
 interface PaymentStats {
   totalUsers: number;
   paidUsers: number;
   activeUsers: number;
+}
+
+interface SystemStats {
+  totalRestaurants: number;
+  totalMenuItems: number;
+  totalVisits: number;
+  totalQrScans: number;
+  uptime: string;
+  memoryUsage: number;
+  diskUsage: number;
+}
+
+interface Restaurant {
+  id: number;
+  name: string;
+  subdomain: string;
+  ownerId: string;
+  createdAt: string;
+  ownerEmail: string;
 }
 
 export default function AdminPanel() {
@@ -94,15 +98,25 @@ export default function AdminPanel() {
     );
   }
 
-  // Fetch users data
+  // Fetch data
   const { data: users = [], isLoading: usersLoading, refetch: refetchUsers } = useQuery<User[]>({
     queryKey: ["/api/admin/users"],
     retry: false,
   });
 
-  // Fetch payment stats
   const { data: paymentStats, isLoading: statsLoading } = useQuery<PaymentStats>({
     queryKey: ["/api/admin/payment-stats"],
+    retry: false,
+  });
+
+  const { data: systemStats, isLoading: systemStatsLoading } = useQuery<SystemStats>({
+    queryKey: ["/api/admin/system-stats"],
+    refetchInterval: 30000, // Refresh every 30 seconds
+    retry: false,
+  });
+
+  const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
+    queryKey: ["/api/admin/restaurants"],
     retry: false,
   });
 
@@ -147,6 +161,50 @@ export default function AdminPanel() {
       toast({
         title: "Errore",
         description: "Errore nell'aggiornamento dello stato pagamento",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Toggle admin status
+  const toggleAdminMutation = useMutation({
+    mutationFn: async ({ userId, isAdmin }: { userId: string; isAdmin: boolean }) => {
+      const response = await apiRequest("POST", `/api/admin/users/${userId}/toggle-admin`, { isAdmin });
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchUsers();
+      toast({
+        title: "Successo",
+        description: "Stato amministratore aggiornato",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update max restaurants
+  const updateMaxRestaurantsMutation = useMutation({
+    mutationFn: async ({ userId, maxRestaurants }: { userId: string; maxRestaurants: number }) => {
+      const response = await apiRequest("POST", `/api/admin/users/${userId}/max-restaurants`, { maxRestaurants });
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchUsers();
+      toast({
+        title: "Successo",
+        description: "Limite ristoranti aggiornato",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Errore",
+        description: error.message,
         variant: "destructive",
       });
     },

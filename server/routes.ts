@@ -1631,7 +1631,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const restaurants = await storage.getRestaurants();
       const restaurantsWithOwners = await Promise.all(
         restaurants.map(async (restaurant) => {
-          const owner = await storage.getUser(restaurant.ownerId);
+          const owner = restaurant.ownerId ? await storage.getUser(restaurant.ownerId) : null;
           return {
             ...restaurant,
             ownerEmail: owner?.email || 'Unknown'
@@ -1651,7 +1651,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userId } = req.params;
       const { isAdmin } = req.body;
       
-      await storage.updateUserAdminStatus?.(userId, isAdmin);
+      await storage.updateUserAdminStatus(userId, isAdmin);
       res.json({ success: true });
     } catch (error) {
       console.error("Error toggling admin status:", error);
