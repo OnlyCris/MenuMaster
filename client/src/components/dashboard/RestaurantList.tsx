@@ -5,7 +5,7 @@ import { Restaurant } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, QrCode, BarChart2, Trash2, Menu, TestTube2 } from "lucide-react";
+import { Edit, QrCode, BarChart2, Trash2, Menu } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -63,22 +63,7 @@ const RestaurantList = ({ onEdit, onGenerateQR }: RestaurantListProps) => {
     }
   };
 
-  const handleGenerateTestData = async (id: number) => {
-    try {
-      await apiRequest("POST", `/api/restaurants/${id}/generate-test-data`);
-      toast({
-        title: "Dati di test generati",
-        description: "Sono stati creati dati di analitiche realistici per testare il sistema.",
-      });
-      setTimeout(() => window.location.reload(), 1000);
-    } catch (error) {
-      toast({
-        title: "Errore",
-        description: "Impossibile generare i dati di test.",
-        variant: "destructive",
-      });
-    }
-  };
+
   
   const filteredRestaurants = restaurants.filter(restaurant => {
     const matchesSearch = restaurant.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -249,15 +234,7 @@ const RestaurantList = ({ onEdit, onGenerateQR }: RestaurantListProps) => {
                         <BarChart2 size={16} />
                       </Link>
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-blue-600 hover:text-blue-800"
-                      onClick={() => handleGenerateTestData(restaurant.id)}
-                      title="Genera dati di test per le analitiche"
-                    >
-                      <TestTube2 size={16} />
-                    </Button>
+
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
