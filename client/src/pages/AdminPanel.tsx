@@ -245,7 +245,7 @@ export default function AdminPanel() {
       
       <div className="p-6 space-y-6">
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Utenti Totali</CardTitle>
@@ -281,15 +281,114 @@ export default function AdminPanel() {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Ristoranti Attivi</CardTitle>
+              <Globe className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {systemStatsLoading ? "..." : systemStats?.totalRestaurants || 0}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* System Monitoring */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Server className="h-5 w-5" />
+                Sistema
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Uptime</span>
+                <span className="text-sm font-medium">
+                  {systemStatsLoading ? "..." : systemStats?.uptime || "N/A"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Memoria</span>
+                <span className="text-sm font-medium">
+                  {systemStatsLoading ? "..." : `${systemStats?.memoryUsage || 0}%`}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Disco</span>
+                <span className="text-sm font-medium">
+                  {systemStatsLoading ? "..." : `${systemStats?.diskUsage || 0}%`}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Database
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Menu Items</span>
+                <span className="text-sm font-medium">
+                  {systemStatsLoading ? "..." : systemStats?.totalMenuItems || 0}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Visite Totali</span>
+                <span className="text-sm font-medium">
+                  {systemStatsLoading ? "..." : systemStats?.totalVisits?.toLocaleString() || 0}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Scansioni QR</span>
+                <span className="text-sm font-medium">
+                  {systemStatsLoading ? "..." : systemStats?.totalQrScans?.toLocaleString() || 0}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Manutenzione
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Modalità Manutenzione</span>
+                <Switch
+                  checked={isMaintenanceMode}
+                  onCheckedChange={setIsMaintenanceMode}
+                />
+              </div>
+              <Button variant="outline" size="sm" className="w-full">
+                <HardDrive className="h-4 w-4 mr-2" />
+                Backup Database
+              </Button>
+              <Button variant="outline" size="sm" className="w-full">
+                <Shield className="h-4 w-4 mr-2" />
+                Verifica Sicurezza
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="users" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users">Gestione Utenti</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="maintenance">Manutenzione</TabsTrigger>
-            <TabsTrigger value="support">Supporto</TabsTrigger>
+            <TabsTrigger value="restaurants">Ristoranti</TabsTrigger>
+            <TabsTrigger value="support">Supporto Tecnico</TabsTrigger>
+            <TabsTrigger value="settings">Impostazioni</TabsTrigger>
           </TabsList>
           
           <TabsContent value="users" className="space-y-6">

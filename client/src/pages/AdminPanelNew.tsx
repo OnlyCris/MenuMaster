@@ -13,9 +13,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
-import { ArrowLeft, Users, CreditCard, Settings, Search, Ban, CheckCircle, Mail, Calendar, DollarSign, AlertTriangle, Eye, Trash2, UserCheck, Database, Shield, Server, HardDrive, Activity, Globe } from "lucide-react";
+import { ArrowLeft, Users, CreditCard, Settings, Search, Ban, CheckCircle, Mail, Calendar, DollarSign, AlertTriangle, Eye, Trash2, UserCheck, Database, Shield, Server, HardDrive, Activity, Globe, MoreVertical } from "lucide-react";
 
 interface User {
   id: string;
@@ -61,38 +62,24 @@ export default function AdminPanel() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
 
-  // Verify admin access
+  // Check if user is admin
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
   if (!user?.isAdmin) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-950">
-        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Torna alla Dashboard
-              </Link>
-            </Button>
-            <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              Accesso Negato
-            </h1>
-          </div>
-        </div>
-        <div className="p-6">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <AlertTriangle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Accesso Non Autorizzato
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Solo gli amministratori possono accedere a questa sezione.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Accesso Negato</h1>
+          <p className="text-gray-600 mb-4">Non hai i permessi per accedere a questa sezione.</p>
+          <Button asChild>
+            <Link href="/">Torna alla Dashboard</Link>
+          </Button>
         </div>
       </div>
     );
@@ -120,97 +107,115 @@ export default function AdminPanel() {
     retry: false,
   });
 
-  // Mutations
+  // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
       await apiRequest("DELETE", `/api/admin/users/${userId}`);
     },
     onSuccess: () => {
-      toast({ title: "Successo", description: "Utente eliminato con successo" });
+      toast({
+        title: "Successo",
+        description: "Utente eliminato con successo",
+      });
       refetchUsers();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/payment-stats"] });
     },
     onError: () => {
-      toast({ title: "Errore", description: "Errore nell'eliminazione dell'utente", variant: "destructive" });
-    },
-  });
-
-  const toggleAdminMutation = useMutation({
-    mutationFn: async ({ userId, isAdmin }: { userId: string; isAdmin: boolean }) => {
-      await apiRequest("PUT", `/api/admin/users/${userId}/toggle-admin`, { isAdmin });
-    },
-    onSuccess: () => {
-      toast({ title: "Successo", description: "Stato admin aggiornato" });
-      refetchUsers();
-    },
-    onError: () => {
-      toast({ title: "Errore", description: "Errore nell'aggiornamento", variant: "destructive" });
-    },
-  });
-
-  const updateMaxRestaurantsMutation = useMutation({
-    mutationFn: async ({ userId, maxRestaurants }: { userId: string; maxRestaurants: number }) => {
-      await apiRequest("PUT", `/api/admin/users/${userId}/max-restaurants`, { maxRestaurants });
-    },
-    onSuccess: () => {
-      toast({ title: "Successo", description: "Limite ristoranti aggiornato" });
-      refetchUsers();
-    },
-    onError: () => {
-      toast({ title: "Errore", description: "Errore nell'aggiornamento", variant: "destructive" });
-    },
-  });
-
-  const forcePaymentMutation = useMutation({
-    mutationFn: async (userId: string) => {
-      await apiRequest("POST", `/api/admin/users/${userId}/force-payment`);
-    },
-    onSuccess: () => {
-      toast({ title: "Successo", description: "Pagamento forzato applicato" });
-      refetchUsers();
-    },
-    onError: () => {
-      toast({ title: "Errore", description: "Errore nell'applicazione del pagamento", variant: "destructive" });
-    },
-  });
-
-  const maintenanceMutation = useMutation({
-    mutationFn: async (enabled: boolean) => {
-      await apiRequest("POST", "/api/admin/maintenance/toggle", { enabled });
-    },
-    onSuccess: (_, enabled) => {
-      setIsMaintenanceMode(enabled);
-      toast({ 
-        title: "Successo", 
-        description: `Modalità manutenzione ${enabled ? 'attivata' : 'disattivata'}` 
+      toast({
+        title: "Errore",
+        description: "Errore nell'eliminazione dell'utente",
+        variant: "destructive",
       });
     },
+  });
+
+  // Toggle user payment status
+  const togglePaymentMutation = useMutation({
+    mutationFn: async ({ userId, hasPaid }: { userId: string; hasPaid: boolean }) => {
+      await apiRequest("PATCH", `/api/admin/users/${userId}/payment`, {
+        hasPaid,
+        paymentDate: hasPaid ? new Date().toISOString() : null,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Successo",
+        description: "Stato pagamento aggiornato",
+      });
+      refetchUsers();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/payment-stats"] });
+    },
     onError: () => {
-      toast({ title: "Errore", description: "Errore nel toggle manutenzione", variant: "destructive" });
+      toast({
+        title: "Errore",
+        description: "Errore nell'aggiornamento dello stato pagamento",
+        variant: "destructive",
+      });
     },
   });
 
-  const createBackupMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/admin/backup");
+  // Toggle admin status
+  const toggleAdminMutation = useMutation({
+    mutationFn: async ({ userId, isAdmin }: { userId: string; isAdmin: boolean }) => {
+      const response = await apiRequest("POST", `/api/admin/users/${userId}/toggle-admin`, { isAdmin });
       return response.json();
     },
-    onSuccess: (data) => {
-      toast({ title: "Successo", description: `Backup creato: ${data.filename}` });
+    onSuccess: () => {
+      refetchUsers();
+      toast({
+        title: "Successo",
+        description: "Stato amministratore aggiornato",
+      });
     },
-    onError: () => {
-      toast({ title: "Errore", description: "Errore nella creazione del backup", variant: "destructive" });
+    onError: (error: Error) => {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
-  // Filter users
-  const filteredUsers = users.filter(u => 
-    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    `${u.firstName} ${u.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+  // Update max restaurants
+  const updateMaxRestaurantsMutation = useMutation({
+    mutationFn: async ({ userId, maxRestaurants }: { userId: string; maxRestaurants: number }) => {
+      const response = await apiRequest("POST", `/api/admin/users/${userId}/max-restaurants`, { maxRestaurants });
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchUsers();
+      toast({
+        title: "Successo",
+        description: "Limite ristoranti aggiornato",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Filter users based on search term
+  const filteredUsers = users.filter(user => 
+    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("it-IT", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-950">
-      {/* Header */}
+      {/* Header with back navigation */}
       <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
@@ -221,35 +226,47 @@ export default function AdminPanel() {
           </Button>
           <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Pannello di Amministrazione
+            Pannello Amministrativo
           </h1>
-          <Badge variant="destructive" className="ml-auto">Admin</Badge>
         </div>
       </div>
-
+      
       <div className="p-6 space-y-6">
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Utenti Totali</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{paymentStats?.totalUsers || 0}</div>
+              <div className="text-2xl font-bold">
+                {statsLoading ? "..." : paymentStats?.totalUsers || 0}
+              </div>
             </CardContent>
           </Card>
-
+          
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Utenti Paganti</CardTitle>
               <CreditCard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{paymentStats?.paidUsers || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                {paymentStats?.totalUsers ? ((paymentStats.paidUsers / paymentStats.totalUsers) * 100).toFixed(1) : 0}% conversion
-              </p>
+              <div className="text-2xl font-bold text-green-600">
+                {statsLoading ? "..." : paymentStats?.paidUsers || 0}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Ricavi Totali</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                €{statsLoading ? "..." : ((paymentStats?.paidUsers || 0) * 349).toLocaleString()}
+              </div>
             </CardContent>
           </Card>
 
@@ -259,37 +276,110 @@ export default function AdminPanel() {
               <Globe className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{systemStats?.totalRestaurants || 0}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Visite Totali</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{systemStats?.totalVisits || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                {systemStats?.totalQrScans || 0} scansioni QR
-              </p>
+              <div className="text-2xl font-bold">
+                {systemStatsLoading ? "..." : systemStats?.totalRestaurants || 0}
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Content */}
+        {/* System Monitoring */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Server className="h-5 w-5" />
+                Sistema
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Uptime</span>
+                <span className="text-sm font-medium">
+                  {systemStatsLoading ? "..." : systemStats?.uptime || "N/A"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Memoria</span>
+                <span className="text-sm font-medium">
+                  {systemStatsLoading ? "..." : `${systemStats?.memoryUsage || 0}%`}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Disco</span>
+                <span className="text-sm font-medium">
+                  {systemStatsLoading ? "..." : `${systemStats?.diskUsage || 0}%`}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Database
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Menu Items</span>
+                <span className="text-sm font-medium">
+                  {systemStatsLoading ? "..." : systemStats?.totalMenuItems || 0}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Visite Totali</span>
+                <span className="text-sm font-medium">
+                  {systemStatsLoading ? "..." : systemStats?.totalVisits?.toLocaleString() || 0}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Scansioni QR</span>
+                <span className="text-sm font-medium">
+                  {systemStatsLoading ? "..." : systemStats?.totalQrScans?.toLocaleString() || 0}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Manutenzione
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Modalità Manutenzione</span>
+                <Switch
+                  checked={isMaintenanceMode}
+                  onCheckedChange={setIsMaintenanceMode}
+                />
+              </div>
+              <Button variant="outline" size="sm" className="w-full">
+                <HardDrive className="h-4 w-4 mr-2" />
+                Backup Database
+              </Button>
+              <Button variant="outline" size="sm" className="w-full">
+                <Shield className="h-4 w-4 mr-2" />
+                Verifica Sicurezza
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content Tabs */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="users">Utenti</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="users">Gestione Utenti</TabsTrigger>
             <TabsTrigger value="restaurants">Ristoranti</TabsTrigger>
-            <TabsTrigger value="support">Supporto</TabsTrigger>
-            <TabsTrigger value="system">Sistema</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="support">Supporto Tecnico</TabsTrigger>
             <TabsTrigger value="settings">Impostazioni</TabsTrigger>
           </TabsList>
-
-          {/* Users Tab */}
-          <TabsContent value="users" className="space-y-4">
+          
+          <TabsContent value="users" className="space-y-6">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -309,172 +399,210 @@ export default function AdminPanel() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Utente</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Nome</TableHead>
                       <TableHead>Stato</TableHead>
-                      <TableHead>Ristoranti</TableHead>
                       <TableHead>Pagamento</TableHead>
-                      <TableHead>Registrazione</TableHead>
+                      <TableHead>Ristoranti</TableHead>
+                      <TableHead>Data Registrazione</TableHead>
                       <TableHead>Azioni</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">
-                              {user.firstName} {user.lastName}
-                            </div>
-                            <div className="text-sm text-muted-foreground">{user.email}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            {user.isAdmin && <Badge variant="destructive">Admin</Badge>}
-                            <Badge variant={user.hasPaid ? "default" : "secondary"}>
-                              {user.hasPaid ? "Pagato" : "Gratuito"}
-                            </Badge>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <span>{restaurants.filter(r => r.ownerId === user.id).length}</span>
-                            <span className="text-muted-foreground">/ {user.maxRestaurants}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {user.paymentDate ? (
-                            <div className="text-sm">
-                              <CheckCircle className="h-4 w-4 text-green-500 inline mr-1" />
-                              {new Date(user.paymentDate).toLocaleDateString()}
-                            </div>
-                          ) : (
-                            <Badge variant="outline">Non pagato</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {new Date(user.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <UserActionsDropdown 
-                              user={user}
-                              onToggleAdmin={(isAdmin) => toggleAdminMutation.mutate({ userId: user.id, isAdmin })}
-                              onUpdateMaxRestaurants={(maxRestaurants) => updateMaxRestaurantsMutation.mutate({ userId: user.id, maxRestaurants })}
-                              onForcePayment={() => forcePaymentMutation.mutate(user.id)}
-                              onDelete={() => deleteUserMutation.mutate(user.id)}
-                            />
-                          </div>
+                    {usersLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8">
+                          Caricamento utenti...
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : filteredUsers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8">
+                          Nessun utente trovato
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredUsers.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-medium">{user.email}</TableCell>
+                          <TableCell>
+                            {user.firstName || user.lastName 
+                              ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
+                              : "Non specificato"
+                            }
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              {user.isAdmin && (
+                                <Badge variant="destructive">
+                                  <Shield className="h-3 w-3 mr-1" />
+                                  Admin
+                                </Badge>
+                              )}
+                              <Badge variant={user.hasPaid ? "default" : "secondary"}>
+                                {user.hasPaid ? "Attivo" : "Non pagato"}
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {user.hasPaid ? (
+                              <div className="flex items-center text-green-600">
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                <span className="text-sm">
+                                  {user.paymentDate ? formatDate(user.paymentDate) : "Confermato"}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center text-red-600">
+                                <Ban className="h-4 w-4 mr-1" />
+                                <span className="text-sm">Non pagato</span>
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm font-medium">
+                              {user.maxRestaurants || 1}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatDate(user.createdAt)}
+                          </TableCell>
+                          <TableCell>
+                            <UserActionsDropdown user={user} />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Support Tab */}
-          <TabsContent value="support" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Mail className="h-5 w-5" />
-                    Invia Email di Supporto
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <SupportEmailForm />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Template Email Predefiniti</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start">
-                    Benvenuto nuovo utente
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    Problemi tecnici risolti
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    Aggiornamento servizio
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    Promemoria pagamento
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+          <TabsContent value="restaurants" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestione Ristoranti</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Subdomain</TableHead>
+                      <TableHead>Proprietario</TableHead>
+                      <TableHead>Data Creazione</TableHead>
+                      <TableHead>Azioni</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {restaurantsLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8">
+                          Caricamento ristoranti...
+                        </TableCell>
+                      </TableRow>
+                    ) : restaurants.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8">
+                          Nessun ristorante trovato
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      restaurants.map((restaurant) => (
+                        <TableRow key={restaurant.id}>
+                          <TableCell className="font-medium">{restaurant.name}</TableCell>
+                          <TableCell>
+                            <a 
+                              href={`https://${restaurant.subdomain}.menuisland.it`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              {restaurant.subdomain}.menuisland.it
+                            </a>
+                          </TableCell>
+                          <TableCell>{restaurant.ownerEmail}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatDate(restaurant.createdAt)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm" asChild>
+                                <a 
+                                  href={`https://${restaurant.subdomain}.menuisland.it`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </a>
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          {/* System Tab */}
-          <TabsContent value="system" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Server className="h-5 w-5" />
-                    Stato Sistema
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between">
-                    <span>Uptime:</span>
-                    <Badge variant="outline">{systemStats?.uptime || "N/A"}</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Memoria:</span>
-                    <Badge variant={systemStats?.memoryUsage && systemStats.memoryUsage > 80 ? "destructive" : "default"}>
-                      {systemStats?.memoryUsage || 0}%
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Disco:</span>
-                    <Badge variant={systemStats?.diskUsage && systemStats.diskUsage > 90 ? "destructive" : "default"}>
-                      {systemStats?.diskUsage || 0}%
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
+          <TabsContent value="support" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Supporto Tecnico</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Invia Email di Supporto
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Invia Email di Supporto</DialogTitle>
+                      </DialogHeader>
+                      <SupportEmailForm />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Database className="h-5 w-5" />
-                    Operazioni Sistema
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="maintenance">Modalità Manutenzione</Label>
-                    <Switch
-                      id="maintenance"
-                      checked={isMaintenanceMode}
-                      onCheckedChange={(checked) => maintenanceMutation.mutate(checked)}
-                    />
+          <TabsContent value="settings" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Impostazioni Sistema</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <Label htmlFor="maintenance-mode">Modalità Manutenzione</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Disabilita l'accesso per tutti gli utenti non amministratori
+                    </p>
                   </div>
-                  <Button 
-                    onClick={() => createBackupMutation.mutate()}
-                    disabled={createBackupMutation.isPending}
-                    className="w-full"
-                  >
-                    <HardDrive className="h-4 w-4 mr-2" />
-                    {createBackupMutation.isPending ? "Creando..." : "Crea Backup Database"}
-                  </Button>
+                  <Switch
+                    id="maintenance-mode"
+                    checked={isMaintenanceMode}
+                    onCheckedChange={setIsMaintenanceMode}
+                  />
+                </div>
+                
+                <div className="pt-4 border-t">
                   <Button variant="outline" className="w-full">
-                    <Activity className="h-4 w-4 mr-2" />
-                    Visualizza Log Sistema
+                    <Database className="h-4 w-4 mr-2" />
+                    Backup Database
                   </Button>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
-
-          {/* Other tabs remain similar but with enhanced functionality */}
         </Tabs>
       </div>
     </div>
@@ -486,78 +614,46 @@ function SupportEmailForm() {
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
-  const [template, setTemplate] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const templates = {
-    welcome: {
-      subject: "Benvenuto in MenuIsland",
-      message: "Ciao!\n\nBenvenuto nella famiglia MenuIsland. Siamo entusiasti di averti a bordo!\n\nSe hai domande o hai bisogno di assistenza, non esitare a contattarci.\n\nBuona giornata!\nTeam MenuIsland"
+  const sendEmailMutation = useMutation({
+    mutationFn: async ({ to, subject, message }: { to: string; subject: string; message: string }) => {
+      const response = await apiRequest("POST", "/api/admin/send-email", { to, subject, message });
+      return response.json();
     },
-    technical: {
-      subject: "Risoluzione Problema Tecnico",
-      message: "Ciao,\n\nAbbiamo risolto il problema tecnico che ci avevi segnalato. Il servizio dovrebbe ora funzionare correttamente.\n\nSe dovessi ancora riscontrare problemi, ti preghiamo di contattarci immediatamente.\n\nGrazie per la pazienza.\nSupporto Tecnico MenuIsland"
-    },
-    update: {
-      subject: "Aggiornamento Servizio MenuIsland",
-      message: "Ciao,\n\nVolevamo informarti che abbiamo rilasciato un importante aggiornamento della piattaforma MenuIsland.\n\nNuove funzionalità:\n- Miglioramenti alle performance\n- Nuovi template disponibili\n- Ottimizzazioni mobile\n\nNon è richiesta alcuna azione da parte tua.\n\nTeam MenuIsland"
-    },
-    payment: {
-      subject: "Promemoria Pagamento - MenuIsland",
-      message: "Ciao,\n\nTi ricordiamo che per continuare a utilizzare tutte le funzionalità di MenuIsland è necessario completare il pagamento.\n\nPuoi effettuare il pagamento direttamente dal tuo pannello di controllo.\n\nGrazie per la collaborazione.\nTeam MenuIsland"
-    }
-  };
-
-  const handleTemplateChange = (templateKey: string) => {
-    setTemplate(templateKey);
-    if (templateKey && templates[templateKey as keyof typeof templates]) {
-      const selectedTemplate = templates[templateKey as keyof typeof templates];
-      setSubject(selectedTemplate.subject);
-      setMessage(selectedTemplate.message);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      await apiRequest("POST", "/api/admin/send-email", {
-        to: email,
-        subject,
-        message,
+    onSuccess: () => {
+      toast({
+        title: "Email inviata",
+        description: "Email di supporto inviata con successo",
       });
-      
-      toast({ title: "Successo", description: "Email inviata con successo" });
       setEmail("");
       setSubject("");
       setMessage("");
-      setTemplate("");
-    } catch (error) {
-      toast({ title: "Errore", description: "Errore nell'invio dell'email", variant: "destructive" });
-    } finally {
-      setIsLoading(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !subject || !message) {
+      toast({
+        title: "Errore",
+        description: "Tutti i campi sono obbligatori",
+        variant: "destructive",
+      });
+      return;
     }
+    sendEmailMutation.mutate({ to: email, subject, message });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="template">Template Predefinito</Label>
-        <Select value={template} onValueChange={handleTemplateChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Seleziona template..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="welcome">Benvenuto</SelectItem>
-            <SelectItem value="technical">Problema Tecnico Risolto</SelectItem>
-            <SelectItem value="update">Aggiornamento Servizio</SelectItem>
-            <SelectItem value="payment">Promemoria Pagamento</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
       <div>
         <Label htmlFor="email">Email Destinatario</Label>
         <Input
@@ -565,33 +661,37 @@ function SupportEmailForm() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          placeholder="cliente@esempio.com"
           required
         />
       </div>
-      
       <div>
         <Label htmlFor="subject">Oggetto</Label>
         <Input
           id="subject"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
+          placeholder="Oggetto dell'email"
           required
         />
       </div>
-      
       <div>
         <Label htmlFor="message">Messaggio</Label>
         <Textarea
           id="message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          placeholder="Il tuo messaggio di supporto..."
           rows={6}
           required
         />
       </div>
-      
-      <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading ? "Invio..." : "Invia Email di Supporto"}
+      <Button 
+        type="submit" 
+        className="w-full"
+        disabled={sendEmailMutation.isPending}
+      >
+        {sendEmailMutation.isPending ? "Invio..." : "Invia Email"}
       </Button>
     </form>
   );
@@ -600,72 +700,92 @@ function SupportEmailForm() {
 // User Actions Dropdown Component
 function UserActionsDropdown({ 
   user, 
-  onToggleAdmin, 
-  onUpdateMaxRestaurants, 
-  onForcePayment, 
-  onDelete 
-}: {
+  togglePaymentMutation, 
+  toggleAdminMutation, 
+  updateMaxRestaurantsMutation, 
+  deleteUserMutation 
+}: { 
   user: User;
-  onToggleAdmin: (isAdmin: boolean) => void;
-  onUpdateMaxRestaurants: (max: number) => void;
-  onForcePayment: () => void;
-  onDelete: () => void;
+  togglePaymentMutation?: any;
+  toggleAdminMutation?: any;
+  updateMaxRestaurantsMutation?: any;
+  deleteUserMutation?: any;
 }) {
-  const [maxRestaurants, setMaxRestaurants] = useState(user.maxRestaurants.toString());
+  const [maxRestaurants, setMaxRestaurants] = useState(user.maxRestaurants || 1);
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Settings className="h-4 w-4" />
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm">
+          <MoreVertical className="h-4 w-4" />
         </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Gestisci Utente: {user.email}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>Status Amministratore</Label>
-            <Switch
-              checked={user.isAdmin}
-              onCheckedChange={onToggleAdmin}
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="maxRestaurants">Limite Ristoranti</Label>
-            <div className="flex space-x-2">
-              <Input
-                id="maxRestaurants"
-                type="number"
-                value={maxRestaurants}
-                onChange={(e) => setMaxRestaurants(e.target.value)}
-                min="1"
-                max="50"
-              />
-              <Button 
-                onClick={() => onUpdateMaxRestaurants(parseInt(maxRestaurants))}
-                size="sm"
-              >
-                Aggiorna
-              </Button>
-            </div>
-          </div>
-          
-          {!user.hasPaid && (
-            <Button onClick={onForcePayment} className="w-full">
-              <CreditCard className="h-4 w-4 mr-2" />
-              Forza Pagamento
-            </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuItem
+          onClick={() => togglePaymentMutation?.mutate({ 
+            userId: user.id, 
+            hasPaid: !user.hasPaid 
+          })}
+        >
+          {user.hasPaid ? (
+            <>
+              <Ban className="h-4 w-4 mr-2" />
+              Rimuovi Pagamento
+            </>
+          ) : (
+            <>
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Conferma Pagamento
+            </>
           )}
-          
-          <Button onClick={onDelete} variant="destructive" className="w-full">
-            <Trash2 className="h-4 w-4 mr-2" />
-            Elimina Utente
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem
+          onClick={() => toggleAdminMutation?.mutate({ 
+            userId: user.id, 
+            isAdmin: !user.isAdmin 
+          })}
+        >
+          {user.isAdmin ? (
+            <>
+              <UserCheck className="h-4 w-4 mr-2" />
+              Rimuovi Admin
+            </>
+          ) : (
+            <>
+              <Shield className="h-4 w-4 mr-2" />
+              Rendi Admin
+            </>
+          )}
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() => {
+            const newMax = prompt("Numero massimo di ristoranti:", user.maxRestaurants?.toString() || "1");
+            if (newMax && !isNaN(parseInt(newMax))) {
+              updateMaxRestaurantsMutation?.mutate({ 
+                userId: user.id, 
+                maxRestaurants: parseInt(newMax) 
+              });
+            }
+          }}
+        >
+          <Settings className="h-4 w-4 mr-2" />
+          Modifica Limite Ristoranti
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() => {
+            if (confirm("Sei sicuro di voler eliminare questo utente?")) {
+              deleteUserMutation?.mutate(user.id);
+            }
+          }}
+          className="text-red-600"
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Elimina Utente
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
