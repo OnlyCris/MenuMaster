@@ -23,7 +23,7 @@ import RestaurantMenu from "@/pages/RestaurantMenu";
 import Login from "@/pages/Login";
 import PaymentWrapper from "@/pages/PaymentWrapper";
 import PaymentSuccess from "@/pages/PaymentSuccess";
-import AdminPanel from "@/pages/AdminPanel";
+import AdminPanel from "@/pages/AdminPanelNew";
 
 function Router() {
   const [location, setLocation] = useLocation();

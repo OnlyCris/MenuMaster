@@ -468,7 +468,13 @@ export default function AdminPanel() {
                             {formatDate(user.createdAt)}
                           </TableCell>
                           <TableCell>
-                            <UserActionsDropdown user={user} />
+                            <UserActionsDropdown 
+                              user={user}
+                              togglePaymentMutation={togglePaymentMutation}
+                              toggleAdminMutation={toggleAdminMutation}
+                              updateMaxRestaurantsMutation={updateMaxRestaurantsMutation}
+                              deleteUserMutation={deleteUserMutation}
+                            />
                           </TableCell>
                         </TableRow>
                       ))
