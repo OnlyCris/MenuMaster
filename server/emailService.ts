@@ -18,7 +18,7 @@ export async function sendInviteEmail({
   to,
   restaurantName,
   inviteLink,
-  fromName = "MenuMaster",
+  fromName = "MenuIsland",
   fromEmail = "noreply@menuisland.it"
 }: SendInviteEmailParams): Promise<boolean> {
   try {
@@ -32,11 +32,11 @@ export async function sendInviteEmail({
           <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Invito MenuMaster</title>
+            <title>Invito MenuIsland</title>
           </head>
           <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-              <h1 style="color: white; margin: 0; font-size: 28px;">MenuMaster</h1>
+              <h1 style="color: white; margin: 0; font-size: 28px;">MenuIsland</h1>
               <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Sistema di gestione menu digitali</p>
             </div>
             
@@ -139,7 +139,7 @@ export async function sendAdminSupportEmail(to: string, subject: string, message
         <div style="max-width: 600px; margin: 0 auto; background-color: white;">
           
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">MenuMaster</h1>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">MenuIsland</h1>
             <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Supporto Tecnico</p>
           </div>
           
@@ -152,17 +152,17 @@ export async function sendAdminSupportEmail(to: string, subject: string, message
             
             <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #667eea;">
               <h3 style="color: #2d3748; margin-top: 0; font-size: 16px;">Informazioni di contatto:</h3>
-              <p style="color: #4a5568; margin-bottom: 5px;"><strong>Email:</strong> support@menumaster.it</p>
+              <p style="color: #4a5568; margin-bottom: 5px;"><strong>Email:</strong> support@menuisland.it</p>
               <p style="color: #4a5568; margin-bottom: 5px;"><strong>Telefono:</strong> +39 02 1234 5678</p>
               <p style="color: #4a5568; margin: 0;"><strong>Orari:</strong> Lun-Ven 9:00-18:00</p>
             </div>
             
             <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 30px;">
               <p style="font-size: 14px; color: #718096; margin-bottom: 10px;">
-                Questa email è stata inviata dal team di supporto di MenuMaster.
+                Questa email è stata inviata dal team di supporto di MenuIsland.
               </p>
               <p style="font-size: 12px; color: #a0aec0; margin: 0;">
-                © 2024 MenuMaster. Tutti i diritti riservati.
+                © 2024 MenuIsland. Tutti i diritti riservati.
               </p>
             </div>
           </div>
@@ -174,8 +174,8 @@ export async function sendAdminSupportEmail(to: string, subject: string, message
 
     const msg = {
       to,
-      from: 'noreply@menumaster.it',
-      subject: `[MenuMaster Support] ${subject}`,
+      from: 'noreply@menuisland.it',
+      subject: `[MenuIsland Support] ${subject}`,
       html,
     };
 
