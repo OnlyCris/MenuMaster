@@ -1298,6 +1298,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // STRIPE PAYMENT ENDPOINTS
   
+  // Get Stripe public key
+  app.get("/api/stripe-config", (_req, res) => {
+    const publicKey = process.env.VITE_STRIPE_PUBLIC_KEY;
+    if (!publicKey) {
+      return res.status(500).json({ message: "Stripe public key not configured" });
+    }
+    res.json({ publicKey });
+  });
+
   // Create payment intent for €349 one-time payment
   app.post("/api/create-payment-intent", requireAuth, async (req, res) => {
     try {

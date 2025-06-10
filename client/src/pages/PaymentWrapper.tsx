@@ -7,14 +7,31 @@ import Payment from "./Payment";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-const stripePromise = stripePublicKey ? loadStripe(stripePublicKey) : null;
-
 export default function PaymentWrapper() {
   const { user } = useAuth();
   const [clientSecret, setClientSecret] = useState("");
+  const [stripePromise, setStripePromise] = useState<any>(null);
 
-  const { data: paymentIntent, isLoading } = useQuery({
+  // Get Stripe configuration from server
+  const { data: stripeConfig, isLoading: stripeConfigLoading, error: stripeConfigError } = useQuery({
+    queryKey: ["/api/stripe-config"],
+    queryFn: async () => {
+      const response = await fetch("/api/stripe-config");
+      if (!response.ok) {
+        throw new Error('Failed to load Stripe configuration');
+      }
+      return response.json();
+    },
+  });
+
+  // Initialize Stripe when config is loaded
+  useEffect(() => {
+    if (stripeConfig?.publicKey) {
+      setStripePromise(loadStripe(stripeConfig.publicKey));
+    }
+  }, [stripeConfig]);
+
+  const { data: paymentIntent, isLoading: paymentLoading } = useQuery({
     queryKey: ["/api/create-payment-intent"],
     queryFn: async () => {
       const response = await fetch("/api/create-payment-intent", {
@@ -24,7 +41,7 @@ export default function PaymentWrapper() {
       });
       return response.json();
     },
-    enabled: !!user && !user.hasPaid,
+    enabled: !!user && !user.hasPaid && !!stripeConfig?.publicKey,
   });
 
   useEffect(() => {
@@ -33,8 +50,8 @@ export default function PaymentWrapper() {
     }
   }, [paymentIntent]);
 
-  // Check if Stripe is properly configured
-  if (!stripePublicKey) {
+  // Check if Stripe configuration failed to load
+  if (stripeConfigError || (stripeConfig && !stripeConfig.publicKey)) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
@@ -56,7 +73,7 @@ export default function PaymentWrapper() {
     );
   }
 
-  if (isLoading || !clientSecret) {
+  if (stripeConfigLoading || paymentLoading || !clientSecret || !stripePromise) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
