@@ -1728,10 +1728,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Download endpoint for project zip
   app.get('/download', (req, res) => {
     const filePath = path.join(process.cwd(), 'menuisland-complete.zip');
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).send('File not found');
+    }
+    
     res.download(filePath, 'menuisland-complete.zip', (err) => {
       if (err) {
         console.error('Download error:', err);
-        res.status(404).send('File not found');
+        if (!res.headersSent) {
+          res.status(500).send('Download failed');
+        }
       }
     });
   });
