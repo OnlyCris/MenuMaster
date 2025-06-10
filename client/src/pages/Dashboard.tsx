@@ -92,7 +92,7 @@ const Dashboard = () => {
     <div className="flex h-screen bg-gray-100 dark:bg-gray-950">
       <Sidebar />
       
-      <div className="flex-1 pl-64 overflow-y-auto">
+      <div className="flex-1 md:pl-64 overflow-y-auto">
         <Topbar 
           title="Dashboard" 
           onNewRestaurantClick={() => {
