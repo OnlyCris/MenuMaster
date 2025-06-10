@@ -102,12 +102,12 @@ const RestaurantMenu = () => {
       
       <div className="min-h-screen bg-white">
         {/* Restaurant header */}
-        <header className="bg-primary text-white p-6 text-center relative">
+        <header className="bg-primary text-white p-4 md:p-6 text-center relative">
           {/* Language selector */}
-          <div className="absolute top-4 right-4">
+          <div className="absolute top-2 right-2 md:top-4 md:right-4">
             <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-              <SelectTrigger className="w-32 bg-white/10 border-white/20 text-white">
-                <Globe className="w-4 h-4 mr-2" />
+              <SelectTrigger className="w-24 md:w-32 bg-white/10 border-white/20 text-white text-xs md:text-sm">
+                <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -124,57 +124,57 @@ const RestaurantMenu = () => {
             <img 
               src={menuData.restaurant.logoUrl} 
               alt={`${menuData.restaurant.name} logo`} 
-              className="h-24 mx-auto mb-4 object-contain"
+              className="h-16 md:h-24 mx-auto mb-3 md:mb-4 object-contain"
             />
           )}
-          <h1 className="text-3xl font-bold">{menuData.restaurant.name}</h1>
+          <h1 className="text-xl md:text-3xl font-bold px-8">{menuData.restaurant.name}</h1>
           {menuData.restaurant.location && (
-            <p className="mt-2 text-sm">{menuData.restaurant.location}</p>
+            <p className="mt-2 text-xs md:text-sm px-4">{menuData.restaurant.location}</p>
           )}
         </header>
       
         {/* Menu content */}
-        <main className="container mx-auto p-6">
+        <main className="container mx-auto p-3 md:p-6 max-w-4xl">
           {menuData.categories.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-500">Nessuna categoria disponibile nel menu.</p>
             </div>
           ) : (
-            <div className="space-y-10">
+            <div className="space-y-6 md:space-y-10">
               {menuData.categories
-                .sort((a, b) => a.order - b.order)
+                .sort((a, b) => (a.order || 0) - (b.order || 0))
                 .map((category) => (
-                  <section key={category.id} className="mb-8">
-                    <h2 className="text-2xl font-bold border-b border-gray-200 pb-2 mb-4">
+                  <section key={category.id} className="mb-6 md:mb-8">
+                    <h2 className="text-xl md:text-2xl font-bold border-b border-gray-200 pb-2 mb-3 md:mb-4">
                       {category.name}
                     </h2>
                     {category.description && (
-                      <p className="text-gray-600 mb-4">{category.description}</p>
+                      <p className="text-gray-600 mb-3 md:mb-4 text-sm md:text-base">{category.description}</p>
                     )}
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                       {category.items
-                        .sort((a, b) => a.order - b.order)
+                        .sort((a, b) => (a.order || 0) - (b.order || 0))
                         .map((item) => (
-                          <div key={item.id} className="border border-gray-100 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex justify-between">
-                              <h3 className="text-lg font-semibold">{item.name}</h3>
-                              <span className="text-lg font-medium text-primary">
+                          <div key={item.id} className="border border-gray-100 rounded-lg p-3 md:p-4 shadow-sm hover:shadow-md transition-shadow bg-white">
+                            <div className="flex justify-between items-start mb-2">
+                              <h3 className="text-base md:text-lg font-semibold flex-1 pr-2">{item.name}</h3>
+                              <span className="text-base md:text-lg font-medium text-primary whitespace-nowrap">
                                 {item.price}
                               </span>
                             </div>
                             {item.description && (
-                              <p className="text-gray-600 text-sm mt-1">{item.description}</p>
+                              <p className="text-gray-600 text-xs md:text-sm mt-1 mb-2 leading-relaxed">{item.description}</p>
                             )}
                             {item.imageUrl && (
                               <img 
                                 src={item.imageUrl} 
                                 alt={item.name} 
-                                className="w-full h-48 object-cover rounded-md mt-3"
+                                className="w-full h-32 md:h-48 object-cover rounded-md mt-2 md:mt-3"
                               />
                             )}
                             {item.allergens.length > 0 && (
-                              <div className="mt-3">
+                              <div className="mt-2 md:mt-3">
                                 <h4 className="text-xs uppercase text-gray-500 mb-1">Allergeni:</h4>
                                 <div className="flex flex-wrap gap-1">
                                   {item.allergens.map((allergen) => (
