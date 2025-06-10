@@ -46,10 +46,10 @@ const RestaurantMenu = () => {
 
   // Fetch menu data if on a subdomain
   const { data: menuData, isLoading, error } = useQuery<MenuData>({
-    queryKey: ["/", selectedLanguage],
+    queryKey: ["/api/menu", selectedLanguage],
     queryFn: async () => {
-      const url = selectedLanguage !== 'it' ? `/?lang=${selectedLanguage}` : '/';
-      const response = await fetch(url);
+      const subdomain = window.location.hostname.split('.')[0];
+      const response = await fetch(`/api/menu/${subdomain}?lang=${selectedLanguage}`);
       if (!response.ok) throw new Error('Failed to fetch menu');
       return response.json();
     },

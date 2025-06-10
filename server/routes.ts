@@ -124,8 +124,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
           
-          // Serve the restaurant menu view
-          return res.json(menuData);
+          // Store menu data in request for frontend to access
+          (req as any).menuData = menuData;
+          // Continue to serve the frontend HTML
+          return next();
         }
       } catch (error) {
         console.error("Error fetching restaurant data:", error);
@@ -134,6 +136,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // If not a restaurant subdomain or restaurant not found, continue to next route
     next();
+  });
+
+  // API endpoint for restaurant menu data (used by frontend for subdomains)
+  app.get("/api/menu/:subdomain", async (req, res) => {
+    try {
+      const { subdomain } = req.params;
+      const userLanguage = req.query.lang as string || detectLanguageFromRequest(req);
+      
+      const restaurant = await storage.getRestaurantBySubdomain(subdomain);
+      
+      if (!restaurant) {
+        return res.status(404).json({ message: "Restaurant not found" });
+      }
+
+      // Increment analytics for restaurant visit
+      await storage.incrementVisits(restaurant.id);
+      
+      // Fetch restaurant menu data
+      const categories = await storage.getCategories(restaurant.id);
+      const template = restaurant.templateId ? 
+        await storage.getTemplate(restaurant.templateId) : 
+        null;
+        
+      // Prepare menu data with items and allergens
+      let menuData = {
+        restaurant,
+        template,
+        categories: await Promise.all(
+          categories.map(async (category) => {
+            const items = await storage.getMenuItems(category.id);
+            return {
+              ...category,
+              items: await Promise.all(
+                items.map(async (item) => {
+                  const allergens = await storage.getMenuItemAllergens(item.id);
+                  return { ...item, allergens };
+                })
+              )
+            };
+          })
+        )
+      };
+
+      // Translate menu if user language is not Italian
+      if (userLanguage !== 'it') {
+        try {
+          menuData.restaurant = await translateRestaurant(menuData.restaurant, userLanguage);
+          menuData.categories = await Promise.all(
+            menuData.categories.map(category => translateCategory(category, userLanguage))
+          );
+        } catch (translationError) {
+          console.warn('Translation failed, serving original content:', translationError);
+        }
+      }
+      
+      res.json(menuData);
+    } catch (error) {
+      console.error("Error fetching restaurant menu:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   });
 
   // Auth routes
