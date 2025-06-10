@@ -22,6 +22,7 @@ import path from "path";
 import fs from "fs";
 import sharp from "sharp";
 import QRCode from "qrcode";
+import archiver from "archiver";
 
 // Set up multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -196,6 +197,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching restaurant menu:", error);
       res.status(500).json({ message: "Internal server error" });
     }
+  });
+
+  // Public deployment download endpoint (for server updates)
+  app.get("/download", async (req, res) => {
+    try {
+      // Allow download if admin or if accessing from server environment
+      const isServerUpdate = req.get('User-Agent')?.includes('curl') || req.get('User-Agent')?.includes('wget');
+      
+      let isAdmin = false;
+      try {
+        const userId = (req as any).user?.id;
+        if (userId) {
+          const user = await storage.getUser(userId);
+          isAdmin = user?.isAdmin || false;
+        }
+      } catch {
+        isAdmin = false;
+      }
+
+      // Allow download for admins or server update tools
+      if (!isAdmin && !isServerUpdate) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="menuisland-update.zip"');
+
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+
+      archive.on('error', (err) => {
+        console.error('Archive error:', err);
+        res.status(500).json({ message: 'Error creating archive' });
+      });
+
+      archive.pipe(res);
+
+      // Add all source files excluding sensitive data
+      const excludePatterns = [
+        'node_modules/**',
+        '.git/**',
+        'dist/**',
+        'uploads/**',
+        '.env*',
+        '*.log',
+        '.replit',
+        'replit.nix',
+        '.cache/**',
+        'tmp/**'
+      ];
+
+      // Add the entire project excluding the patterns above
+      archive.glob('**/*', {
+        ignore: excludePatterns,
+        dot: false
+      });
+
+      // Add important documentation
+      archive.append(
+        `# MenuIsland Deployment Update
+
+## Istruzioni Aggiornamento:
+
+1. Backup configurazione:
+   \`cp .env .env.backup\`
+
+2. Estrai i file:
+   \`unzip menuisland-update.zip -d temp/\`
+   \`cp -r temp/* .\`
+
+3. Ripristina configurazione:
+   \`cp .env.backup .env\`
+
+4. Installa dipendenze:
+   \`npm install\`
+
+5. Build con chiavi API:
+   \`VITE_STRIPE_PUBLIC_KEY=\${VITE_STRIPE_PUBLIC_KEY} npm run build\`
+
+6. Riavvia:
+   \`pm2 restart menuisland\`
+
+## Novità in questo aggiornamento:
+- Ottimizzazioni complete per mobile
+- Risoluzione errori Translation API
+- Fix routing menu ristoranti
+- Gestione migliorata certificati SSL
+- Sidebar responsive con menu hamburger
+- Layout adattivi per tutte le pagine
+
+Generato: ${new Date().toLocaleString('it-IT')}
+`, 
+        { name: 'UPDATE_INSTRUCTIONS.md' }
+      );
+
+      await archive.finalize();
+
+    } catch (error) {
+      console.error('Download error:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Version and status endpoint
+  app.get("/api/version", (req, res) => {
+    const packageJson = require('../package.json');
+    res.json({
+      version: packageJson.version || "1.0.0",
+      name: packageJson.name || "MenuIsland",
+      environment: process.env.NODE_ENV || "development",
+      lastUpdated: new Date().toISOString(),
+      features: {
+        mobileOptimized: true,
+        translationAPI: !!process.env.GOOGLE_TRANSLATE_API_KEY,
+        stripePayments: !!process.env.STRIPE_SECRET_KEY,
+        emailService: !!process.env.RESEND_API_KEY,
+        cloudflareIntegration: !!(process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ZONE_ID)
+      }
+    });
   });
 
   // Auth routes
