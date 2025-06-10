@@ -40,12 +40,46 @@ cp -r temp-update/* .
 
 # Ripristina configurazione e file utente
 echo "🔧 Ripristino configurazione..."
-cp .env.backup.$(date +%Y%m%d_%H%M%S | head -1) .env
+if [ -f ".env.backup.$(date +%Y%m%d_%H%M%S | head -1)" ]; then
+    cp .env.backup.$(date +%Y%m%d_%H%M%S | head -1) .env
+else
+    # Se non esiste backup, crea .env con configurazione database locale
+    if [ ! -f ".env" ]; then
+        echo "📝 Creazione configurazione database locale..."
+        cat > .env << 'EOF'
+# Database Configuration
+DATABASE_URL=postgresql://menuisland:menuisland@localhost:5432/menuisland
+
+# Application
+NODE_ENV=production
+PORT=3000
+
+# Aggiungi qui le tue chiavi API se necessarie
+# STRIPE_SECRET_KEY=
+# VITE_STRIPE_PUBLIC_KEY=
+# RESEND_API_KEY=
+# GOOGLE_TRANSLATE_API_KEY=
+# CLOUDFLARE_API_TOKEN=
+# CLOUDFLARE_ZONE_ID=
+EOF
+    fi
+fi
 [ -d "temp-backup-uploads" ] && cp -r temp-backup-uploads/* uploads/ || true
+
+# Setup database se necessario
+echo "🗄️ Verifica configurazione database..."
+if ! grep -q "DATABASE_URL" .env 2>/dev/null; then
+    echo "📝 Configurazione database mancante, setup automatico..."
+    ./setup-database.sh
+fi
 
 # Installa dipendenze
 echo "📚 Installazione dipendenze..."
 npm install
+
+# Esegui migrazione database
+echo "🔄 Migrazione database..."
+npm run db:push || echo "⚠️ Migrazione fallita - controllare configurazione database"
 
 # Build con variabili d'ambiente
 echo "🏗️ Build applicazione..."
