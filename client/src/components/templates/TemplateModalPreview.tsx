@@ -194,6 +194,9 @@ export const TemplateModalPreview = ({ template, onSelect }: TemplateModalPrevie
               <div className="text-xs" style={{ color: currentColors.text, opacity: 0.7 }}>
                 Powered by MenuIsland
               </div>
+              <div className="text-xs mt-1" style={{ color: currentColors.text, opacity: 0.6 }}>
+                P.IVA: 01687960912
+              </div>
             </div>
           </div>
         </div>

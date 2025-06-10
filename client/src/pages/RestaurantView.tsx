@@ -223,6 +223,9 @@ const RestaurantView = () => {
           <div className="text-xs text-accent font-lato mt-1">
             Powered by MenuIsland
           </div>
+          <div className="text-xs text-neutral-300 dark:text-gray-400 font-lato mt-1">
+            P.IVA: 01687960912
+          </div>
         </div>
       </div>
     </div>
