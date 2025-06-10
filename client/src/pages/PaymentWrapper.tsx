@@ -4,9 +4,11 @@ import { loadStripe } from "@stripe/stripe-js";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Payment from "./Payment";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+const stripePromise = stripePublicKey ? loadStripe(stripePublicKey) : null;
 
 export default function PaymentWrapper() {
   const { user } = useAuth();
@@ -30,6 +32,29 @@ export default function PaymentWrapper() {
       setClientSecret(paymentIntent.clientSecret);
     }
   }, [paymentIntent]);
+
+  // Check if Stripe is properly configured
+  if (!stripePublicKey) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <CardTitle>Configurazione Pagamento Non Disponibile</CardTitle>
+            <CardDescription>
+              Il sistema di pagamento non è configurato correttamente. 
+              Contatta l'amministratore per completare l'attivazione del servizio.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 text-center">
+              Codice errore: STRIPE_CONFIG_MISSING
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoading || !clientSecret) {
     return (
