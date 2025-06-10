@@ -301,6 +301,24 @@ Generato: ${new Date().toLocaleString('it-IT')}
     }
   });
 
+  // Update script endpoint
+  app.get("/update-script.sh", (req, res) => {
+    res.set({
+      'Content-Type': 'text/plain',
+      'Content-Disposition': 'attachment; filename="update-script.sh"'
+    });
+    res.sendFile('update-script.sh', { root: '.' });
+  });
+
+  // Database setup script endpoint
+  app.get("/setup-database.sh", (req, res) => {
+    res.set({
+      'Content-Type': 'text/plain', 
+      'Content-Disposition': 'attachment; filename="setup-database.sh"'
+    });
+    res.sendFile('setup-database.sh', { root: '.' });
+  });
+
   // Version and status endpoint
   app.get("/api/version", (req, res) => {
     const packageJson = require('../package.json');
