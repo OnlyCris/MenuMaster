@@ -1727,8 +1727,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Download endpoint for project zip
   app.get('/download', (req, res) => {
-    const filePath = path.join(process.cwd(), 'menumaster-complete.zip');
-    res.download(filePath, 'menumaster-complete.zip', (err) => {
+    const filePath = path.join(process.cwd(), 'menuisland-complete.zip');
+    res.download(filePath, 'menuisland-complete.zip', (err) => {
       if (err) {
         console.error('Download error:', err);
         res.status(404).send('File not found');

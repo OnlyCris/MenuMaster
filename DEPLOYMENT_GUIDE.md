@@ -1,7 +1,7 @@
 # MenuIsland - Guida Completa al Deploy su VPS Debian 12
 
 ## Download del Progetto
-Scarica il progetto completo da: `https://menuisland-deploy.replit.app/download`
+Scarica il progetto completo da: `https://427f86c9-cc01-4eee-85fa-a81383a9333f-00-1zam1z3mzexa9.riker.replit.dev/download`
 
 ## Prerequisiti
 - VPS con Debian 12
@@ -74,7 +74,7 @@ sudo -u postgres psql -c "ALTER DATABASE menuisland OWNER TO menuisland;"
 ```bash
 mkdir -p /var/www/menuisland
 cd /var/www/menuisland
-wget https://menuisland-deploy.replit.app/download -O menuisland.zip
+wget https://427f86c9-cc01-4eee-85fa-a81383a9333f-00-1zam1z3mzexa9.riker.replit.dev/download -O menuisland.zip
 unzip menuisland.zip
 rm menuisland.zip
 ```
