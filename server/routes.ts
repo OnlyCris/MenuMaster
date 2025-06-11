@@ -1095,6 +1095,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Track language usage
+  app.post("/api/restaurants/:id/track-language", async (req, res) => {
+    try {
+      const restaurantId = Number(req.params.id);
+      const { language } = req.body;
+      
+      if (language) {
+        await storage.trackLanguageUsage(restaurantId, language);
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error tracking language:", error);
+      res.status(500).json({ message: "Failed to track language" });
+    }
+  });
+
   // Public view route that tracks visits
   app.get("/api/view/:subdomain", async (req, res) => {
     try {
