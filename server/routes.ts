@@ -114,13 +114,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Translate menu if user language is not Italian
           if (userLanguage !== 'it') {
-            try {
-              menuData.restaurant = await translateRestaurant(menuData.restaurant, userLanguage);
-              menuData.categories = await Promise.all(
-                menuData.categories.map(category => translateCategory(category, userLanguage))
-              );
-            } catch (translationError) {
-              console.warn('Translation failed, serving original content:', translationError);
+            // Skip translation if no Google Translate API key
+            if (process.env.GOOGLE_TRANSLATE_API_KEY) {
+              try {
+                menuData.restaurant = await translateRestaurant(menuData.restaurant, userLanguage);
+                menuData.categories = await Promise.all(
+                  menuData.categories.map(category => translateCategory(category, userLanguage))
+                );
+              } catch (translationError) {
+                // Silently continue with original content if translation fails
+              }
             }
           }
           

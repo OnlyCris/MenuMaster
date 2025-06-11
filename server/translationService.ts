@@ -31,6 +31,11 @@ export async function translateText(text: string, targetLang: string, sourceLang
     return translationCache[cacheKey][targetLang];
   }
 
+  // If no Google Translate API key is configured, return original text
+  if (!process.env.GOOGLE_TRANSLATE_API_KEY) {
+    return text;
+  }
+
   try {
     // Use Google Translate API
     const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${process.env.GOOGLE_TRANSLATE_API_KEY}`, {
@@ -47,7 +52,6 @@ export async function translateText(text: string, targetLang: string, sourceLang
     });
 
     if (!response.ok) {
-      console.error('Translation API error:', response.statusText);
       return text; // Return original text on error
     }
 
@@ -62,8 +66,8 @@ export async function translateText(text: string, targetLang: string, sourceLang
 
     return translatedText;
   } catch (error) {
-    console.error('Translation error:', error);
-    return text; // Return original text on error
+    // Silently return original text on error
+    return text;
   }
 }
 
