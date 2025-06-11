@@ -1,6 +1,7 @@
 # Guida Aggiornamento App MenuIsland
 
 ## 🔧 Problemi Risolti
+- ✅ Errore importazione modulo `pg` in Node.js v20 (RISOLTO!)
 - ✅ Errori API traduzione (fallback silenzioso)
 - ✅ Problemi certificato SSL (headers sicurezza)
 - ✅ Menu ristorante ottimizzato per mobile
