@@ -11,6 +11,7 @@ import Dashboard from "@/pages/Dashboard";
 import Restaurants from "@/pages/Restaurants";
 import MenuEditor from "@/pages/MenuEditor";
 import Analytics from "@/pages/Analytics";
+import RestaurantAnalytics from "@/pages/RestaurantAnalytics";
 import Templates from "@/pages/Templates";
 import Allergens from "@/pages/Allergens";
 import Settings from "@/pages/Settings";

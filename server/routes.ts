@@ -1004,8 +1004,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Analytics routes
-  app.get("/api/restaurants/:id/analytics", requireAuth, async (req: any, res) => {
+  // Analytics routes for individual restaurants
+  app.get("/api/analytics/restaurant/:id", requireAuth, async (req: any, res) => {
     try {
       const restaurantId = Number(req.params.id);
       const days = req.query.days ? Number(req.query.days) : 30;
@@ -1028,17 +1028,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const mostViewedItems = await storage.getMostViewedMenuItems(restaurantId, days);
       const languageStats = await storage.getMenuLanguageStats(restaurantId, days);
       
+      // Calculate totals
+      const totalVisits = analytics.reduce((sum, day) => sum + (day.visits || 0), 0);
+      const totalScans = analytics.reduce((sum, day) => sum + (day.qrScans || 0), 0);
+      
+      // Create chart data for the requested period
+      const chartData = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        const dayData = analytics.find(a => a.date && a.date.toISOString().split('T')[0] === dateStr);
+        
+        chartData.push({
+          date: dateStr,
+          visits: dayData?.visits || 0,
+          scans: dayData?.qrScans || 0
+        });
+      }
+      
       const analyticsData = {
-        basicStats: analytics,
+        totalVisits,
+        totalScans,
+        chartData,
         mostViewedItems,
-        languageStats,
-        totalViews: analytics.reduce((sum, day) => sum + (day.visits || 0), 0),
-        totalQrScans: analytics.reduce((sum, day) => sum + (day.qrScans || 0), 0)
+        languageStats
       };
       
       res.json(analyticsData);
     } catch (error) {
-      console.error("Error fetching analytics:", error);
+      console.error("Error fetching restaurant analytics:", error);
       res.status(500).json({ message: "Failed to fetch analytics" });
     }
   });
