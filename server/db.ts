@@ -12,7 +12,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 // Check if we're using Neon (contains neon.tech) or local PostgreSQL
-const isNeonDatabase = process.env.DATABASE_URL.includes('neon.tech') || process.env.DATABASE_URL.includes('neon.') || process.env.DATABASE_URL.includes('pooler.');
+const isNeonDatabase = process.env.DATABASE_URL.includes('neon.tech') || process.env.DATABASE_URL.includes('neon.') || process.env.DATABASE_URL.includes('pooler.') || process.env.DATABASE_URL.includes('@ep-');
 
 let pool: any;
 let db: any;

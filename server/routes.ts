@@ -127,8 +127,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
           
-          // Serve the restaurant menu view
-          return res.json(menuData);
+          // Generate and serve HTML page for restaurant menu
+          const htmlTemplate = fs.readFileSync(path.join(__dirname, 'menuPageTemplate.html'), 'utf8');
+          
+          // Prepare template variables
+          const logoHtml = menuData.restaurant.logoUrl ? 
+            `<img src="${menuData.restaurant.logoUrl}" alt="${menuData.restaurant.name} logo" class="logo">` : '';
+          
+          const locationHtml = menuData.restaurant.location ? 
+            `<p class="restaurant-location">${menuData.restaurant.location}</p>` : '';
+          
+          // Generate categories HTML
+          let categoriesHtml = '';
+          if (menuData.categories.length === 0) {
+            categoriesHtml = '<div style="text-align: center; padding: 3rem; color: #666;">Menu non disponibile al momento.</div>';
+          } else {
+            categoriesHtml = menuData.categories
+              .sort((a, b) => (a.order || 0) - (b.order || 0))
+              .map(category => {
+                const itemsHtml = category.items
+                  .sort((a, b) => (a.order || 0) - (b.order || 0))
+                  .map(item => {
+                    const imageHtml = item.imageUrl ? 
+                      `<img src="${item.imageUrl}" alt="${item.name}" class="item-image">` : '';
+                    
+                    const descriptionHtml = item.description ? 
+                      `<p class="item-description">${item.description}</p>` : '';
+                    
+                    const allergensHtml = item.allergens.length > 0 ? 
+                      `<div class="allergens">
+                         <div class="allergens-title">Allergeni</div>
+                         <div class="allergen-tags">
+                           ${item.allergens.map(allergen => 
+                             `<span class="allergen-tag" title="${allergen.description || ''}">${allergen.name}</span>`
+                           ).join('')}
+                         </div>
+                       </div>` : '';
+                    
+                    return `
+                      <div class="menu-item">
+                        <div class="item-header">
+                          <h3 class="item-name">${item.name}</h3>
+                          <span class="item-price">${item.price}</span>
+                        </div>
+                        ${descriptionHtml}
+                        ${imageHtml}
+                        ${allergensHtml}
+                      </div>
+                    `;
+                  }).join('');
+                
+                const categoryDescHtml = category.description ? 
+                  `<p class="category-description">${category.description}</p>` : '';
+                
+                return `
+                  <section class="category">
+                    <h2 class="category-title">${category.name}</h2>
+                    ${categoryDescHtml}
+                    <div class="menu-grid">
+                      ${itemsHtml}
+                    </div>
+                  </section>
+                `;
+              }).join('');
+          }
+          
+          // Language selection options
+          const langSelections = {
+            IT_SELECTED: userLanguage === 'it' ? 'selected' : '',
+            EN_SELECTED: userLanguage === 'en' ? 'selected' : '',
+            FR_SELECTED: userLanguage === 'fr' ? 'selected' : '',
+            DE_SELECTED: userLanguage === 'de' ? 'selected' : '',
+            ES_SELECTED: userLanguage === 'es' ? 'selected' : ''
+          };
+          
+          // Replace template variables
+          let html = htmlTemplate
+            .replace(/{{LANGUAGE}}/g, userLanguage)
+            .replace(/{{RESTAURANT_NAME}}/g, menuData.restaurant.name || 'Menu')
+            .replace(/{{RESTAURANT_LOCATION}}/g, menuData.restaurant.location || '')
+            .replace(/{{LOGO_HTML}}/g, logoHtml)
+            .replace(/{{LOCATION_HTML}}/g, locationHtml)
+            .replace(/{{CATEGORIES_HTML}}/g, categoriesHtml);
+          
+          // Replace language selections
+          Object.entries(langSelections).forEach(([key, value]) => {
+            html = html.replace(new RegExp(`{{${key}}}`, 'g'), value);
+          });
+          
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          return res.send(html);
         }
       } catch (error) {
         console.error("Error fetching restaurant data:", error);
