@@ -20,8 +20,8 @@ export const SUPPORTED_LANGUAGES = {
 };
 
 export async function translateText(text: string, targetLang: string, sourceLang = 'it'): Promise<string> {
-  // Return original text if same language or if text is empty
-  if (targetLang === sourceLang || !text || text.trim() === '') {
+  // Return original text if same language
+  if (targetLang === sourceLang) {
     return text;
   }
 
@@ -29,12 +29,6 @@ export async function translateText(text: string, targetLang: string, sourceLang
   const cacheKey = `${text}_${sourceLang}`;
   if (translationCache[cacheKey] && translationCache[cacheKey][targetLang]) {
     return translationCache[cacheKey][targetLang];
-  }
-
-  // Skip translation if no API key is configured - return original text
-  if (!process.env.GOOGLE_TRANSLATE_API_KEY) {
-    console.log('Translation skipped: No Google Translate API key configured');
-    return text;
   }
 
   try {
