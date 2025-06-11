@@ -301,37 +301,7 @@ Generato: ${new Date().toLocaleString('it-IT')}
     }
   });
 
-  // Update script endpoint
-  app.get("/update-script.sh", (req, res) => {
-    const fs = require('fs');
-    const path = require('path');
-    
-    try {
-      const scriptPath = path.join(process.cwd(), 'update-script.sh');
-      const scriptContent = fs.readFileSync(scriptPath, 'utf8');
-      
-      res.set('Content-Type', 'text/plain');
-      res.send(scriptContent);
-    } catch (error) {
-      res.status(404).send('Script not found');
-    }
-  });
 
-  // Database setup script endpoint
-  app.get("/setup-database.sh", (req, res) => {
-    const fs = require('fs');
-    const path = require('path');
-    
-    try {
-      const scriptPath = path.join(process.cwd(), 'setup-database.sh');
-      const scriptContent = fs.readFileSync(scriptPath, 'utf8');
-      
-      res.set('Content-Type', 'text/plain');
-      res.send(scriptContent);
-    } catch (error) {
-      res.status(404).send('Script not found');
-    }
-  });
 
   // Version and status endpoint
   app.get("/api/version", (req, res) => {
