@@ -146,10 +146,10 @@ const Sidebar = () => {
 
             {user?.isAdmin && (
               <SidebarLink
-                href="/client-invitations"
+                href="/clients"
                 icon={<Users size={20} />}
                 label="Inviti Clienti"
-                active={location === "/client-invitations"}
+                active={location === "/clients"}
                 onClick={closeMobileMenu}
               />
             )}

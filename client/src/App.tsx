@@ -98,10 +98,10 @@ function Router() {
       <Route path="/restaurants/:id/analytics" component={RestaurantAnalytics} />
       <Route path="/templates" component={Templates} />
       <Route path="/allergens" component={Allergens} />
-      <Route path="/clients" component={ClientInvitations} />
       <Route path="/settings" component={Settings} />
       <Route path="/support" component={Support} />
       <Route path="/admin/support" component={SupportAdmin} />
+      <Route path="/clients" component={ClientInvitations} />
       <Route component={NotFound} />
     </Switch>
   );

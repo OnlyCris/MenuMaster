@@ -1148,7 +1148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin support routes
-  app.get("/api/admin/support/tickets", requireAdmin, async (req, res) => {
+  app.get("/api/admin/support/tickets", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const tickets = await storage.getAllSupportTickets();
       res.json(tickets);
@@ -1158,7 +1158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/admin/support/tickets/:id/status", requireAdmin, async (req, res) => {
+  app.put("/api/admin/support/tickets/:id/status", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const ticketId = Number(req.params.id);
       const { status } = req.body;
@@ -1171,7 +1171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/admin/support/tickets/:id/response", requireAdmin, async (req, res) => {
+  app.put("/api/admin/support/tickets/:id/response", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const ticketId = Number(req.params.id);
       const { response } = req.body;
@@ -1182,6 +1182,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error updating ticket response:", error);
       res.status(500).json({ message: "Failed to update ticket response" });
     }
+  });
+
+  // Health check endpoint
+  app.get("/api/health", (req: Request, res: Response) => {
+    res.json({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      version: "1.5.0"
+    });
   });
 
   // Public view route that tracks visits
@@ -1311,7 +1320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Client invitation routes (admin only)
-  app.get("/api/client-invitations", requireAdmin, async (req, res) => {
+  app.get("/api/client-invitations", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const invitations = await storage.getClientInvitations();
       res.json(invitations);
@@ -1321,7 +1330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/client-invitations", requireAdmin, async (req: any, res) => {
+  app.post("/api/client-invitations", requireAuth, requireAdmin, async (req: any, res) => {
     try {
       // Extract and validate only the required fields
       const { email, restaurantName } = req.body;
@@ -1480,7 +1489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/client-invitations/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/client-invitations/:id", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const id = Number(req.params.id);
       const success = await storage.deleteClientInvitation(id);
