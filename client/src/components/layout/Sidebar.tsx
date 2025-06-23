@@ -11,7 +11,8 @@ import {
   Shield,
   CreditCard,
   Menu,
-  X
+  X,
+  MessageCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -140,6 +141,16 @@ const Sidebar = () => {
                 icon={<Shield size={20} />}
                 label="Admin Panel"
                 active={location === "/admin"}
+                onClick={closeMobileMenu}
+              />
+            )}
+
+            {user?.isAdmin && (
+              <SidebarLink
+                href="/admin/support"
+                icon={<MessageCircle size={20} />}
+                label="Gestione Supporto"
+                active={location === "/admin/support"}
                 onClick={closeMobileMenu}
               />
             )}
