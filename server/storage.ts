@@ -754,7 +754,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSupportTicketStatus(ticketId: number, status: string): Promise<SupportTicket> {
-    const [updated] = await this.db
+    const [updated] = await db
       .update(supportTickets)
       .set({ status, updatedAt: new Date() })
       .where(eq(supportTickets.id, ticketId))
@@ -763,7 +763,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSupportTicketResponse(ticketId: number, response: string): Promise<SupportTicket> {
-    const [updated] = await this.db
+    const [updated] = await db
       .update(supportTickets)
       .set({ response, status: 'resolved', updatedAt: new Date() })
       .where(eq(supportTickets.id, ticketId))
