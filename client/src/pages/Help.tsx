@@ -233,16 +233,16 @@ export default function Help() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-950">
+    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-950">
       <Sidebar />
       
-      <div className="flex-1 pl-64 overflow-y-auto">
+      <div className="flex-1 lg:pl-64 overflow-y-auto">
         <Topbar 
           title="Centro Assistenza" 
           showNewButton={false}
         />
         
-        <div className="p-6 space-y-6">
+        <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -254,7 +254,7 @@ export default function Help() {
           </div>
 
           {/* Quick Contact Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
             <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setIsTicketDialogOpen(true)}>
               <CardContent className="p-6 text-center">
                 <MessageCircle className="h-12 w-12 text-primary mx-auto mb-4" />

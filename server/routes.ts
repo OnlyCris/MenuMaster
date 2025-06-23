@@ -1113,9 +1113,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Support tickets API
-  app.get("/api/support/tickets", requireAuth, async (req: any, res) => {
+  app.get("/api/support/tickets", requireAuth, async (req: Request, res: Response) => {
     try {
-      const userId = req.user.id;
+      const userId = req.session.user!.id;
       const tickets = await storage.getSupportTicketsByUser(userId);
       res.json(tickets);
     } catch (error) {
@@ -1124,10 +1124,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/support/tickets", requireAuth, async (req: any, res) => {
+  app.post("/api/support/tickets", requireAuth, async (req: Request, res: Response) => {
     try {
-      const userId = req.user.id;
-      const userEmail = req.user.email;
+      const userId = req.session.user!.id;
+      const userEmail = req.session.user!.email;
       const { subject, message, priority, category } = req.body;
       
       const ticket = await storage.createSupportTicket({

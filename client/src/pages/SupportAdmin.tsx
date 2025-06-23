@@ -258,11 +258,11 @@ const SupportAdmin = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
       <Sidebar />
-      <div className="flex-1 ml-64">
+      <div className="flex-1 lg:ml-64">
         <Topbar />
-        <div className="p-8">
+        <div className="p-4 lg:p-8">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Gestione Supporto</h1>
@@ -272,7 +272,7 @@ const SupportAdmin = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                 <MessageCircle className="h-5 w-5 text-blue-500 mr-2" />
@@ -335,7 +335,7 @@ const SupportAdmin = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex space-x-4">
+              <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">Stato</label>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>

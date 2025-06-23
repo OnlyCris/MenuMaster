@@ -723,7 +723,7 @@ export class DatabaseStorage implements IStorage {
   // Support tickets operations
   async getSupportTicketsByUser(userId: string): Promise<SupportTicket[]> {
     try {
-      return await this.db.select().from(supportTickets).where(eq(supportTickets.userId, userId)).orderBy(desc(supportTickets.createdAt));
+      return await db.select().from(supportTickets).where(eq(supportTickets.userId, userId)).orderBy(desc(supportTickets.createdAt));
     } catch (error) {
       console.error("Error fetching user support tickets:", error);
       return [];
@@ -732,7 +732,7 @@ export class DatabaseStorage implements IStorage {
 
   async getAllSupportTickets(): Promise<SupportTicket[]> {
     try {
-      return await this.db.select().from(supportTickets).orderBy(desc(supportTickets.createdAt));
+      return await db.select().from(supportTickets).orderBy(desc(supportTickets.createdAt));
     } catch (error) {
       console.error("Error fetching all support tickets:", error);
       return [];
@@ -740,7 +740,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket> {
-    const [created] = await this.db.insert(supportTickets).values(ticket).returning();
+    const [created] = await db.insert(supportTickets).values(ticket).returning();
     return created;
   }
 

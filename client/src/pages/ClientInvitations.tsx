@@ -131,16 +131,16 @@ export default function ClientInvitations() {
 
   return (
     <PaymentGuard feature="gestione inviti clienti">
-      <div className="flex h-screen bg-gray-100 dark:bg-gray-950">
+      <div className="flex min-h-screen bg-gray-100 dark:bg-gray-950">
         <Sidebar />
         
-        <div className="flex-1 pl-64 overflow-y-auto">
+        <div className="flex-1 lg:pl-64 overflow-y-auto">
           <Topbar 
             title="Gestione Clienti" 
             showNewButton={false}
           />
           
-          <div className="p-6 space-y-6">
+          <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Inviti Clienti</h1>
