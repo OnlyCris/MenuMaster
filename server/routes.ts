@@ -1113,9 +1113,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Support tickets API
-  app.get("/api/support/tickets", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/support/tickets", requireAuth, async (req: any, res: Response) => {
     try {
-      const userId = req.session.user!.id;
+      const userId = req.session.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "User not found in session" });
+      }
       const tickets = await storage.getSupportTicketsByUser(userId);
       res.json(tickets);
     } catch (error) {
@@ -1124,10 +1127,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/support/tickets", requireAuth, async (req: Request, res: Response) => {
+  app.post("/api/support/tickets", requireAuth, async (req: any, res: Response) => {
     try {
-      const userId = req.session.user!.id;
-      const userEmail = req.session.user!.email;
+      const userId = req.session.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "User not found in session" });
+      }
+      
+      // Get user info
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
       const { subject, message, priority, category } = req.body;
       
       const ticket = await storage.createSupportTicket({
@@ -1137,7 +1149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'open',
         category: category || 'general',
         userId,
-        userEmail
+        userEmail: user.email
       });
       
       res.status(201).json(ticket);
