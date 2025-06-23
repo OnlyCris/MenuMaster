@@ -1,210 +1,162 @@
-# MenuIsland - Guida Completa al Deploy su VPS Debian 12
+# MenuIsland - Guida Deploy Completa
 
-## Download del Progetto
-Scarica il progetto completo da: `https://menuisland-deploy.replit.app/download`
+## Opzioni di Deploy
 
-## Prerequisiti
-- VPS con Debian 12
-- Accesso root al server
-- Dominio menuisland.it configurato per puntare al VPS
+### 🚀 Deploy Automatico - Debian 12
 
-## 1. Preparazione del Server
+**Comando unico per installazione completa:**
 
-### Aggiorna il sistema
 ```bash
-apt update && apt upgrade -y
+wget https://raw.githubusercontent.com/your-org/menuisland/main/debian-installer.sh
+chmod +x debian-installer.sh
+sudo ./debian-installer.sh
 ```
 
-### Installa Node.js 20
+Questo script installa e configura automaticamente:
+- Node.js 18
+- PostgreSQL 14
+- Nginx con SSL
+- PM2 process manager
+- Firewall e sicurezza
+- Backup automatici
+- Certificati SSL Let's Encrypt
+
+### 📋 Prerequisiti
+
+**Server Requirements:**
+- Ubuntu 20.04+ / Debian 11+ / CentOS 8+
+- Minimo 2GB RAM (4GB consigliati)
+- 20GB spazio disco (50GB consigliati)
+- Accesso root/sudo
+- Dominio configurato con DNS
+
+**Servizi Esterni (Opzionali):**
+- Account Stripe (pagamenti)
+- Account SendGrid (email)
+- Account Cloudflare (sottodomini)
+- Google Cloud (traduzioni)
+
+## Deploy Manuale
+
+### 1. Preparazione Server
+
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-apt-get install -y nodejs
+# Aggiorna sistema
+sudo apt update && sudo apt upgrade -y
+
+# Installa dipendenze base
+sudo apt install -y curl wget git unzip nginx postgresql postgresql-contrib
 ```
 
-### Installa PostgreSQL 15
+### 2. Installazione Node.js
+
 ```bash
-apt install postgresql postgresql-contrib -y
-systemctl start postgresql
-systemctl enable postgresql
+# Node.js 18
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Verifica installazione
+node --version
+npm --version
 ```
 
-### Installa Nginx
+### 3. Setup Database
+
 ```bash
-apt install nginx -y
-systemctl start nginx
-systemctl enable nginx
+# Avvia PostgreSQL
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+
+# Crea database
+sudo -u postgres psql
+CREATE DATABASE menuisland_production;
+CREATE USER menuisland WITH ENCRYPTED PASSWORD 'your_secure_password';
+GRANT ALL PRIVILEGES ON DATABASE menuisland_production TO menuisland;
+\q
 ```
 
-### Installa PM2
+### 4. Clone e Build Applicazione
+
 ```bash
-npm install -g pm2
-```
-
-### Installa strumenti di utilità
-```bash
-apt install unzip curl wget git -y
-```
-
-## 2. Configurazione PostgreSQL
-
-### Configura autenticazione PostgreSQL
-```bash
-sudo -u postgres sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/*/main/postgresql.conf
-sudo sed -i "s/local   all             all                                     peer/local   all             all                                     md5/" /etc/postgresql/*/main/pg_hba.conf
-sudo sed -i "s/local   all             postgres                                peer/local   all             postgres                                md5/" /etc/postgresql/*/main/pg_hba.conf
-systemctl restart postgresql
-```
-
-### Imposta password per postgres
-```bash
-sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'MenuIsland2024!Strong';"
-```
-
-### Crea database e utente
-```bash
-sudo -u postgres createdb menuisland
-sudo -u postgres psql -c "CREATE USER menuisland WITH ENCRYPTED PASSWORD 'MenuIsland2024!DB';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE menuisland TO menuisland;"
-sudo -u postgres psql -c "ALTER DATABASE menuisland OWNER TO menuisland;"
-```
-
-## 3. Deploy dell'Applicazione
-
-### Crea directory e scarica il progetto
-```bash
-mkdir -p /var/www/menuisland
+# Crea directory
+sudo mkdir -p /var/www/menuisland
+sudo chown $USER:$USER /var/www/menuisland
 cd /var/www/menuisland
-wget https://menuisland-deploy.replit.app/download -O menuisland.zip
-unzip menuisland.zip
-rm menuisland.zip
-```
 
-### Installa dipendenze
-```bash
+# Clone repository (o upload files)
+git clone https://github.com/your-org/menuisland.git .
+
+# Installa dipendenze
 npm install
+
+# Configura environment
+cp .env.example .env
+nano .env
 ```
 
-### Crea file di configurazione
-```bash
-cat > .env << 'EOF'
+### 5. Configurazione .env
+
+```env
+# Database
+DATABASE_URL="postgresql://menuisland:your_password@localhost:5432/menuisland_production"
+
+# Server
 NODE_ENV=production
-DATABASE_URL=postgresql://menuisland:MenuIsland2024!DB@localhost:5432/menuisland
-SESSION_SECRET=MenuIsland2024!SessionSecret!VeryLongAndSecure!RandomString!
-REPLIT_DOMAINS=menuisland.it,www.menuisland.it
-REPL_ID=menuisland-production
-RESEND_API_KEY=re_YOUR_RESEND_API_KEY_HERE
-STRIPE_SECRET_KEY=sk_live_YOUR_STRIPE_SECRET_KEY_HERE
-VITE_STRIPE_PUBLIC_KEY=pk_live_YOUR_STRIPE_PUBLIC_KEY_HERE
-EOF
+PORT=5000
+SESSION_SECRET="your-super-secret-key-min-32-chars"
+
+# Domain
+DOMAIN=yourdomain.com
+BASE_URL=https://yourdomain.com
+
+# Stripe (Opzionale)
+STRIPE_SECRET_KEY=sk_live_...
+VITE_STRIPE_PUBLIC_KEY=pk_live_...
+
+# Email (Opzionale)
+SENDGRID_API_KEY=SG...
+FROM_EMAIL=noreply@yourdomain.com
+
+# Cloudflare (Opzionale)
+CLOUDFLARE_API_TOKEN=...
+CLOUDFLARE_ZONE_ID=...
+
+# Google Translate (Opzionale)
+GOOGLE_TRANSLATE_API_KEY=...
 ```
 
-### Build dell'applicazione
-```bash
-npm run build
-```
+### 6. Build e Deploy Database
 
-### Configura database
 ```bash
+# Build applicazione
+VITE_STRIPE_PUBLIC_KEY=$VITE_STRIPE_PUBLIC_KEY npm run build
+
+# Deploy database schema
 npm run db:push
 ```
 
-### Imposta permessi
+### 7. Configurazione Nginx
+
 ```bash
-chown -R www-data:www-data /var/www/menuisland
+sudo nano /etc/nginx/sites-available/menuisland
 ```
 
-## 4. Configurazione Nginx
-
-### Crea configurazione principale
-```bash
-cat > /etc/nginx/sites-available/menuisland << 'EOF'
-# Configurazione per dominio principale
+```nginx
 server {
     listen 80;
-    server_name menuisland.it www.menuisland.it;
-
-    location / {
-        proxy_pass http://localhost:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        proxy_redirect off;
-        proxy_buffering off;
-    }
-}
-
-# Configurazione per sottodomini ristoranti
-server {
-    listen 80;
-    server_name ~^(?<subdomain>.+)\.menuisland\.it$;
-
-    location / {
-        proxy_pass http://localhost:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        proxy_redirect off;
-        proxy_buffering off;
-    }
-}
-EOF
-```
-
-### Attiva configurazione
-```bash
-ln -s /etc/nginx/sites-available/menuisland /etc/nginx/sites-enabled/
-rm -f /etc/nginx/sites-enabled/default
-nginx -t
-systemctl reload nginx
-```
-
-## 5. Configurazione SSL con Certbot
-
-### Installa Certbot
-```bash
-apt install certbot python3-certbot-nginx -y
-```
-
-### Ottieni certificato SSL per dominio principale
-```bash
-certbot --nginx -d menuisland.it -d www.menuisland.it
-```
-
-### Ottieni certificato wildcard per sottodomini
-```bash
-certbot certonly --manual --preferred-challenges=dns -d *.menuisland.it
-```
-
-Segui le istruzioni per aggiungere il record TXT DNS.
-
-### Aggiorna configurazione Nginx con SSL wildcard
-```bash
-cat > /etc/nginx/sites-available/menuisland << 'EOF'
-# Redirect HTTP to HTTPS
-server {
-    listen 80;
-    server_name menuisland.it www.menuisland.it *.menuisland.it;
+    server_name yourdomain.com *.yourdomain.com;
     return 301 https://$server_name$request_uri;
 }
 
-# Dominio principale HTTPS
 server {
     listen 443 ssl http2;
-    server_name menuisland.it www.menuisland.it;
-
-    ssl_certificate /etc/letsencrypt/live/menuisland.it/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/menuisland.it/privkey.pem;
-
+    server_name yourdomain.com *.yourdomain.com;
+    
+    # SSL certificates (configurati con certbot)
+    ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+    
+    # Proxy to Node.js
     location / {
         proxy_pass http://localhost:5000;
         proxy_http_version 1.1;
@@ -215,192 +167,279 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
-        proxy_redirect off;
-        proxy_buffering off;
+    }
+    
+    # Static files
+    location /uploads {
+        alias /var/www/menuisland/uploads;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
     }
 }
-
-# Sottodomini ristoranti HTTPS
-server {
-    listen 443 ssl http2;
-    server_name ~^(?<subdomain>.+)\.menuisland\.it$;
-
-    ssl_certificate /etc/letsencrypt/live/menuisland.it/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/menuisland.it/privkey.pem;
-
-    location / {
-        proxy_pass http://localhost:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_Set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        proxy_redirect off;
-        proxy_buffering off;
-    }
-}
-EOF
-
-systemctl reload nginx
 ```
 
-## 6. Avvio dell'Applicazione
-
-### Avvia con PM2
 ```bash
-cd /var/www/menuisland
-pm2 start npm --name "menuisland" -- start
+# Abilita sito
+sudo ln -s /etc/nginx/sites-available/menuisland /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 8. SSL con Let's Encrypt
+
+```bash
+# Installa certbot
+sudo apt install certbot python3-certbot-nginx
+
+# Genera certificati
+sudo certbot --nginx -d yourdomain.com -d *.yourdomain.com
+
+# Auto-renewal
+sudo crontab -e
+# Aggiungi: 0 12 * * * /usr/bin/certbot renew --quiet
+```
+
+### 9. PM2 Setup
+
+```bash
+# Installa PM2
+sudo npm install -g pm2
+
+# Avvia applicazione
+pm2 start ecosystem.config.js
 pm2 save
 pm2 startup
 ```
 
-### Esegui il comando suggerito da PM2 startup (esempio)
+### 10. Sicurezza e Backup
+
 ```bash
-# Copia e incolla il comando suggerito da PM2, sarà simile a:
-# sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u root --hp /root
+# Firewall
+sudo ufw enable
+sudo ufw allow ssh
+sudo ufw allow 80
+sudo ufw allow 443
+
+# Fail2Ban
+sudo apt install fail2ban
+
+# Script backup
+sudo mkdir -p /var/backups/menuisland /var/scripts
 ```
 
-## 7. Configurazione Firewall
+## Verifica Installazione
 
-### Configura UFW
+### Test Componenti
+
 ```bash
-ufw allow OpenSSH
-ufw allow 'Nginx Full'
-ufw --force enable
-```
+# Database
+psql -h localhost -U menuisland -d menuisland_production -c "SELECT NOW();"
 
-## 8. Configurazione DNS
+# Applicazione
+curl http://localhost:5000/api/health
 
-Aggiungi questi record DNS al tuo provider:
+# Nginx
+sudo nginx -t
 
-```
-A       menuisland.it           IP_DEL_TUO_VPS
-A       www.menuisland.it       IP_DEL_TUO_VPS
-A       *.menuisland.it         IP_DEL_TUO_VPS
-```
+# SSL
+curl -I https://yourdomain.com
 
-## 9. Configurazione API Keys
-
-### Modifica file .env con le tue chiavi reali
-```bash
-nano /var/www/menuisland/.env
-```
-
-Sostituisci:
-- `re_YOUR_RESEND_API_KEY_HERE` con la tua chiave Resend
-- `sk_live_YOUR_STRIPE_SECRET_KEY_HERE` con la tua chiave segreta Stripe
-- `pk_live_YOUR_STRIPE_PUBLIC_KEY_HERE` con la tua chiave pubblica Stripe
-
-### Riavvia l'applicazione
-```bash
-pm2 restart menuisland
-```
-
-## 10. Backup Automatico
-
-### Crea script di backup
-```bash
-mkdir -p /backup/scripts
-cat > /backup/scripts/backup-menuisland.sh << 'EOF'
-#!/bin/bash
-DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="/backup/menuisland"
-mkdir -p $BACKUP_DIR
-
-# Backup database
-pg_dump -U menuisland -h localhost menuisland > $BACKUP_DIR/db_backup_$DATE.sql
-
-# Backup files
-tar -czf $BACKUP_DIR/files_backup_$DATE.tar.gz /var/www/menuisland
-
-# Mantieni solo gli ultimi 7 backup
-find $BACKUP_DIR -name "*.sql" -mtime +7 -delete
-find $BACKUP_DIR -name "*.tar.gz" -mtime +7 -delete
-EOF
-
-chmod +x /backup/scripts/backup-menuisland.sh
-```
-
-### Aggiungi a crontab
-```bash
-(crontab -l 2>/dev/null; echo "0 2 * * * /backup/scripts/backup-menuisland.sh") | crontab -
-```
-
-## 11. Monitoraggio
-
-### Comandi utili
-```bash
-# Stato dell'applicazione
+# PM2
 pm2 status
-
-# Log dell'applicazione
 pm2 logs menuisland
+```
 
-# Monitoraggio risorse
+### Monitoring
+
+```bash
+# Status servizi
+sudo systemctl status nginx postgresql
+
+# Logs applicazione
+pm2 logs menuisland --lines 50
+
+# Performance
 pm2 monit
 
-# Riavvia applicazione
-pm2 restart menuisland
+# Spazio disco
+df -h
 
-# Stato Nginx
-systemctl status nginx
-
-# Stato PostgreSQL
-systemctl status postgresql
-
-# Log Nginx
-tail -f /var/log/nginx/access.log
-tail -f /var/log/nginx/error.log
+# Memoria
+free -h
 ```
 
-## 12. Aggiornamenti
+## Aggiornamenti
 
-### Per aggiornare l'applicazione
+### Update Automatico
+
+```bash
+# Esegui script update
+/var/scripts/update-menuisland.sh
+```
+
+### Update Manuale
+
 ```bash
 cd /var/www/menuisland
+
+# Backup
+/var/scripts/backup-menuisland.sh
+
+# Stop app
 pm2 stop menuisland
-git pull origin main  # se usi git
-# oppure sovrascrivi i file manualmente
+
+# Update code
+git pull origin main
 npm install
-npm run build
+VITE_STRIPE_PUBLIC_KEY=$VITE_STRIPE_PUBLIC_KEY npm run build
+
+# Database migrations
 npm run db:push
-pm2 start menuisland
+
+# Restart
+pm2 restart menuisland
 ```
 
-## Test Finale
+## Troubleshooting
 
-1. Visita https://menuisland.it - dovrebbe caricare la dashboard
-2. Crea un account e un ristorante
-3. Verifica che il sottodominio funzioni: https://nomeristorante.menuisland.it
-4. Testa i pagamenti Stripe
-5. Controlla le email Resend
+### Problemi Comuni
 
-## Risoluzione Problemi
-
-### Se l'app non si avvia
+**Database Connection Error:**
 ```bash
+# Verifica servizio
+sudo systemctl status postgresql
+sudo systemctl restart postgresql
+
+# Test connessione
+psql -h localhost -U menuisland -d menuisland_production
+```
+
+**Nginx 502 Bad Gateway:**
+```bash
+# Verifica app
+pm2 status
+pm2 restart menuisland
+
+# Check logs
 pm2 logs menuisland
+sudo tail -f /var/log/nginx/error.log
 ```
 
-### Se il database non si connette
+**SSL Certificate Issues:**
 ```bash
-sudo -u postgres psql -c "\l"
-systemctl status postgresql
+# Rinnova certificati
+sudo certbot renew
+sudo systemctl reload nginx
+
+# Verifica certificati
+sudo certbot certificates
 ```
 
-### Se Nginx non funziona
+**High Memory Usage:**
 ```bash
-nginx -t
-systemctl status nginx
+# Restart PM2
+pm2 restart menuisland
+
+# Check memory limits
+pm2 show menuisland
 ```
 
-### Se SSL non funziona
+### Log Analysis
+
 ```bash
-certbot certificates
-certbot renew --dry-run
+# Application logs
+pm2 logs menuisland
+
+# Nginx logs
+sudo tail -f /var/log/nginx/access.log
+sudo tail -f /var/log/nginx/error.log
+
+# Database logs
+sudo tail -f /var/log/postgresql/postgresql-14-main.log
+
+# System logs
+journalctl -u nginx -f
+journalctl -u postgresql -f
 ```
 
-Il progetto dovrebbe essere completamente funzionante su https://menuisland.it con sottodomini per i ristoranti.
+## Performance Optimization
+
+### Database Tuning
+
+```sql
+-- postgresql.conf
+shared_buffers = 256MB
+effective_cache_size = 1GB
+maintenance_work_mem = 64MB
+```
+
+### Nginx Optimization
+
+```nginx
+# nginx.conf
+worker_processes auto;
+worker_connections 1024;
+sendfile on;
+gzip on;
+gzip_types text/plain application/json application/javascript text/css;
+```
+
+### PM2 Tuning
+
+```javascript
+// ecosystem.config.js
+{
+  instances: 'max',
+  max_memory_restart: '512M',
+  node_args: '--max-old-space-size=512'
+}
+```
+
+## Deploy su Cloud
+
+### AWS EC2
+
+1. Lancia istanza Ubuntu 20.04 (t3.medium consigliata)
+2. Configura Security Group (22, 80, 443)
+3. Associa Elastic IP
+4. Esegui script installazione
+5. Configura Route 53 per DNS
+
+### DigitalOcean Droplet
+
+1. Crea Droplet Ubuntu 20.04 (2GB RAM)
+2. Aggiungi dominio al DNS
+3. Esegui script installazione
+4. Configura backup automatici
+
+### Google Cloud VM
+
+1. Crea VM Instance Ubuntu 20.04
+2. Configura firewall rules
+3. Assegna IP statico
+4. Esegui script installazione
+
+## Monitoraggio Produzione
+
+### Uptime Monitoring
+
+- UptimeRobot
+- Pingdom
+- StatusCake
+
+### Error Tracking
+
+- Sentry
+- Bugsnag
+- LogRocket
+
+### Performance Monitoring
+
+- New Relic
+- DataDog
+- PM2 Plus
+
+---
+
+**MenuIsland è ora pronto per la produzione con un setup robusto, sicuro e scalabile.**

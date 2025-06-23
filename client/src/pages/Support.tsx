@@ -1,440 +1,436 @@
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import Sidebar from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   MessageCircle, 
-  Phone, 
-  Mail, 
-  FileText, 
+  Plus, 
   Clock, 
   CheckCircle, 
-  AlertCircle,
-  Book,
-  Video,
-  Search,
-  Plus
+  AlertCircle, 
+  XCircle,
+  Mail,
+  Phone,
+  MessageSquare,
+  HelpCircle
 } from "lucide-react";
-import { format } from "date-fns";
 
-type SupportTicket = {
-  id: number;
-  subject: string;
-  message: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  status: 'open' | 'in_progress' | 'resolved' | 'closed';
-  category: string;
-  userId: string;
-  userEmail: string;
-  response?: string;
-  createdAt: Date;
-  updatedAt: Date;
-};
+const supportTicketSchema = z.object({
+  subject: z.string().min(1, "L'oggetto è obbligatorio"),
+  message: z.string().min(10, "Il messaggio deve essere di almeno 10 caratteri"),
+  priority: z.enum(["low", "medium", "high", "urgent"]),
+  category: z.string().min(1, "Seleziona una categoria"),
+});
+
+type SupportTicketFormData = z.infer<typeof supportTicketSchema>;
 
 const Support = () => {
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isCreatingTicket, setIsCreatingTicket] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  
-  // Form state
-  const [formData, setFormData] = useState({
-    subject: "",
-    message: "",
-    priority: "medium" as const,
-    category: "general"
+
+  const form = useForm<SupportTicketFormData>({
+    resolver: zodResolver(supportTicketSchema),
+    defaultValues: {
+      subject: "",
+      message: "",
+      priority: "medium",
+      category: "general",
+    },
   });
 
   // Fetch user's support tickets
-  const { data: tickets = [], isLoading } = useQuery<SupportTicket[]>({
+  const { data: tickets, isLoading } = useQuery({
     queryKey: ["/api/support/tickets"],
     enabled: !!user,
   });
 
-  // Create ticket mutation
+  // Create support ticket mutation
   const createTicketMutation = useMutation({
-    mutationFn: async (ticketData: typeof formData) => {
-      return apiRequest("POST", "/api/support/tickets", ticketData);
+    mutationFn: async (data: SupportTicketFormData) => {
+      return await apiRequest("POST", "/api/support/tickets", {
+        ...data,
+        userId: user?.id,
+        userEmail: user?.email,
+      });
     },
     onSuccess: () => {
-      toast({
-        title: "Richiesta inviata",
-        description: "La tua richiesta di assistenza è stata inviata con successo. Ti risponderemo presto.",
-      });
-      setFormData({
-        subject: "",
-        message: "",
-        priority: "medium",
-        category: "general"
-      });
-      setIsCreatingTicket(false);
       queryClient.invalidateQueries({ queryKey: ["/api/support/tickets"] });
+      form.reset();
+      setIsDialogOpen(false);
+      toast({
+        title: "Ticket creato",
+        description: "La tua richiesta di supporto è stata inviata con successo",
+      });
     },
-    onError: () => {
+    onError: (error) => {
       toast({
         title: "Errore",
-        description: "Si è verificato un errore durante l'invio della richiesta.",
+        description: error instanceof Error ? error.message : "Si è verificato un errore",
         variant: "destructive",
       });
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.subject.trim() || !formData.message.trim()) {
-      toast({
-        title: "Campi obbligatori",
-        description: "Compila tutti i campi richiesti.",
-        variant: "destructive",
-      });
-      return;
-    }
-    createTicketMutation.mutate(formData);
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "open":
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
-      case "in_progress":
-        return <Clock className="h-4 w-4 text-yellow-500" />;
-      case "resolved":
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case "closed":
-        return <CheckCircle className="h-4 w-4 text-gray-500" />;
-      default:
-        return <AlertCircle className="h-4 w-4 text-gray-500" />;
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "open":
-        return "Aperto";
-      case "in_progress":
-        return "In lavorazione";
-      case "resolved":
-        return "Risolto";
-      case "closed":
-        return "Chiuso";
-      default:
-        return status;
-    }
+  const handleSubmit = async (data: SupportTicketFormData) => {
+    await createTicketMutation.mutate(data);
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "urgent":
-        return "bg-red-100 text-red-800";
-      case "high":
-        return "bg-orange-100 text-orange-800";
-      case "medium":
-        return "bg-yellow-100 text-yellow-800";
-      case "low":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+      case "urgent": return "bg-red-100 text-red-800 border-red-200";
+      case "high": return "bg-orange-100 text-orange-800 border-orange-200";
+      case "medium": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "low": return "bg-green-100 text-green-800 border-green-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
-  const filteredTickets = tickets.filter(ticket =>
-    ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    ticket.message.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const faqs = [
-    {
-      question: "Come creare un nuovo ristorante?",
-      answer: "Vai nella dashboard e clicca su 'Nuovo Ristorante'. Compila i dati richiesti e scegli un template per il tuo menu digitale."
-    },
-    {
-      question: "Come modificare il menu del ristorante?",
-      answer: "Dalla lista ristoranti, clicca sull'icona menu accanto al ristorante. Potrai aggiungere categorie e piatti con descrizioni e prezzi."
-    },
-    {
-      question: "Come generare codici QR?",
-      answer: "Nella sezione ristoranti, clicca sull'icona QR. Potrai generare e scaricare codici QR personalizzati per i tuoi tavoli."
-    },
-    {
-      question: "Come visualizzare le analitiche?",
-      answer: "Clicca sull'icona grafici nella lista ristoranti per vedere statistiche dettagliate su visite, scansioni QR e piatti più visualizzati."
-    },
-    {
-      question: "Come funziona la traduzione automatica?",
-      answer: "I menu sono automaticamente tradotti in 10 lingue. I clienti possono selezionare la lingua preferita dal menu a tendina."
-    },
-    {
-      question: "Cosa include il piano a pagamento?",
-      answer: "Il piano premium include ristoranti illimitati, templates avanzati, analitiche dettagliate e supporto prioritario."
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "open": return "bg-blue-100 text-blue-800 border-blue-200";
+      case "in_progress": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "resolved": return "bg-green-100 text-green-800 border-green-200";
+      case "closed": return "bg-gray-100 text-gray-800 border-gray-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
-  ];
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "open": return <Clock className="h-4 w-4" />;
+      case "in_progress": return <AlertCircle className="h-4 w-4" />;
+      case "resolved": return <CheckCircle className="h-4 w-4" />;
+      case "closed": return <XCircle className="h-4 w-4" />;
+      default: return <Clock className="h-4 w-4" />;
+    }
+  };
+
+  const formatPriority = (priority: string) => {
+    const map = {
+      low: "Bassa",
+      medium: "Media", 
+      high: "Alta",
+      urgent: "Urgente"
+    };
+    return map[priority as keyof typeof map] || priority;
+  };
+
+  const formatStatus = (status: string) => {
+    const map = {
+      open: "Aperto",
+      in_progress: "In Lavorazione",
+      resolved: "Risolto", 
+      closed: "Chiuso"
+    };
+    return map[status as keyof typeof map] || status;
+  };
+
+  if (isAuthLoading) {
+    return (
+      <div className="flex">
+        <Sidebar />
+        <div className="flex-1 ml-64">
+          <Topbar />
+          <div className="p-8">
+            <Skeleton className="h-8 w-64 mb-6" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Skeleton className="h-32" />
+              <Skeleton className="h-32" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Topbar title="Centro Assistenza" showNewButton={false} />
-        <div className="flex-1 overflow-auto">
-          <div className="p-6 space-y-8">
-            {/* Header */}
-            <div className="text-center max-w-3xl mx-auto">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                Centro Assistenza MenuIsland
-              </h1>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
-                Siamo qui per aiutarti. Trova risposte alle tue domande o contatta il nostro team di supporto.
+      <div className="flex-1 ml-64">
+        <Topbar />
+        <div className="p-8">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Centro Supporto</h1>
+              <p className="text-gray-600 mt-1">
+                Gestisci le tue richieste di supporto e ottieni assistenza
               </p>
             </div>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nuova Richiesta
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Nuova Richiesta di Supporto</DialogTitle>
+                  <DialogDescription>
+                    Descrivi il tuo problema o la tua richiesta. Ti risponderemo il prima possibile.
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="category"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Categoria</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Seleziona categoria" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="general">Generale</SelectItem>
+                              <SelectItem value="technical">Problema Tecnico</SelectItem>
+                              <SelectItem value="billing">Fatturazione</SelectItem>
+                              <SelectItem value="feature">Richiesta Funzionalità</SelectItem>
+                              <SelectItem value="bug">Segnalazione Bug</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-            {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setIsCreatingTicket(true)}>
-                <CardHeader className="text-center">
-                  <MessageCircle className="h-12 w-12 text-blue-600 mx-auto mb-2" />
-                  <CardTitle>Nuova Richiesta</CardTitle>
-                  <CardDescription>Invia una richiesta di assistenza al nostro team</CardDescription>
-                </CardHeader>
-              </Card>
+                    <FormField
+                      control={form.control}
+                      name="priority"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Priorità</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Seleziona priorità" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="low">Bassa</SelectItem>
+                              <SelectItem value="medium">Media</SelectItem>
+                              <SelectItem value="high">Alta</SelectItem>
+                              <SelectItem value="urgent">Urgente</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="text-center">
-                  <Book className="h-12 w-12 text-green-600 mx-auto mb-2" />
-                  <CardTitle>Documentazione</CardTitle>
-                  <CardDescription>Guide complete e tutorial per l'utilizzo</CardDescription>
-                </CardHeader>
-              </Card>
+                    <FormField
+                      control={form.control}
+                      name="subject"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Oggetto</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Descrivi brevemente il problema" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="text-center">
-                  <Video className="h-12 w-12 text-purple-600 mx-auto mb-2" />
-                  <CardTitle>Video Tutorial</CardTitle>
-                  <CardDescription>Impara guardando i nostri video tutorial</CardDescription>
-                </CardHeader>
-              </Card>
-            </div>
+                    <FormField
+                      control={form.control}
+                      name="message"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Messaggio</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Descrivi dettagliatamente il problema o la richiesta..."
+                              className="min-h-[120px]"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-            {/* Contact Info */}
-            <Card className="max-w-4xl mx-auto">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Phone className="h-5 w-5 mr-2" />
-                  Contatti Diretti
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex items-center space-x-3">
-                    <Mail className="h-5 w-5 text-blue-600" />
-                    <div>
-                      <p className="font-medium">Email Support</p>
-                      <p className="text-sm text-gray-600">support@menuisland.it</p>
-                      <p className="text-xs text-gray-500">Risposta entro 24 ore</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <MessageCircle className="h-5 w-5 text-green-600" />
-                    <div>
-                      <p className="font-medium">Chat Live</p>
-                      <p className="text-sm text-gray-600">Disponibile dalle 9:00 alle 18:00</p>
-                      <p className="text-xs text-gray-500">Lunedì - Venerdì</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* FAQ Section */}
-            <Card className="max-w-4xl mx-auto">
-              <CardHeader>
-                <CardTitle>Domande Frequenti</CardTitle>
-                <CardDescription>Trova risposte immediate alle domande più comuni</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {faqs.map((faq, index) => (
-                  <div key={index} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0">
-                    <h3 className="font-medium text-gray-900 dark:text-white mb-2">{faq.question}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{faq.answer}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* New Ticket Form */}
-            {isCreatingTicket && (
-              <Card className="max-w-2xl mx-auto">
-                <CardHeader>
-                  <CardTitle>Nuova Richiesta di Assistenza</CardTitle>
-                  <CardDescription>Descrivi il tuo problema e ti aiuteremo a risolverlo</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Oggetto *</label>
-                      <Input
-                        value={formData.subject}
-                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                        placeholder="Descrivi brevemente il problema"
-                        required
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Categoria</label>
-                        <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="general">Generale</SelectItem>
-                            <SelectItem value="technical">Problema Tecnico</SelectItem>
-                            <SelectItem value="billing">Fatturazione</SelectItem>
-                            <SelectItem value="feature">Richiesta Funzionalità</SelectItem>
-                            <SelectItem value="bug">Segnalazione Bug</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Priorità</label>
-                        <Select value={formData.priority} onValueChange={(value: any) => setFormData({ ...formData, priority: value })}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="low">Bassa</SelectItem>
-                            <SelectItem value="medium">Media</SelectItem>
-                            <SelectItem value="high">Alta</SelectItem>
-                            <SelectItem value="urgent">Urgente</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Descrizione *</label>
-                      <Textarea
-                        value={formData.message}
-                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                        placeholder="Descrivi dettagliatamente il problema o la richiesta"
-                        rows={5}
-                        required
-                      />
-                    </div>
-
-                    <div className="flex justify-end space-x-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsCreatingTicket(false)}
+                    <DialogFooter>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setIsDialogOpen(false)}
                       >
                         Annulla
                       </Button>
-                      <Button
-                        type="submit"
-                        disabled={createTicketMutation.isPending}
-                      >
+                      <Button type="submit" disabled={createTicketMutation.isPending}>
                         {createTicketMutation.isPending ? "Invio..." : "Invia Richiesta"}
                       </Button>
-                    </div>
+                    </DialogFooter>
                   </form>
-                </CardContent>
-              </Card>
-            )}
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
 
-            {/* My Tickets */}
-            <Card className="max-w-4xl mx-auto">
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Le Mie Richieste</CardTitle>
-                    <CardDescription>Stato delle tue richieste di assistenza</CardDescription>
-                  </div>
-                  <Button onClick={() => setIsCreatingTicket(true)} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nuova Richiesta
-                  </Button>
-                </div>
+          {/* Quick Contact Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card>
+              <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+                <Mail className="h-5 w-5 text-blue-500 mr-2" />
+                <CardTitle className="text-sm font-medium">Email</CardTitle>
               </CardHeader>
               <CardContent>
-                {/* Search */}
-                <div className="mb-4">
-                  <div className="relative">
-                    <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
-                    <Input
-                      placeholder="Cerca nelle tue richieste..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
+                <div className="text-2xl font-bold">support@menuisland.it</div>
+                <p className="text-xs text-muted-foreground">
+                  Risposta entro 24 ore
+                </p>
+              </CardContent>
+            </Card>
 
-                {isLoading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="text-sm text-gray-500 mt-2">Caricamento richieste...</p>
-                  </div>
-                ) : filteredTickets.length === 0 ? (
-                  <div className="text-center py-8">
-                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">
-                      {searchQuery ? "Nessuna richiesta trovata" : "Non hai ancora inviato richieste di assistenza"}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {filteredTickets.map((ticket) => (
-                      <div key={ticket.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex-1">
-                            <h3 className="font-medium text-gray-900 dark:text-white mb-1">
-                              {ticket.subject}
-                            </h3>
-                            <div className="flex items-center space-x-4 text-sm text-gray-500">
-                              <span>#{ticket.id}</span>
-                              <span>{format(new Date(ticket.createdAt), "dd/MM/yyyy HH:mm")}</span>
-                              <Badge className={getPriorityColor(ticket.priority)} variant="secondary">
-                                {ticket.priority}
-                              </Badge>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            {getStatusIcon(ticket.status)}
-                            <span className="text-sm font-medium">{getStatusText(ticket.status)}</span>
-                          </div>
-                        </div>
-                        
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                          {ticket.message.length > 150 
-                            ? `${ticket.message.substring(0, 150)}...` 
-                            : ticket.message}
-                        </p>
+            <Card>
+              <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+                <MessageSquare className="h-5 w-5 text-green-500 mr-2" />
+                <CardTitle className="text-sm font-medium">Chat Live</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">9:00 - 18:00</div>
+                <p className="text-xs text-muted-foreground">
+                  Lun-Ven, supporto immediato
+                </p>
+              </CardContent>
+            </Card>
 
-                        {ticket.response && (
-                          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3 mt-3">
-                            <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">Risposta del Support:</p>
-                            <p className="text-sm text-blue-800 dark:text-blue-200">{ticket.response}</p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+            <Card>
+              <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+                <HelpCircle className="h-5 w-5 text-purple-500 mr-2" />
+                <CardTitle className="text-sm font-medium">FAQ</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">50+ Guide</div>
+                <p className="text-xs text-muted-foreground">
+                  Soluzioni comuni e tutorial
+                </p>
               </CardContent>
             </Card>
           </div>
+
+          {/* Support Tickets */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <MessageCircle className="h-5 w-5 mr-2" />
+                Le Mie Richieste di Supporto
+              </CardTitle>
+              <CardDescription>
+                Gestisci e monitora le tue richieste di assistenza
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <Skeleton key={i} className="h-24 w-full" />
+                  ))}
+                </div>
+              ) : !tickets || tickets.length === 0 ? (
+                <div className="text-center py-12">
+                  <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Nessuna richiesta di supporto
+                  </h3>
+                  <p className="text-gray-500 mb-4">
+                    Non hai ancora inviato richieste di supporto.
+                  </p>
+                  <Button onClick={() => setIsDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Crea Prima Richiesta
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {tickets.map((ticket: any) => (
+                    <Card key={ticket.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                              {ticket.subject}
+                            </h3>
+                            <p className="text-gray-600 text-sm mb-3">
+                              {ticket.message.length > 150 
+                                ? `${ticket.message.substring(0, 150)}...`
+                                : ticket.message
+                              }
+                            </p>
+                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+                              <span>#{ticket.id}</span>
+                              <span>•</span>
+                              <span>{new Date(ticket.createdAt).toLocaleDateString('it-IT')}</span>
+                              <span>•</span>
+                              <span className="capitalize">{ticket.category}</span>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end space-y-2">
+                            <Badge className={getPriorityColor(ticket.priority)}>
+                              {formatPriority(ticket.priority)}
+                            </Badge>
+                            <Badge className={getStatusColor(ticket.status)}>
+                              {getStatusIcon(ticket.status)}
+                              <span className="ml-1">{formatStatus(ticket.status)}</span>
+                            </Badge>
+                          </div>
+                        </div>
+                        
+                        {ticket.response && (
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
+                            <div className="flex items-center mb-2">
+                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                              <span className="text-sm font-medium text-green-800">
+                                Risposta del Supporto
+                              </span>
+                            </div>
+                            <p className="text-sm text-green-700">{ticket.response}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

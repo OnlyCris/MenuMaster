@@ -1,49 +1,35 @@
-# Multi-stage build per ottimizzare le dimensioni
-FROM node:18-alpine as builder
-
-WORKDIR /app
-
-# Copia i file di configurazione
-COPY package*.json ./
-COPY tsconfig.json ./
-COPY vite.config.ts ./
-COPY tailwind.config.ts ./
-COPY postcss.config.js ./
-COPY components.json ./
-
-# Installa le dipendenze
-RUN npm ci --only=production
-
-# Copia il codice sorgente
-COPY client/ ./client/
-COPY server/ ./server/
-COPY shared/ ./shared/
-
-# Build dell'applicazione
-RUN npm run build
-
-# Fase di produzione
 FROM node:18-alpine
 
+# Set working directory
 WORKDIR /app
 
-# Installa solo le dipendenze di produzione
+# Copy package files
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
 
-# Copia i file buildati
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/uploads ./uploads
+# Install dependencies
+RUN npm ci --only=production
 
-# Crea directory per upload se non esiste
+# Copy application code
+COPY . .
+
+# Build application
+ARG VITE_STRIPE_PUBLIC_KEY
+ENV VITE_STRIPE_PUBLIC_KEY=$VITE_STRIPE_PUBLIC_KEY
+RUN npm run build
+
+# Create uploads directory
 RUN mkdir -p uploads
 
-# Espone la porta
+# Set proper permissions
+RUN chown -R node:node /app
+USER node
+
+# Expose port
 EXPOSE 5000
 
-# Variabili di ambiente
-ENV NODE_ENV=production
-ENV PORT=5000
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:5000/api/health || exit 1
 
-# Comando di avvio
+# Start application
 CMD ["node", "dist/index.js"]
