@@ -12,6 +12,7 @@ import {
   menuLanguageUsage,
   clientInvitations,
   emailTemplates,
+  supportTickets,
   type User,
   type UpsertUser,
   type Restaurant,

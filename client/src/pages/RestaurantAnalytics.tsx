@@ -119,7 +119,7 @@ const RestaurantAnalytics = () => {
                     <SelectItem value="90">Ultimi 90 giorni</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button onClick={() => setLocation("/dashboard")} variant="outline">
+                <Button onClick={() => setLocation("/")} variant="outline">
                   Torna alla Dashboard
                 </Button>
               </div>

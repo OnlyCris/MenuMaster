@@ -9,7 +9,9 @@
 MenuIsland is a comprehensive SaaS platform for restaurant digital menu management with advanced analytics, multi-language support, and customer support system.
 
 ## Recent Changes
-- ✅ **January 2025**: Fixed support ticket system database issues and admin panel access
+- ✅ **January 2025**: Fixed supportTickets database import and table creation in installation scripts
+- ✅ **January 2025**: Fixed dashboard navigation links (changed /dashboard to /)
+- ✅ **January 2025**: Complete support ticket system with admin management panel
 - ✅ **January 2025**: Mobile optimization for all admin pages (analytics, support, invitations)
 - ✅ **January 2025**: Complete /help page with FAQ system and ticket creation
 - ✅ **January 2025**: Enhanced template preview system with live mock data visualization
