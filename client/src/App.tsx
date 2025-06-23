@@ -27,6 +27,7 @@ import PaymentSuccess from "@/pages/PaymentSuccess";
 import AdminPanel from "@/pages/AdminPanelNew";
 import Support from "@/pages/Support";
 import SupportAdmin from "@/pages/SupportAdmin";
+import Help from "@/pages/Help";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -100,6 +101,7 @@ function Router() {
       <Route path="/allergens" component={Allergens} />
       <Route path="/settings" component={Settings} />
       <Route path="/support" component={Support} />
+      <Route path="/help" component={Help} />
       <Route path="/admin/support" component={SupportAdmin} />
       <Route path="/clients" component={ClientInvitations} />
       <Route component={NotFound} />
