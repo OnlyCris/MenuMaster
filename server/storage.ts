@@ -129,6 +129,13 @@ export interface IStorage {
   createEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate>;
   updateEmailTemplate(id: number, template: Partial<InsertEmailTemplate>): Promise<EmailTemplate | undefined>;
   deleteEmailTemplate(id: number): Promise<boolean>;
+  
+  // Support tickets operations
+  getSupportTicketsByUser(userId: string): Promise<SupportTicket[]>;
+  getAllSupportTickets(): Promise<SupportTicket[]>;
+  createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket>;
+  updateSupportTicketStatus(ticketId: number, status: string): Promise<SupportTicket>;
+  updateSupportTicketResponse(ticketId: number, response: string): Promise<SupportTicket>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -712,6 +719,47 @@ export class DatabaseStorage implements IStorage {
   async deleteEmailTemplate(id: number): Promise<boolean> {
     const result = await db.delete(emailTemplates).where(eq(emailTemplates.id, id));
     return result.rowCount > 0;
+  }
+  // Support tickets operations
+  async getSupportTicketsByUser(userId: string): Promise<SupportTicket[]> {
+    try {
+      return await this.db.select().from(supportTickets).where(eq(supportTickets.userId, userId)).orderBy(desc(supportTickets.createdAt));
+    } catch (error) {
+      console.error("Error fetching user support tickets:", error);
+      return [];
+    }
+  }
+
+  async getAllSupportTickets(): Promise<SupportTicket[]> {
+    try {
+      return await this.db.select().from(supportTickets).orderBy(desc(supportTickets.createdAt));
+    } catch (error) {
+      console.error("Error fetching all support tickets:", error);
+      return [];
+    }
+  }
+
+  async createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket> {
+    const [created] = await this.db.insert(supportTickets).values(ticket).returning();
+    return created;
+  }
+
+  async updateSupportTicketStatus(ticketId: number, status: string): Promise<SupportTicket> {
+    const [updated] = await this.db
+      .update(supportTickets)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(supportTickets.id, ticketId))
+      .returning();
+    return updated;
+  }
+
+  async updateSupportTicketResponse(ticketId: number, response: string): Promise<SupportTicket> {
+    const [updated] = await this.db
+      .update(supportTickets)
+      .set({ response, status: 'resolved', updatedAt: new Date() })
+      .where(eq(supportTickets.id, ticketId))
+      .returning();
+    return updated;
   }
 }
 

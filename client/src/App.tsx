@@ -25,6 +25,8 @@ import Login from "@/pages/Login";
 import PaymentWrapper from "@/pages/PaymentWrapper";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import AdminPanel from "@/pages/AdminPanelNew";
+import Support from "@/pages/Support";
+import SupportAdmin from "@/pages/SupportAdmin";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -98,6 +100,8 @@ function Router() {
       <Route path="/allergens" component={Allergens} />
       <Route path="/clients" component={ClientInvitations} />
       <Route path="/settings" component={Settings} />
+      <Route path="/support" component={Support} />
+      <Route path="/admin/support" component={SupportAdmin} />
       <Route component={NotFound} />
     </Switch>
   );

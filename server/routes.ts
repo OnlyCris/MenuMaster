@@ -1112,6 +1112,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Support tickets API
+  app.get("/api/support/tickets", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const tickets = await storage.getSupportTicketsByUser(userId);
+      res.json(tickets);
+    } catch (error) {
+      console.error("Error fetching support tickets:", error);
+      res.status(500).json({ message: "Failed to fetch support tickets" });
+    }
+  });
+
+  app.post("/api/support/tickets", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const userEmail = req.user.email;
+      const { subject, message, priority, category } = req.body;
+      
+      const ticket = await storage.createSupportTicket({
+        subject,
+        message,
+        priority: priority || 'medium',
+        status: 'open',
+        category: category || 'general',
+        userId,
+        userEmail
+      });
+      
+      res.status(201).json(ticket);
+    } catch (error) {
+      console.error("Error creating support ticket:", error);
+      res.status(500).json({ message: "Failed to create support ticket" });
+    }
+  });
+
+  // Admin support routes
+  app.get("/api/admin/support/tickets", requireAdmin, async (req, res) => {
+    try {
+      const tickets = await storage.getAllSupportTickets();
+      res.json(tickets);
+    } catch (error) {
+      console.error("Error fetching all support tickets:", error);
+      res.status(500).json({ message: "Failed to fetch support tickets" });
+    }
+  });
+
+  app.put("/api/admin/support/tickets/:id/status", requireAdmin, async (req, res) => {
+    try {
+      const ticketId = Number(req.params.id);
+      const { status } = req.body;
+      
+      const ticket = await storage.updateSupportTicketStatus(ticketId, status);
+      res.json(ticket);
+    } catch (error) {
+      console.error("Error updating ticket status:", error);
+      res.status(500).json({ message: "Failed to update ticket status" });
+    }
+  });
+
+  app.put("/api/admin/support/tickets/:id/response", requireAdmin, async (req, res) => {
+    try {
+      const ticketId = Number(req.params.id);
+      const { response } = req.body;
+      
+      const ticket = await storage.updateSupportTicketResponse(ticketId, response);
+      res.json(ticket);
+    } catch (error) {
+      console.error("Error updating ticket response:", error);
+      res.status(500).json({ message: "Failed to update ticket response" });
+    }
+  });
+
   // Public view route that tracks visits
   app.get("/api/view/:subdomain", async (req, res) => {
     try {

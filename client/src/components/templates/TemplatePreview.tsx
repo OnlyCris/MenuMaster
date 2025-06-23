@@ -1,251 +1,238 @@
 import { useState } from "react";
 import { Template } from "@shared/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Eye, Palette, Star, Sparkles } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 type TemplatePreviewProps = {
   template: Template;
   onSelect?: (template: Template) => void;
-  showColorSelector?: boolean;
+  selected?: boolean;
+  showSelectButton?: boolean;
 };
 
-type ColorPalette = {
-  primary: string;
-  secondary: string;
-  accent: string;
-  text: string;
-  background: string;
-};
+const TemplatePreview = ({ template, onSelect, selected, showSelectButton = true }: TemplatePreviewProps) => {
+  const [showPreview, setShowPreview] = useState(false);
 
-const predefinedPalettes: { name: string; colors: ColorPalette }[] = [
-  {
-    name: "Originale",
-    colors: {
-      primary: "#2C3E50",
-      secondary: "#E8F4FD", 
-      accent: "#3498DB",
-      text: "#2C3E50",
-      background: "#FFFFFF"
-    }
-  },
-  {
-    name: "Rustico",
-    colors: {
-      primary: "#8B4513",
-      secondary: "#F5DEB3",
-      accent: "#CD853F", 
-      text: "#5D4037",
-      background: "#FFF8E1"
-    }
-  },
-  {
-    name: "Moderno",
-    colors: {
-      primary: "#1A202C",
-      secondary: "#F7FAFC",
-      accent: "#4299E1",
-      text: "#2D3748", 
-      background: "#FFFFFF"
-    }
-  },
-  {
-    name: "Natura",
-    colors: {
-      primary: "#22543D",
-      secondary: "#F0FFF4",
-      accent: "#68D391",
-      text: "#2F855A",
-      background: "#F7FFFC"
-    }
-  }
-];
-
-export const TemplatePreview = ({ template, onSelect, showColorSelector = false }: TemplatePreviewProps) => {
-  const [selectedPalette, setSelectedPalette] = useState(0);
-  const currentColors = predefinedPalettes[selectedPalette].colors;
-
-  const getTemplateStyle = (templateName: string, colors: ColorPalette) => {
-    const baseStyles = {
-      fontFamily: "'Inter', sans-serif",
-      color: colors.text,
-      backgroundColor: colors.background
-    };
-
-    switch (templateName.toLowerCase()) {
-      case "template elegante":
-        return {
-          ...baseStyles,
-          background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.accent} 100%)`,
-          borderRadius: "12px"
-        };
-      case "template rustico": 
-        return {
-          ...baseStyles,
-          background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.accent} 100%)`,
-          borderRadius: "8px",
-          border: `2px solid ${colors.accent}`
-        };
-      case "template moderno":
-        return {
-          ...baseStyles,
-          background: `linear-gradient(45deg, ${colors.primary} 0%, ${colors.accent} 100%)`,
-          borderRadius: "16px"
-        };
-      default:
-        return {
-          ...baseStyles,
-          background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.accent} 100%)`
-        };
+  // Parse color scheme safely
+  const getColorScheme = () => {
+    try {
+      return template.colorScheme ? JSON.parse(template.colorScheme) : null;
+    } catch {
+      return null;
     }
   };
 
-  const renderMenuPreview = () => {
-    const headerStyle = getTemplateStyle(template.name, currentColors);
-    
-    return (
-      <div className="w-full max-w-sm mx-auto border rounded-lg overflow-hidden shadow-sm">
-        {/* Header */}
-        <div 
-          className="text-white p-4 text-center"
-          style={headerStyle}
-        >
-          <div className="font-bold text-lg">Ristorante Demo</div>
-          <div className="text-sm opacity-90">Menu digitale</div>
-        </div>
+  const colorScheme = getColorScheme();
 
-        {/* Menu Categories */}
-        <div className="p-3" style={{ backgroundColor: currentColors.background }}>
-          <div className="flex gap-2 mb-3">
-            {["Antipasti", "Primi", "Secondi"].map((cat, idx) => (
-              <span
-                key={cat}
-                className="px-3 py-1 rounded-full text-sm"
-                style={{
-                  backgroundColor: idx === 0 ? currentColors.accent : currentColors.secondary,
-                  color: idx === 0 ? "white" : currentColors.text
-                }}
-              >
-                {cat}
-              </span>
-            ))}
-          </div>
+  // Generate mock menu data for preview
+  const mockRestaurant = {
+    name: "Ristorante Demo",
+    location: "Via Roma, 123 - Milano",
+    logoUrl: null
+  };
 
-          {/* Sample Menu Items */}
-          <div className="space-y-2">
-            {[
-              { name: "Bruschetta al pomodoro", price: "€8.00" },
-              { name: "Pasta alla carbonara", price: "€12.00" },
-              { name: "Risotto ai funghi", price: "€14.00" }
-            ].map((item, idx) => (
-              <div
-                key={idx}
-                className="p-3 rounded"
-                style={{
-                  backgroundColor: template.name.toLowerCase().includes("rustico") 
-                    ? currentColors.secondary 
-                    : currentColors.background,
-                  border: template.name.toLowerCase().includes("elegante")
-                    ? `1px solid ${currentColors.secondary}`
-                    : "none"
-                }}
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-medium text-sm" style={{ color: currentColors.text }}>
-                      {item.name}
-                    </div>
-                    <div className="text-xs opacity-70" style={{ color: currentColors.text }}>
-                      Descrizione del piatto...
-                    </div>
-                  </div>
-                  <div className="font-bold text-sm" style={{ color: currentColors.primary }}>
-                    {item.price}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+  const mockCategories = [
+    {
+      id: 1,
+      name: "Antipasti",
+      description: "Selezione di antipasti della casa",
+      items: [
+        {
+          id: 1,
+          name: "Bruschetta al Pomodoro",
+          description: "Pane tostato con pomodori freschi, basilico e olio extravergine",
+          price: "€8.50",
+          imageUrl: null,
+          allergens: [{ name: "Glutine" }]
+        },
+        {
+          id: 2,
+          name: "Antipasto Misto",
+          description: "Selezione di salumi e formaggi locali con verdure grigliate",
+          price: "€12.00",
+          imageUrl: null,
+          allergens: [{ name: "Lattosio" }]
+        }
+      ]
+    },
+    {
+      id: 2,
+      name: "Primi Piatti",
+      description: "Pasta fresca fatta in casa",
+      items: [
+        {
+          id: 3,
+          name: "Spaghetti alla Carbonara",
+          description: "Pasta con uova, pecorino, guanciale e pepe nero",
+          price: "€14.00",
+          imageUrl: null,
+          allergens: [{ name: "Glutine" }, { name: "Uova" }]
+        }
+      ]
+    }
+  ];
 
-          {/* Footer */}
-          <div className="text-center mt-3 pt-2 border-t" style={{ borderColor: currentColors.secondary }}>
-            <div className="text-xs" style={{ color: currentColors.text, opacity: 0.7 }}>
-              Powered by MenuIsland
+  const PreviewContent = () => (
+    <div className="min-h-screen bg-white" style={{ fontFamily: 'Arial, sans-serif' }}>
+      {/* Apply template styles */}
+      <style>
+        {template.cssStyles}
+      </style>
+      
+      {/* Restaurant Header */}
+      <header className="restaurant-header bg-blue-600 text-white p-6 text-center">
+        <h1 className="text-3xl font-bold mb-2">{mockRestaurant.name}</h1>
+        <p className="text-sm opacity-90">{mockRestaurant.location}</p>
+      </header>
+
+      {/* Menu Content */}
+      <main className="container mx-auto p-6 max-w-4xl">
+        {mockCategories.map((category) => (
+          <section key={category.id} className="mb-8">
+            <div className="menu-category p-4 rounded-lg mb-4">
+              <h2 className="text-2xl font-bold mb-2">{category.name}</h2>
+              <p className="text-gray-600 text-sm">{category.description}</p>
             </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center justify-between">
-          {template.name}
-          <div className="flex gap-1">
-            {template.isPopular && (
-              <Badge variant="secondary" className="text-xs">
-                Popolare
-              </Badge>
-            )}
-            {template.isNew && (
-              <Badge variant="outline" className="text-xs">
-                Nuovo
-              </Badge>
-            )}
-          </div>
-        </CardTitle>
-        {template.description && (
-          <p className="text-sm text-muted-foreground">{template.description}</p>
-        )}
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        {/* Template Preview */}
-        {renderMenuPreview()}
-
-        {/* Color Selector */}
-        {showColorSelector && (
-          <div className="space-y-3">
-            <div className="text-sm font-medium">Palette colori:</div>
-            <div className="grid grid-cols-2 gap-2">
-              {predefinedPalettes.map((palette, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedPalette(idx)}
-                  className={`p-2 rounded border text-left transition-colors ${
-                    selectedPalette === idx 
-                      ? "border-primary bg-primary/5" 
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="text-xs font-medium mb-1">{palette.name}</div>
-                  <div className="flex gap-1">
-                    {Object.values(palette.colors).slice(0, 4).map((color, colorIdx) => (
-                      <div
-                        key={colorIdx}
-                        className="w-3 h-3 rounded-full border border-white shadow-sm"
-                        style={{ backgroundColor: color }}
-                      />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {category.items.map((item) => (
+                <div key={item.id} className="menu-item border rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-lg font-semibold">{item.name}</h3>
+                    <span className="price font-bold">{item.price}</span>
+                  </div>
+                  <p className="text-gray-600 text-sm mb-2">{item.description}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {item.allergens.map((allergen, idx) => (
+                      <span 
+                        key={idx}
+                        className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded"
+                      >
+                        {allergen.name}
+                      </span>
                     ))}
                   </div>
-                </button>
+                </div>
               ))}
             </div>
-          </div>
-        )}
+          </section>
+        ))}
+      </main>
+    </div>
+  );
 
-        {/* Action Button */}
-        {onSelect && (
-          <Button 
-            onClick={() => onSelect(template)}
-            className="w-full"
-          >
-            Seleziona Template
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+  return (
+    <>
+      <Card className={`hover:shadow-lg transition-all duration-300 cursor-pointer ${selected ? 'ring-2 ring-blue-500' : ''}`}>
+        <CardContent className="p-6">
+          {/* Template Header */}
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                {template.name}
+              </h3>
+              <p className="text-sm text-gray-600 mb-3">
+                {template.description || "Template per menu digitale"}
+              </p>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              {template.isPopular && (
+                <Badge className="bg-orange-100 text-orange-800 border-orange-200">
+                  <Star className="h-3 w-3 mr-1" />
+                  Popolare
+                </Badge>
+              )}
+              {template.isNew && (
+                <Badge className="bg-green-100 text-green-800 border-green-200">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  Nuovo
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          {/* Color Scheme Preview */}
+          {colorScheme && (
+            <div className="mb-4">
+              <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+                Schema Colori
+              </p>
+              <div className="flex space-x-2">
+                {Object.entries(colorScheme).slice(0, 4).map(([key, color]) => (
+                  <div key={key} className="flex flex-col items-center">
+                    <div 
+                      className="w-8 h-8 rounded-full border-2 border-gray-200"
+                      style={{ backgroundColor: color as string }}
+                      title={`${key}: ${color}`}
+                    />
+                    <span className="text-xs text-gray-500 mt-1 capitalize">{key}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Mini Preview */}
+          <div className="bg-gray-50 rounded-lg p-4 mb-4 overflow-hidden">
+            <div className="scale-50 origin-top-left w-[200%] h-32 overflow-hidden">
+              <div className="transform scale-50">
+                <PreviewContent />
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex space-x-2">
+            <Dialog open={showPreview} onOpenChange={setShowPreview}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="flex-1">
+                  <Eye className="h-4 w-4 mr-2" />
+                  Anteprima
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-6xl max-h-[90vh] overflow-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center">
+                    <Palette className="h-5 w-5 mr-2" />
+                    Anteprima Template: {template.name}
+                  </DialogTitle>
+                  <DialogDescription>
+                    Ecco come apparirà il menu del ristorante con questo template
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="border rounded-lg overflow-hidden">
+                  <PreviewContent />
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {showSelectButton && onSelect && (
+              <Button 
+                onClick={() => onSelect(template)}
+                size="sm"
+                className="flex-1"
+                variant={selected ? "default" : "outline"}
+              >
+                {selected ? "Selezionato" : "Seleziona"}
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </>
   );
 };
+
+export default TemplatePreview;

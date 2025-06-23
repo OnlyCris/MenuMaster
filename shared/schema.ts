@@ -334,3 +334,29 @@ export const insertEmailTemplateSchema = createInsertSchema(emailTemplates, {
 
 export type EmailTemplate = typeof emailTemplates.$inferSelect;
 export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
+
+// Support tickets table
+export const supportTickets = pgTable("support_tickets", {
+  id: serial("id").primaryKey(),
+  subject: varchar("subject").notNull(),
+  message: text("message").notNull(),
+  priority: varchar("priority").notNull().default("medium"), // 'low', 'medium', 'high', 'urgent'
+  status: varchar("status").notNull().default("open"), // 'open', 'in_progress', 'resolved', 'closed'
+  category: varchar("category").notNull().default("general"),
+  userId: varchar("user_id").notNull(),
+  userEmail: varchar("user_email").notNull(),
+  response: text("response"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Support ticket schema
+export const insertSupportTicketSchema = createInsertSchema(supportTickets, {
+  subject: z.string().min(1, "Subject is required"),
+  message: z.string().min(1, "Message is required"),
+  priority: z.enum(["low", "medium", "high", "urgent"]),
+  status: z.enum(["open", "in_progress", "resolved", "closed"]),
+});
+
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
