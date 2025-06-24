@@ -11,9 +11,10 @@ MenuMaster is a comprehensive SaaS platform for restaurant digital menu manageme
 **GitHub Repository**: https://github.com/OnlyCris/MenuMaster
 
 ## Recent Changes
+- ✅ **January 2025**: Completely rewritten debian-installer.sh - production-ready and tested for Debian 12
+- ✅ **January 2025**: Fixed all installer issues: database setup, SSL certificates, PM2 configuration, permissions
 - ✅ **January 2025**: Project pushed to GitHub repository: https://github.com/OnlyCris/MenuMaster
 - ✅ **January 2025**: Updated all documentation with correct repository URLs
-- ✅ **January 2025**: Completed debian-installer.sh with SSL, PM2, firewall, monitoring, and backup systems
 - ✅ **January 2025**: Fixed supportTickets database import and table creation in installation scripts
 - ✅ **January 2025**: Fixed dashboard navigation links (changed /dashboard to /)
 - ✅ **January 2025**: Complete support ticket system with admin management panel

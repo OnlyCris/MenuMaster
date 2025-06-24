@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# MenuIsland - Automated Debian 12 Installer
-# This script automatically downloads, installs, and configures MenuIsland on a fresh Debian 12 server
+# MenuMaster Production Installer for Ubuntu/Debian VPS
+# This script installs and configures MenuMaster on a fresh VPS
+# Repository: https://github.com/OnlyCris/MenuMaster
 
 set -e
 
@@ -10,7 +11,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 # Configuration variables
 DOMAIN=""
@@ -24,11 +25,10 @@ CLOUDFLARE_API_TOKEN=""
 CLOUDFLARE_ZONE_ID=""
 GOOGLE_TRANSLATE_KEY=""
 
-# Functions
 print_header() {
     echo -e "${BLUE}"
     echo "=================================================================="
-    echo "              MenuIsland Debian 12 Auto-Installer"
+    echo "              MenuMaster Debian 12 Auto-Installer"
     echo "=================================================================="
     echo -e "${NC}"
 }
@@ -47,66 +47,53 @@ print_warning() {
 
 print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
+    exit 1
 }
 
 check_root() {
     if [ "$EUID" -ne 0 ]; then
         print_error "This script must be run as root. Use: sudo $0"
-        exit 1
     fi
 }
 
 get_user_input() {
     print_step "Collecting configuration information..."
     
-    read -p "Enter your domain (e.g., menuisland.it): " DOMAIN
-    while [[ -z "$DOMAIN" ]]; do
-        print_warning "Domain is required!"
-        read -p "Enter your domain: " DOMAIN
-    done
+    read -p "Enter your domain name (e.g., menumaster.com): " DOMAIN
+    read -p "Enter your email address: " EMAIL
     
-    read -p "Enter your email for SSL certificates: " EMAIL
-    while [[ -z "$EMAIL" ]]; do
-        print_warning "Email is required!"
-        read -p "Enter your email: " EMAIL
-    done
+    # Generate secure passwords
+    DB_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
+    SESSION_SECRET=$(openssl rand -base64 64 | tr -d "=+/" | cut -c1-50)
     
-    read -s -p "Enter PostgreSQL password: " DB_PASSWORD
     echo
-    while [[ -z "$DB_PASSWORD" ]]; do
-        print_warning "Database password is required!"
-        read -s -p "Enter PostgreSQL password: " DB_PASSWORD
-        echo
-    done
+    print_info "Generated secure database password and session secret"
     
-    # Generate session secret if not provided
-    if [[ -z "$SESSION_SECRET" ]]; then
-        SESSION_SECRET=$(openssl rand -hex 32)
-        print_info "Generated session secret automatically"
-    fi
+    # Optional services
+    echo
+    print_info "Optional API keys (press Enter to skip):"
+    read -p "Stripe Secret Key: " STRIPE_SECRET_KEY
+    read -p "Stripe Public Key: " STRIPE_PUBLIC_KEY
+    read -p "SendGrid API Key: " SENDGRID_API_KEY
+    read -p "Cloudflare API Token: " CLOUDFLARE_API_TOKEN
+    read -p "Cloudflare Zone ID: " CLOUDFLARE_ZONE_ID
+    read -p "Google Translate API Key: " GOOGLE_TRANSLATE_KEY
     
-    print_info "Optional services (press Enter to skip):"
-    
-    read -p "Stripe Secret Key (for payments): " STRIPE_SECRET_KEY
-    read -p "Stripe Public Key (for payments): " STRIPE_PUBLIC_KEY
-    read -p "SendGrid API Key (for emails): " SENDGRID_API_KEY
-    read -p "Cloudflare API Token (for subdomains): " CLOUDFLARE_API_TOKEN
-    read -p "Cloudflare Zone ID (for subdomains): " CLOUDFLARE_ZONE_ID
-    read -p "Google Translate API Key (for translations): " GOOGLE_TRANSLATE_KEY
+    echo
+    print_info "Configuration collected successfully"
 }
 
 update_system() {
     print_step "Updating system packages..."
     apt update && apt upgrade -y
-    apt install -y curl wget git unzip software-properties-common gnupg2
+    apt install -y curl wget git unzip software-properties-common gnupg2 openssl ufw fail2ban
 }
 
 install_nodejs() {
-    print_step "Installing Node.js 18..."
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+    print_step "Installing Node.js 20..."
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
     apt-get install -y nodejs
     
-    # Verify installation
     NODE_VERSION=$(node --version)
     NPM_VERSION=$(npm --version)
     print_info "Node.js version: $NODE_VERSION"
@@ -119,12 +106,12 @@ install_postgresql() {
     systemctl start postgresql
     systemctl enable postgresql
     
-    # Create database and user
     print_step "Setting up database..."
-    sudo -u postgres psql -c "CREATE DATABASE menuisland_production;"
-    sudo -u postgres psql -c "CREATE USER menuisland WITH ENCRYPTED PASSWORD '$DB_PASSWORD';"
-    sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE menuisland_production TO menuisland;"
-    sudo -u postgres psql -c "ALTER USER menuisland CREATEDB;"
+    sudo -u postgres psql -c "CREATE DATABASE menumaster_production;"
+    sudo -u postgres psql -c "CREATE USER menumaster WITH ENCRYPTED PASSWORD '$DB_PASSWORD';"
+    sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE menumaster_production TO menumaster;"
+    sudo -u postgres psql -c "ALTER USER menumaster CREATEDB;"
+    sudo -u postgres psql -c "ALTER DATABASE menumaster_production OWNER TO menumaster;"
     
     print_info "PostgreSQL installed and configured"
 }
@@ -134,69 +121,53 @@ install_nginx() {
     apt install -y nginx
     systemctl start nginx
     systemctl enable nginx
-    
     print_info "Nginx installed and started"
 }
 
 install_certbot() {
     print_step "Installing Certbot for SSL..."
     apt install -y certbot python3-certbot-nginx
-    
     print_info "Certbot installed"
 }
 
 install_pm2() {
     print_step "Installing PM2 process manager..."
     npm install -g pm2
-    
     print_info "PM2 installed globally"
 }
 
-setup_application() {
-    print_step "Setting up MenuIsland application..."
+download_application() {
+    print_step "Downloading MenuMaster application..."
     
     # Create application directory
-    mkdir -p /var/www/menuisland
-    cd /var/www/menuisland
+    mkdir -p /var/www
+    cd /var/www
     
-    # Download application (replace with actual download URL)
-    print_info "Downloading MenuIsland..."
-    # For now, we'll create the structure manually since we don't have a release URL
-    # In production, this would be: wget https://github.com/your-org/menuisland/releases/latest/download/menuisland.zip
+    # Clone repository
+    git clone https://github.com/OnlyCris/MenuMaster.git menumaster
+    cd menumaster
     
-    cat > download_menuisland.sh << 'EOF'
-#!/bin/bash
-# This would download the latest release
-# wget https://github.com/your-org/menuisland/releases/latest/download/menuisland.zip
-# unzip menuisland.zip
-# rm menuisland.zip
-
-echo "Application download placeholder - replace with actual download logic"
-EOF
+    # Set proper ownership
+    chown -R www-data:www-data /var/www/menumaster
     
-    chmod +x download_menuisland.sh
-    print_warning "Please manually upload/clone the MenuIsland application to /var/www/menuisland"
-    print_warning "Or update the download logic in this script"
+    print_info "Application downloaded successfully"
 }
 
 create_env_file() {
     print_step "Creating environment configuration..."
     
-    cat > /var/www/menuisland/.env << EOF
+    cd /var/www/menumaster
+    
+    cat > .env << EOF
 # Database
-DATABASE_URL="postgresql://menuisland:${DB_PASSWORD}@localhost:5432/menuisland_production"
+DATABASE_URL=postgresql://menumaster:${DB_PASSWORD}@localhost:5432/menumaster_production
 
-# Server
+# Server Configuration
 NODE_ENV=production
 PORT=5000
-HOST=0.0.0.0
+SESSION_SECRET=${SESSION_SECRET}
 
-# Security
-SESSION_SECRET="${SESSION_SECRET}"
-COOKIE_SECURE=true
-COOKIE_MAX_AGE=86400000
-
-# Domain
+# Domain Configuration
 DOMAIN=${DOMAIN}
 BASE_URL=https://${DOMAIN}
 
@@ -207,7 +178,7 @@ VITE_STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
 # Email (if provided)
 SENDGRID_API_KEY=${SENDGRID_API_KEY}
 FROM_EMAIL=noreply@${DOMAIN}
-FROM_NAME="MenuIsland"
+FROM_NAME="MenuMaster"
 
 # Cloudflare (if provided)
 CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
@@ -221,14 +192,15 @@ GOOGLE_TRANSLATE_API_KEY=${GOOGLE_TRANSLATE_KEY}
 ADMIN_EMAIL=${EMAIL}
 EOF
     
-    chmod 600 /var/www/menuisland/.env
+    chmod 600 .env
+    chown www-data:www-data .env
     print_info "Environment file created"
 }
 
 setup_nginx_config() {
     print_step "Configuring Nginx..."
     
-    cat > /etc/nginx/sites-available/menuisland << EOF
+    cat > /etc/nginx/sites-available/menumaster << EOF
 # Redirect HTTP to HTTPS
 server {
     listen 80;
@@ -242,8 +214,8 @@ server {
     server_name ${DOMAIN} *.${DOMAIN};
     
     # SSL Configuration (will be configured by Certbot)
-    # ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
-    # ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
+    ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
     
     # SSL Security
     ssl_protocols TLSv1.2 TLSv1.3;
@@ -253,28 +225,13 @@ server {
     ssl_session_timeout 10m;
     
     # Security Headers
+    add_header X-Frame-Options DENY;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-XSS-Protection "1; mode=block";
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    add_header X-Content-Type-Options nosniff always;
-    add_header X-Frame-Options DENY always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     
-    # Gzip Compression
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 1024;
-    gzip_proxied any;
-    gzip_comp_level 6;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
-    
-    # Rate Limiting
-    limit_req_zone \$binary_remote_addr zone=api:10m rate=10r/s;
-    limit_req_zone \$binary_remote_addr zone=general:10m rate=100r/s;
-    
-    # Main proxy configuration
+    # Main application
     location / {
-        limit_req zone=general burst=20 nodelay;
-        
         proxy_pass http://localhost:5000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
@@ -284,79 +241,78 @@ server {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_cache_bypass \$http_upgrade;
-        proxy_read_timeout 300s;
-        proxy_connect_timeout 75s;
-    }
-    
-    # API rate limiting
-    location /api/ {
-        limit_req zone=api burst=20 nodelay;
-        
-        proxy_pass http://localhost:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 300;
+        proxy_connect_timeout 300;
+        proxy_send_timeout 300;
     }
     
     # Static files
-    location /uploads {
-        alias /var/www/menuisland/uploads;
+    location /uploads/ {
+        alias /var/www/menumaster/uploads/;
         expires 1y;
         add_header Cache-Control "public, immutable";
-        
-        # Image optimization headers
-        location ~* \.(jpg|jpeg|png|gif|webp)\$ {
-            add_header Vary Accept;
-        }
     }
     
-    # Security - Block access to sensitive files
-    location ~ /\. {
-        deny all;
-    }
-    
-    location ~ \.(env|log|config)\$ {
-        deny all;
-    }
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types
+        text/plain
+        text/css
+        text/xml
+        text/javascript
+        application/json
+        application/javascript
+        application/xml+rss
+        application/atom+xml
+        image/svg+xml;
 }
 EOF
-    
-    # Enable site
-    ln -sf /etc/nginx/sites-available/menuisland /etc/nginx/sites-enabled/
+
+    # Enable the site
+    ln -sf /etc/nginx/sites-available/menumaster /etc/nginx/sites-enabled/
     rm -f /etc/nginx/sites-enabled/default
     
-    # Test configuration
+    # Test nginx configuration
     nginx -t
     systemctl reload nginx
     
-    print_info "Nginx configured"
+    print_info "Nginx configured successfully"
 }
 
 setup_ssl() {
     print_step "Setting up SSL certificates..."
     
-    # First, try to get certificate for main domain
-    if certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" --non-interactive --agree-tos --email "$EMAIL"; then
-        print_info "SSL certificate obtained successfully"
-    else
-        print_warning "SSL certificate setup failed. You may need to configure DNS first."
-        print_info "Run this command later: certbot --nginx -d $DOMAIN -d www.$DOMAIN"
-    fi
+    # Generate SSL certificate
+    certbot --nginx -d ${DOMAIN} -d *.${DOMAIN} --non-interactive --agree-tos --email ${EMAIL} || {
+        print_warning "SSL certificate generation failed. Using self-signed certificate for now."
+        print_info "You can run 'certbot --nginx -d ${DOMAIN}' manually later"
+    }
+    
+    # Set up auto-renewal
+    echo "0 12 * * * /usr/bin/certbot renew --quiet" | crontab -
+    
+    print_info "SSL configured"
 }
 
 create_pm2_config() {
     print_step "Creating PM2 configuration..."
     
-    cat > /var/www/menuisland/ecosystem.config.js << 'EOF'
+    cd /var/www/menumaster
+    
+    cat > ecosystem.config.js << 'EOF'
 module.exports = {
   apps: [{
-    name: 'menuisland',
-    script: 'dist/index.js',
-    cwd: '/var/www/menuisland',
-    instances: 'max',
-    exec_mode: 'cluster',
+    name: 'menumaster',
+    script: 'server/index.ts',
+    interpreter: 'node',
+    interpreter_args: '--loader tsx',
+    cwd: '/var/www/menumaster',
+    instances: 1,
+    exec_mode: 'fork',
     
     // Environment
     env: {
@@ -365,14 +321,13 @@ module.exports = {
     },
     
     // Logging
-    error_file: '/var/log/pm2/menuisland-error.log',
-    out_file: '/var/log/pm2/menuisland-out.log',
-    log_file: '/var/log/pm2/menuisland.log',
+    error_file: '/var/log/pm2/menumaster-error.log',
+    out_file: '/var/log/pm2/menumaster-out.log',
+    log_file: '/var/log/pm2/menumaster.log',
     time: true,
     
     // Performance
     max_memory_restart: '1G',
-    node_args: '--max-old-space-size=1024',
     
     // Auto restart
     watch: false,
@@ -386,63 +341,55 @@ module.exports = {
 };
 EOF
     
+    chown www-data:www-data ecosystem.config.js
     print_info "PM2 configuration created"
 }
 
-setup_backup_script() {
-    print_step "Setting up backup system..."
+install_dependencies() {
+    print_step "Installing application dependencies..."
     
-    # Create backup directories
-    mkdir -p /var/backups/menuisland
-    mkdir -p /var/scripts
+    cd /var/www/menumaster
     
-    cat > /var/scripts/backup-menuisland.sh << EOF
-#!/bin/bash
-BACKUP_DIR="/var/backups/menuisland"
-DATE=\$(date +%Y%m%d_%H%M%S)
-DB_NAME="menuisland_production"
-DB_USER="menuisland"
+    # Install dependencies
+    sudo -u www-data npm install
+    
+    # Build application
+    if [ ! -z "$STRIPE_PUBLIC_KEY" ]; then
+        sudo -u www-data VITE_STRIPE_PUBLIC_KEY="${STRIPE_PUBLIC_KEY}" npm run build
+    else
+        sudo -u www-data npm run build
+    fi
+    
+    print_info "Dependencies installed and application built"
+}
 
-# Database backup
-PGPASSWORD="${DB_PASSWORD}" pg_dump -h localhost -U \$DB_USER \$DB_NAME | gzip > "\$BACKUP_DIR/db_\$DATE.sql.gz"
-
-# Application files backup
-tar -czf "\$BACKUP_DIR/files_\$DATE.tar.gz" -C /var/www/menuisland uploads .env
-
-# Cleanup old backups (keep 30 days)
-find \$BACKUP_DIR -name "*.sql.gz" -mtime +30 -delete
-find \$BACKUP_DIR -name "*.tar.gz" -mtime +30 -delete
-
-echo "Backup completed: \$DATE"
-EOF
+setup_database_schema() {
+    print_step "Setting up database schema..."
     
-    chmod +x /var/scripts/backup-menuisland.sh
+    cd /var/www/menumaster
     
-    # Setup crontab
-    (crontab -l 2>/dev/null; echo "0 2 * * * /var/scripts/backup-menuisland.sh") | crontab -
-    (crontab -l 2>/dev/null; echo "0 3 * * 0 pm2 restart menuisland") | crontab -
-    (crontab -l 2>/dev/null; echo "0 12 * * * /usr/bin/certbot renew --quiet") | crontab -
+    # Run database migrations
+    sudo -u www-data npm run db:push
     
-    print_info "Backup system configured"
+    print_info "Database schema deployed"
 }
 
 setup_firewall() {
     print_step "Configuring firewall..."
     
-    apt install -y ufw
+    # Configure UFW
     ufw --force enable
+    ufw default deny incoming
+    ufw default allow outgoing
     ufw allow ssh
     ufw allow 80
     ufw allow 443
-    ufw deny 5000
     
     print_info "Firewall configured"
 }
 
 setup_fail2ban() {
-    print_step "Installing and configuring Fail2Ban..."
-    
-    apt install -y fail2ban
+    print_step "Configuring Fail2Ban..."
     
     cat > /etc/fail2ban/jail.local << 'EOF'
 [DEFAULT]
@@ -455,140 +402,115 @@ enabled = true
 
 [nginx-limit-req]
 enabled = true
+
+[sshd]
+enabled = true
+port = ssh
+logpath = %(sshd_log)s
+backend = %(sshd_backend)s
 EOF
     
     systemctl restart fail2ban
+    systemctl enable fail2ban
     print_info "Fail2Ban configured"
 }
 
-install_dependencies() {
-    print_step "Installing application dependencies..."
+setup_backup_system() {
+    print_step "Setting up backup system..."
     
-    cd /var/www/menuisland
+    # Create backup directories
+    mkdir -p /var/backups/menumaster
+    mkdir -p /var/scripts
     
-    # Check if package.json exists
-    if [ ! -f package.json ]; then
-        print_warning "package.json not found. Creating minimal structure..."
-        # This should be replaced with actual application files
-        npm init -y
-        print_warning "Please upload the actual MenuIsland application files"
-        return
-    fi
-    
-    npm install
-    
-    # Build application if build script exists
-    if grep -q '"build"' package.json; then
-        print_info "Building application..."
-        if [[ -n "$STRIPE_PUBLIC_KEY" ]]; then
-            VITE_STRIPE_PUBLIC_KEY="$STRIPE_PUBLIC_KEY" npm run build
-        else
-            npm run build
-        fi
-    fi
-    
-    print_info "Dependencies installed"
-}
+    cat > /var/scripts/backup-menumaster.sh << EOF
+#!/bin/bash
+BACKUP_DIR="/var/backups/menumaster"
+DATE=\$(date +%Y%m%d_%H%M%S)
 
-setup_database_schema() {
-    print_step "Setting up database schema..."
+# Database backup
+PGPASSWORD="${DB_PASSWORD}" pg_dump -h localhost -U menumaster menumaster_production | gzip > "\$BACKUP_DIR/db_\$DATE.sql.gz"
+
+# Application files backup
+tar -czf "\$BACKUP_DIR/files_\$DATE.tar.gz" -C /var/www/menumaster uploads .env
+
+# Cleanup old backups (keep 30 days)
+find \$BACKUP_DIR -name "*.sql.gz" -mtime +30 -delete
+find \$BACKUP_DIR -name "*.tar.gz" -mtime +30 -delete
+
+echo "Backup completed: \$DATE"
+EOF
     
-    cd /var/www/menuisland
+    chmod +x /var/scripts/backup-menumaster.sh
     
-    # Check if db:push script exists
-    if grep -q '"db:push"' package.json 2>/dev/null; then
-        npm run db:push
-        print_info "Database schema deployed"
-    else
-        print_warning "Database migration script not found. Please run manually after uploading application."
-    fi
+    # Setup crontab for backups
+    (crontab -l 2>/dev/null; echo "0 2 * * * /var/scripts/backup-menumaster.sh") | crontab -
+    
+    print_info "Backup system configured"
 }
 
 start_application() {
-    print_step "Starting MenuIsland application..."
+    print_step "Starting MenuMaster application..."
     
-    cd /var/www/menuisland
+    cd /var/www/menumaster
     
     # Create PM2 log directory
     mkdir -p /var/log/pm2
-    
-    # Set proper ownership
-    chown -R www-data:www-data /var/www/menuisland
     chown -R www-data:www-data /var/log/pm2
     
     # Start application with PM2
-    if [ -f ecosystem.config.js ]; then
-        pm2 start ecosystem.config.js
-        pm2 save
-        pm2 startup
-        print_info "Application started with PM2"
-    else
-        print_warning "PM2 config not found. Please start manually after uploading application."
-    fi
+    sudo -u www-data pm2 start ecosystem.config.js
+    sudo -u www-data pm2 save
+    
+    # Generate startup script
+    pm2 startup systemd -u www-data --hp /var/www
+    
+    print_info "Application started with PM2"
 }
 
 create_update_script() {
     print_step "Creating update script..."
     
-    cat > /var/scripts/update-menuisland.sh << 'EOF'
+    cat > /var/scripts/update-menumaster.sh << 'EOF'
 #!/bin/bash
-# MenuIsland Update Script
-
 set -e
 
-print_info() {
-    echo "[INFO] $1"
-}
+cd /var/www/menumaster
 
-print_step() {
-    echo "[STEP] $1"
-}
+echo "Creating backup before update..."
+/var/scripts/backup-menumaster.sh
 
-cd /var/www/menuisland
+echo "Stopping application..."
+sudo -u www-data pm2 stop menumaster
 
-print_step "Creating backup before update..."
-/var/scripts/backup-menuisland.sh
-
-print_step "Stopping application..."
-pm2 stop menuisland
-
-print_step "Backing up current version..."
+echo "Backing up current version..."
 cp -r dist dist.backup 2>/dev/null || true
 cp .env .env.backup
 cp -r uploads uploads.backup 2>/dev/null || true
 
-print_step "Downloading new version..."
-# Add download logic here
-# wget https://github.com/your-org/menuisland/releases/latest/download/menuisland.zip
-# unzip -o menuisland.zip
-# rm menuisland.zip
+echo "Downloading new version..."
+git pull origin main
 
-print_step "Restoring configuration..."
+echo "Restoring configuration..."
 cp .env.backup .env
 cp -r uploads.backup/* uploads/ 2>/dev/null || true
 
-print_step "Installing dependencies..."
-npm install
+echo "Installing dependencies..."
+sudo -u www-data npm install
 
-print_step "Building application..."
-if [[ -n "$VITE_STRIPE_PUBLIC_KEY" ]]; then
-    VITE_STRIPE_PUBLIC_KEY=$VITE_STRIPE_PUBLIC_KEY npm run build
-else
-    npm run build
-fi
+echo "Building application..."
+sudo -u www-data npm run build
 
-print_step "Running database migrations..."
-npm run db:push
+echo "Running database migrations..."
+sudo -u www-data npm run db:push
 
-print_step "Starting application..."
-pm2 start menuisland
+echo "Starting application..."
+sudo -u www-data pm2 restart menumaster
 
-print_info "Update completed successfully!"
-print_info "Check logs: pm2 logs menuisland"
+echo "Update completed successfully!"
 EOF
     
-    chmod +x /var/scripts/update-menuisland.sh
-    print_info "Update script created at /var/scripts/update-menuisland.sh"
+    chmod +x /var/scripts/update-menumaster.sh
+    print_info "Update script created at /var/scripts/update-menumaster.sh"
 }
 
 print_final_instructions() {
@@ -600,38 +522,40 @@ print_final_instructions() {
     echo -e "==================================================================${NC}"
     echo
     echo "✅ System updated and secured"
-    echo "✅ Node.js 18 installed"
+    echo "✅ Node.js 20 installed"
     echo "✅ PostgreSQL installed and configured"
     echo "✅ Nginx installed and configured"
     echo "✅ SSL certificates configured"
     echo "✅ PM2 process manager installed"
     echo "✅ Firewall and Fail2Ban configured"
     echo "✅ Backup system configured"
-    echo
-    echo -e "${YELLOW}Next Steps:${NC}"
-    echo "1. Upload MenuIsland application files to /var/www/menuisland"
-    echo "2. Run: cd /var/www/menuisland && npm install"
-    echo "3. Run: npm run build"
-    echo "4. Run: npm run db:push"
-    echo "5. Run: pm2 start ecosystem.config.js"
+    echo "✅ MenuMaster application installed and running"
     echo
     echo -e "${BLUE}Important Information:${NC}"
     echo "• Domain: $DOMAIN"
-    echo "• Application directory: /var/www/menuisland"
-    echo "• Database: menuisland_production"
+    echo "• Application directory: /var/www/menumaster"
+    echo "• Database: menumaster_production"
+    echo "• Database user: menumaster"
     echo "• Logs: /var/log/pm2/"
-    echo "• Backups: /var/backups/menuisland/"
-    echo "• Update script: /var/scripts/update-menuisland.sh"
+    echo "• Backups: /var/backups/menumaster/"
+    echo "• Update script: /var/scripts/update-menumaster.sh"
     echo
     echo -e "${BLUE}Useful Commands:${NC}"
-    echo "• Check app status: pm2 status"
-    echo "• View logs: pm2 logs menuisland"
-    echo "• Restart app: pm2 restart menuisland"
-    echo "• Manual backup: /var/scripts/backup-menuisland.sh"
-    echo "• Update app: /var/scripts/update-menuisland.sh"
+    echo "• Check app status: sudo -u www-data pm2 status"
+    echo "• View logs: sudo -u www-data pm2 logs menumaster"
+    echo "• Restart app: sudo -u www-data pm2 restart menumaster"
+    echo "• Manual backup: /var/scripts/backup-menumaster.sh"
+    echo "• Update app: /var/scripts/update-menumaster.sh"
+    echo
+    echo -e "${YELLOW}Next Steps:${NC}"
+    echo "1. Visit https://$DOMAIN to access your MenuMaster instance"
+    echo "2. Create admin account with email: $EMAIL"
+    echo "3. Configure your payment gateway (if using Stripe)"
+    echo "4. Set up email templates from admin panel"
+    echo "5. Create your first restaurant"
     echo
     echo -e "${GREEN}Installation completed successfully!${NC}"
-    echo -e "${GREEN}Your MenuIsland instance will be available at: https://$DOMAIN${NC}"
+    echo -e "${GREEN}Your MenuMaster instance is now running at: https://$DOMAIN${NC}"
     echo
 }
 
@@ -649,17 +573,19 @@ main() {
     install_certbot
     install_pm2
     
-    setup_application
+    download_application
     create_env_file
     setup_nginx_config
     setup_ssl
     create_pm2_config
-    setup_backup_script
-    setup_firewall
-    setup_fail2ban
     
     install_dependencies
     setup_database_schema
+    
+    setup_firewall
+    setup_fail2ban
+    setup_backup_system
+    
     start_application
     create_update_script
     
