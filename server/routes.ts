@@ -323,7 +323,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (userRestaurants.length >= maxRestaurants) {
           return res.status(403).json({ 
-            message: `Hai raggiunto il limite di ${maxRestaurants} ristorante${maxRestaurants > 1 ? 'i' : ''}. Contatta l'amministratore per aumentare il limite.` 
+            error: "RESTAURANT_LIMIT_REACHED",
+            message: `Hai raggiunto il limite di ${maxRestaurants} ristorante${maxRestaurants > 1 ? 'i' : ''}. Contatta l'amministratore per aumentare il limite.`,
+            action: "contact_admin"
           });
         }
       }

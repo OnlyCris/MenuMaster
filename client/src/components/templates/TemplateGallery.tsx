@@ -18,7 +18,7 @@ type TemplateCardProps = {
 const TemplateCard = ({ template, onSelect, onPreview }: TemplateCardProps) => {
   return (
     <Card className="template-card overflow-hidden hover:shadow-lg transition-all duration-300 group">
-      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-700">
+      <div className="relative h-32 md:h-48 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-700">
         {template.thumbnailUrl ? (
           <img 
             src={template.thumbnailUrl} 
@@ -31,7 +31,7 @@ const TemplateCard = ({ template, onSelect, onPreview }: TemplateCardProps) => {
         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
           <Button 
             size="sm"
-            className="bg-white/90 text-gray-900 hover:bg-white shadow-lg"
+            className="bg-white/90 text-gray-900 hover:bg-white shadow-lg text-xs md:text-sm"
             onClick={() => onPreview(template)}
           >
             Anteprima
@@ -55,27 +55,27 @@ const TemplateCard = ({ template, onSelect, onPreview }: TemplateCardProps) => {
         )}
       </div>
       
-      <CardContent className="p-4">
-        <CardHeader className="p-0 mb-3">
-          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">{template.name}</CardTitle>
-          <CardDescription className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+      <CardContent className="p-3 md:p-4">
+        <CardHeader className="p-0 mb-2 md:mb-3">
+          <CardTitle className="text-sm md:text-lg font-semibold text-gray-900 dark:text-white truncate">{template.name}</CardTitle>
+          <CardDescription className="text-xs md:text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
             {template.description}
           </CardDescription>
         </CardHeader>
         
         <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 md:space-x-2">
             <div className="flex -space-x-1">
-              <div className="w-6 h-6 rounded-full bg-red-500 border-2 border-white dark:border-gray-800" title="Rosso"></div>
-              <div className="w-6 h-6 rounded-full bg-blue-500 border-2 border-white dark:border-gray-800" title="Blu"></div>
-              <div className="w-6 h-6 rounded-full bg-green-500 border-2 border-white dark:border-gray-800" title="Verde"></div>
+              <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-red-500 border-2 border-white dark:border-gray-800" title="Rosso"></div>
+              <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-blue-500 border-2 border-white dark:border-gray-800" title="Blu"></div>
+              <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-green-500 border-2 border-white dark:border-gray-800" title="Verde"></div>
             </div>
-            <span className="text-xs text-gray-500 dark:text-gray-400">Personalizzabile</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 hidden md:inline">Personalizzabile</span>
           </div>
           
           <Button 
             size="sm"
-            className="bg-primary hover:bg-primary/90 text-white"
+            className="bg-primary hover:bg-primary/90 text-white text-xs md:text-sm px-2 md:px-3"
             onClick={() => onSelect(template)}
           >
             Seleziona

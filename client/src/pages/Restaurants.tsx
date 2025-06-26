@@ -65,25 +65,21 @@ const Restaurants = () => {
     <div className="flex h-screen bg-gray-100 dark:bg-gray-950">
       <Sidebar />
       
-      <div className="flex-1 pl-64 overflow-y-auto">
+      <div className="flex-1 md:pl-64 overflow-y-auto">
         <Topbar 
-          title="Gestione Ristoranti" 
-          onNewRestaurantClick={() => {
+          title="I Miei Ristoranti" 
+          showNewButton={true}
+          onNewClick={() => {
             setSelectedRestaurant(null);
             setIsAddingRestaurant(true);
           }}
         />
         
-        <div className="p-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-            <TabsList>
-              <TabsTrigger value="lista">Lista Ristoranti</TabsTrigger>
-              <TabsTrigger value="nuovo">Nuovo Ristorante</TabsTrigger>
-              {selectedRestaurant && (
-                <TabsTrigger value="anteprima">
-                  Anteprima {selectedRestaurant.name}
-                </TabsTrigger>
-              )}
+        <div className="p-3 md:p-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="lista" className="text-sm">Lista Ristoranti</TabsTrigger>
+              <TabsTrigger value="griglia" className="text-sm">Vista Griglia</TabsTrigger>
             </TabsList>
             
             <TabsContent value="lista" className="mt-6">
