@@ -1,0 +1,627 @@
+[INFO] Certbot installed
+[STEP] Installing PM2 process manager...
+
+added 135 packages in 9s
+
+13 packages are looking for funding
+  run `npm fund` for details
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.4.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.4.2
+npm notice To update run: npm install -g npm@11.4.2
+npm notice
+[INFO] PM2 installed globally
+[STEP] Downloading MenuMaster application...
+Cloning into 'menumaster'...
+remote: Enumerating objects: 1288, done.
+remote: Counting objects: 100% (17/17), done.
+remote: Compressing objects: 100% (13/13), done.
+remote: Total 1288 (delta 6), reused 10 (delta 4), pack-reused 1271 (from 1)
+Receiving objects: 100% (1288/1288), 148.97 MiB | 44.47 MiB/s, done.
+Resolving deltas: 100% (776/776), done.
+[INFO] Application downloaded successfully
+[STEP] Creating environment configuration...
+[INFO] Environment file created
+[STEP] Configuring Nginx...
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+[INFO] Nginx configured successfully
+[STEP] Setting up SSL certificates...
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Account registered.
+Requesting a certificate for menuisland.it and *.menuisland.it
+Client with the currently selected authenticator does not support any combination of challenges that will satisfy the CA. You may need to use an authenticator plugin that can do challenges over DNS.
+Client with the currently selected authenticator does not support any combination of challenges that will satisfy the CA. You may need to use an authenticator plugin that can do challenges over DNS.
+Ask for help or search for solutions at https://community.letsencrypt.org. See the logfile /var/log/letsencrypt/letsencrypt.log or re-run Certbot with -v for more details.
+[WARNING] SSL certificate generation failed. Using self-signed certificate for now.
+[INFO] You can run 'certbot --nginx -d menuisland.it' manually later
+[INFO] SSL configured
+[STEP] Creating PM2 configuration...
+[INFO] PM2 configuration created
+[STEP] Installing application dependencies...
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/resolve/lib/is-core.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/glob/dist/commonjs/has-magic.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/drizzle-orm/sqlite-core/db.cjs'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/tailwindcss/src/lib/evaluateTailwindFunctions.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/glob/dist/commonjs/ignore.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/fast-equals/src/equals.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@types/node/globals.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/tailwindcss/lib/lib/expandApplyAtRules.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/stripe/cjs/resources/Entitlements/Features.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/jose/dist/webapi/lib/normalize_key.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/fast-equals/dist/cjs/types/index.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/es5-ext/math/floor-10.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/drizzle-orm/mysql-core/columns/decimal.cjs'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/date-fns/locale/af'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@tanstack/query-core/build/modern/utils.cjs'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/stripe/esm/resources/Entitlements/Features.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/jose/dist/webapi/lib/pbes2kw.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/glob/dist/commonjs/index.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/fast-equals/dist/esm/types/index.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/es5-ext/date/#/floor-day.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/entities/lib/esm/generated/encode-html.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/drizzle-orm/singlestore-core/columns/decimal.cjs'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@types/node/globals.global.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/tailwindcss/src/lib/expandApplyAtRules.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/react-hook-form/dist/logic/isWatched.d.ts.map'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/jose/dist/webapi/lib/private_symbols.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/fast-equals/dist/min/types/index.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/es5-ext/date/#/floor-month.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/entities/lib/generated/encode-html.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/drizzle-orm/mysql-core/query-builders/delete.cjs'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/date-fns/locale/ar-DZ'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@types/node/globals.typedarray.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/type/ts-types/big-int/ensure.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/prettier/plugins/graphql.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/glob/dist/commonjs/pattern.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/es5-ext/date/#/floor-year.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/drizzle-orm/pg-core/query-builders/delete.cjs'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@types/node/http.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@tanstack/query-core/build/modern/focusManager.d.cts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/tailwindcss/lib/lib/expandTailwindAtRules.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/resolve/test/precedence/aaa/main.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/react-hook-form/dist/logic/iterateFieldsByAction.d.ts.map'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/jiti/lib'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/fast-equals/dist/umd/types/index.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/drizzle-orm/singlestore-core/query-builders/delete.cjs'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/date-fns/locale/ar-EG'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/autoprefixer/lib/hacks/text-decoration-skip-ink.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@babel/parser/lib/index.js.map'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/resolve/test/precedence/bbb'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/react-day-picker/src/contexts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/prettier/plugins/html.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/glob/dist/commonjs/processor.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/fast-equals/index.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/drizzle-orm/sqlite-core/query-builders/delete.cjs'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/autoprefixer/lib/hacks/text-decoration.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@types/node/http2.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/path-scurry/node_modules/lru-cache/dist/commonjs/index.js.map'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@tailwindcss/typography/node_modules/postcss-selector-parser/dist/selectors/index.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/victory-vendor/lib-vendor/d3-interpolate/src/date.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/tailwindcss/src/lib/expandTailwindAtRules.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/jose/dist/webapi/lib/rsaes.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/jiti/bin'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/fast-equals/src/index.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/date-fns/locale/ar-MA'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/autoprefixer/lib/hacks/text-emphasis-position.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@tailwindcss/typography/node_modules/postcss-selector-parser/dist/util/index.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/tailwindcss/lib/featureFlags.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/jose/dist/webapi/lib/secs.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/glob/dist/commonjs/walker.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/drizzle-orm/mysql-core/dialect.cjs'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/autoprefixer/lib/hacks/transform-decl.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@types/node/https.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/path-scurry/node_modules/lru-cache/dist/esm/index.js.map'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@tailwindcss/typography/node_modules/postcss-selector-parser/dist/selectors/namespace.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/victory-vendor/lib-vendor/d3-time/src'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/react-day-picker/src/contexts/Focus/utils'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/jiti/dist/jiti.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/fast-equals/dist/cjs/types/internalTypes.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/date-fns/locale/ar-SA'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@tailwindcss/typography/node_modules/postcss-selector-parser/dist/selectors/nesting.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@anthropic-ai/sdk/node_modules/@types/node/cluster.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/tailwindcss/src/featureFlags.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/fast-equals/dist/esm/types/internalTypes.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/autoprefixer/lib/hacks/user-select.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@types/node/index.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@tanstack/query-core/build/modern/hydration-BXpkOXt5.d.cts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/sharp/node_modules/semver/internal/parse-options.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@tailwindcss/typography/node_modules/postcss-selector-parser/dist/selectors/node.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/tailwindcss/lib/lib/findAtConfigPath.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/react-hook-form/dist/__typetest__/__fixtures__/pathString.d.ts.map'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/vite/dist/node/chunks/dep-D0tGukau.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/fast-equals/dist/min/types/internalTypes.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/es5-ext/date/#/format.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/date-fns/locale/ar-TN'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@types/node/inspector.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@anthropic-ai/sdk/node_modules/@types/node/console.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/victory-vendor/lib-vendor/d3-interpolate/src/transform'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/tailwindcss/src/lib/findAtConfigPath.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@tailwindcss/typography/node_modules/postcss-selector-parser/dist/parser.js'
+npm warn cleanup Failed to remove some directories [
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@tailwindcss/node/node_modules/tailwindcss',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@tailwindcss/node/node_modules/tailwindcss'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@tailwindcss/node/node_modules/tailwindcss'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@neondatabase/serverless/node_modules/postgres-bytea',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@neondatabase/serverless/node_modules/postgres-bytea'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@neondatabase/serverless/node_modules/postgres-bytea'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@drizzle-team',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@drizzle-team/brocli'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@drizzle-team/brocli'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/dom-helpers',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/dom-helpers/cjs'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/dom-helpers/cjs'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/embla-carousel',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/embla-carousel/components'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/embla-carousel/components'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/es5-ext',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/es5-ext/object'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/es5-ext/object'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/victory-vendor',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/victory-vendor/es'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/victory-vendor/es'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@babel/helper-module-transforms',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@babel/helper-module-transforms/lib'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@babel/helper-module-transforms/lib'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@babel/runtime',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@babel/runtime/helpers'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@babel/runtime/helpers'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@anthropic-ai/sdk/node_modules/@types',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@anthropic-ai/sdk/node_modules/@types/node'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@anthropic-ai/sdk/node_modules/@types/node'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/d3-format',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/d3-format'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/d3-format'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/lodash',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/lodash'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/lodash'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@neondatabase/serverless/node_modules/pg-types',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@neondatabase/serverless/node_modules/pg-types'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@neondatabase/serverless/node_modules/pg-types'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/d3-format'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/d3-format'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@babel',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@babel/runtime/helpers'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@babel/runtime/helpers'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@emnapi',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@emnapi/runtime/dist'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@emnapi/runtime/dist'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/autoprefixer',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/autoprefixer/lib/hacks'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/autoprefixer/lib/hacks'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/entities',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/entities/lib/generated'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/entities/lib/generated'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/glob',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/glob/dist/esm'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/glob/dist/esm'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/pngjs',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/pngjs/coverage/lcov-report'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/pngjs/coverage/lcov-report'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/react-hook-form',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/react-hook-form/dist/utils'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/react-hook-form/dist/utils'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/tailwindcss',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/tailwindcss/lib/lib'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/tailwindcss/lib/lib'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/type',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/type/ts-types/array-length'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/type/ts-types/array-length'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/drizzle-kit/node_modules',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/drizzle-kit/node_modules/esbuild/lib'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/drizzle-kit/node_modules/esbuild/lib'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@babel/generator',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@babel/generator/lib/generators'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@babel/generator/lib/generators'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@babel/helpers',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@babel/helpers/lib/helpers'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@babel/helpers/lib/helpers'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@babel/traverse',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@babel/traverse/lib/path'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@babel/traverse/lib/path'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@stripe/stripe-js',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@stripe/stripe-js/dist/api'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@stripe/stripe-js/dist/api'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/drizzle-orm',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/drizzle-orm/singlestore-core'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/drizzle-orm/singlestore-core'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@stripe',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@stripe/react-stripe-js/src/components'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@stripe/react-stripe-js/src/components'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@tanstack',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@tanstack/query-core/build/legacy'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@tanstack/query-core/build/legacy'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/lucide-react',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/lucide-react/dist/esm/icons'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/lucide-react/dist/esm/icons'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@tailwindcss/node',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@tailwindcss/node/node_modules/tailwindcss/dist'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@tailwindcss/node/node_modules/tailwindcss/dist'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/body-parser',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/body-parser/node_modules/debug/src'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/body-parser/node_modules/debug/src'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/express',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/express/node_modules/debug/src'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/express/node_modules/debug/src'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@babel/core',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@babel/core/lib/config/files'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@babel/core/lib/config/files'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@tailwindcss/vite',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@tailwindcss/vite/node_modules/tailwindcss/dist'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@tailwindcss/vite/node_modules/tailwindcss/dist'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/sharp',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/sharp/node_modules/semver/functions'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/sharp/node_modules/semver/functions'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@esbuild-kit/core-utils',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@esbuild-kit/core-utils/node_modules/esbuild/lib'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@esbuild-kit/core-utils/node_modules/esbuild/lib'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@anthropic-ai',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@anthropic-ai/sdk/node_modules/undici-types'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@anthropic-ai/sdk/node_modules/undici-types'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@hookform',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@hookform/resolvers'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@hookform/resolvers'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@babel/types',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@babel/types/lib'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@babel/types/lib'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/path-scurry',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/path-scurry/node_modules/lru-cache/dist/esm'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/path-scurry/node_modules/lru-cache/dist/esm'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@tailwindcss/typography',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@tailwindcss/typography/node_modules/postcss-selector-parser/dist'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@tailwindcss/typography/node_modules/postcss-selector-parser/dist'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/jose',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/jose/dist/webapi'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/jose/dist/webapi'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/resolve',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/resolve/test/module_dir'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/resolve/test/module_dir'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/stripe',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/stripe/cjs/resources'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/stripe/cjs/resources'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/react-day-picker',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/react-day-picker/src'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/react-day-picker/src'
+npm warn cleanup     }
+npm warn cleanup   ],
+npm warn cleanup   [
+npm warn cleanup     '/var/www/menumaster/node_modules/@tanstack/react-query',
+npm warn cleanup     [Error: ENOTEMPTY: directory not empty, rmdir '/var/www/menumaster/node_modules/@tanstack/react-query/build/codemods/src'] {
+npm warn cleanup       errno: -39,
+npm warn cleanup       code: 'ENOTEMPTY',
+npm warn cleanup       syscall: 'rmdir',
+npm warn cleanup       path: '/var/www/menumaster/node_modules/@tanstack/react-query/build/codemods/src'
+npm warn cleanup     }
+npm warn cleanup   ]
+npm warn cleanup ]
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/tailwindcss/lib/util/flattenColorPalette.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/stripe/cjs/resources/Treasury/FinancialAccounts.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/react-day-picker/src/contexts/Focus/utils'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/vite/dist/node/chunks/dep-DIiRB4RW.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/fast-equals/dist/umd/types/internalTypes.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/date-fns/locale/ar'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@types/node/module.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@tanstack/query-core/build/modern/hydration.d.cts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@anthropic-ai/sdk/node_modules/@types/node/constants.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/tailwindcss/src/util/flattenColorPalette.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/stripe/esm/resources/Treasury/FinancialAccounts.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/fast-equals/src/internalTypes.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/autoprefixer/lib/hacks/writing-mode.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@tailwindcss/typography/node_modules/postcss-selector-parser/dist/processor.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@anthropic-ai/sdk/node_modules/@types/node/crypto.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/tailwindcss/lib/util/formatVariantSelector.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/date-fns/locale/az'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@types/node/net.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@tanstack/query-core/build/modern/index.d.cts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/sharp/node_modules/semver/classes/range.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@tailwindcss/typography/node_modules/postcss-selector-parser/dist/selectors/pseudo.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, lstat '/var/www/menumaster/node_modules/victory-vendor/lib-vendor/d3-format/src'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/tailwindcss/src/util/formatVariantSelector.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/fast-equals/dist/cjs/types/utils.d.ts'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/es5-ext/string/#/hyphen-to-camel.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@tailwindcss/typography/node_modules/postcss-selector-parser/dist/selectors/root.js'
+npm warn tar TAR_ENTRY_ERROR ENOENT: no such file or directory, open '/var/www/menumaster/node_modules/@tailwindcss/vite/node_modules/tailwindcss/dist/plugin.js'
+npm error code EACCES
+npm error syscall mkdir
+npm error path /var/www/.npm
+npm error errno -13
+npm error
+npm error Your cache folder contains root-owned files, due to a bug in
+npm error previous versions of npm which has since been addressed.
+npm error
+npm error To permanently fix this problem, please run:
+npm error   sudo chown -R 33:33 "/var/www/.npm"
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.4.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.4.2
+npm notice To update run: npm install -g npm@11.4.2
+npm notice
+npm error Log files were not written due to an error writing to the directory: /var/www/.npm/_logs
+npm error You can rerun the command with `--loglevel=verbose` to see the logs in your terminal

@@ -87,6 +87,16 @@ update_system() {
     print_step "Updating system packages..."
     apt update && apt upgrade -y
     apt install -y curl wget git unzip software-properties-common gnupg2 openssl ufw fail2ban
+    
+    # Ensure sufficient disk space and clean up
+    apt autoremove -y
+    apt autoclean
+    
+    # Check available disk space
+    AVAILABLE_SPACE=$(df / | tail -1 | awk '{print $4}')
+    if [ $AVAILABLE_SPACE -lt 2000000 ]; then
+        print_warning "Low disk space detected. Consider freeing up space before continuing."
+    fi
 }
 
 install_nodejs() {
@@ -143,12 +153,20 @@ download_application() {
     mkdir -p /var/www
     cd /var/www
     
-    # Clone repository
-    git clone https://github.com/OnlyCris/MenuMaster.git menumaster
+    # Remove existing directory if it exists
+    rm -rf menumaster
+    
+    # Clone repository with depth 1 for faster download
+    git clone --depth 1 https://github.com/OnlyCris/MenuMaster.git menumaster
     cd menumaster
+    
+    # Create required directories
+    mkdir -p uploads
+    mkdir -p /var/log/pm2
     
     # Set proper ownership
     chown -R www-data:www-data /var/www/menumaster
+    chown -R www-data:www-data /var/log/pm2
     
     print_info "Application downloaded successfully"
 }
@@ -204,14 +222,14 @@ setup_nginx_config() {
 # Redirect HTTP to HTTPS
 server {
     listen 80;
-    server_name ${DOMAIN} *.${DOMAIN};
+    server_name ${DOMAIN};
     return 301 https://\$server_name\$request_uri;
 }
 
 # HTTPS Configuration
 server {
     listen 443 ssl http2;
-    server_name ${DOMAIN} *.${DOMAIN};
+    server_name ${DOMAIN};
     
     # SSL Configuration (will be configured by Certbot)
     ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
@@ -286,10 +304,11 @@ EOF
 setup_ssl() {
     print_step "Setting up SSL certificates..."
     
-    # Generate SSL certificate
-    certbot --nginx -d ${DOMAIN} -d *.${DOMAIN} --non-interactive --agree-tos --email ${EMAIL} || {
+    # Generate SSL certificate (only for main domain, not wildcard)
+    certbot --nginx -d ${DOMAIN} --non-interactive --agree-tos --email ${EMAIL} || {
         print_warning "SSL certificate generation failed. Using self-signed certificate for now."
         print_info "You can run 'certbot --nginx -d ${DOMAIN}' manually later"
+        print_info "For wildcard support, configure DNS challenge manually"
     }
     
     # Set up auto-renewal
@@ -350,15 +369,24 @@ install_dependencies() {
     
     cd /var/www/menumaster
     
-    # Install dependencies
-    sudo -u www-data npm install
+    # Clean npm cache and temporary files
+    npm cache clean --force
+    rm -rf node_modules package-lock.json
+    
+    # Install dependencies with proper ownership
+    chown -R www-data:www-data /var/www/menumaster
+    sudo -u www-data npm install --no-audit --no-fund
     
     # Build application
+    print_step "Building application..."
     if [ ! -z "$STRIPE_PUBLIC_KEY" ]; then
         sudo -u www-data VITE_STRIPE_PUBLIC_KEY="${STRIPE_PUBLIC_KEY}" npm run build
     else
         sudo -u www-data npm run build
     fi
+    
+    # Ensure proper permissions
+    chown -R www-data:www-data /var/www/menumaster
     
     print_info "Dependencies installed and application built"
 }
@@ -453,9 +481,15 @@ start_application() {
     
     cd /var/www/menumaster
     
-    # Create PM2 log directory
-    mkdir -p /var/log/pm2
+    # Final permission check
+    chown -R www-data:www-data /var/www/menumaster
     chown -R www-data:www-data /var/log/pm2
+    
+    # Test that the application can start
+    print_step "Testing application startup..."
+    sudo -u www-data timeout 10s npm start || {
+        print_warning "Application test failed, but continuing with PM2 setup"
+    }
     
     # Start application with PM2
     sudo -u www-data pm2 start ecosystem.config.js
@@ -464,7 +498,15 @@ start_application() {
     # Generate startup script
     pm2 startup systemd -u www-data --hp /var/www
     
-    print_info "Application started with PM2"
+    # Wait for application to be ready
+    sleep 5
+    
+    # Check if application is running
+    if sudo -u www-data pm2 list | grep -q "online"; then
+        print_info "Application started successfully with PM2"
+    else
+        print_warning "Application may not have started correctly. Check logs with: pm2 logs"
+    fi
 }
 
 create_update_script() {
