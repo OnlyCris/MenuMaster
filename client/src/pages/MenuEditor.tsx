@@ -52,27 +52,27 @@ const MenuEditor = () => {
     <div className="flex h-screen bg-gray-100 dark:bg-gray-950">
       <Sidebar />
       
-      <div className="flex-1 pl-64 overflow-y-auto">
+      <div className="flex-1 lg:pl-64 overflow-y-auto">
         <Topbar 
           title={`Menu di ${restaurant?.name || 'Ristorante'}`}
           showNewButton={false}
         />
         
-        <div className="p-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-            <TabsList>
-              <TabsTrigger value="editor">Editor Menu</TabsTrigger>
-              <TabsTrigger value="preview">Anteprima</TabsTrigger>
+        <div className="p-3 md:p-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4 md:mb-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="editor" className="text-xs md:text-sm">Editor Menu</TabsTrigger>
+              <TabsTrigger value="preview" className="text-xs md:text-sm">Anteprima</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="editor" className="mt-6">
+            <TabsContent value="editor" className="mt-4 md:mt-6">
               <MenuEditorComponent 
                 restaurantId={restaurantId}
                 onRefresh={() => {}}
               />
             </TabsContent>
             
-            <TabsContent value="preview" className="mt-6">
+            <TabsContent value="preview" className="mt-4 md:mt-6">
               <MenuPreview 
                 restaurantId={restaurantId}
                 onGenerateQR={() => setIsQRModalOpen(true)}

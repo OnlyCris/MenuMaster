@@ -484,9 +484,9 @@ const MenuEditor = ({ restaurantId, onRefresh }: MenuEditorProps) => {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Editor del Menu</CardTitle>
-          <Button variant="outline" onClick={handleNewCategory}>
+        <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <CardTitle className="text-lg md:text-xl">Editor del Menu</CardTitle>
+          <Button variant="outline" onClick={handleNewCategory} className="self-start md:self-auto">
             <Plus className="h-4 w-4 mr-2" /> Nuova Categoria
           </Button>
         </CardHeader>
@@ -547,8 +547,8 @@ const MenuEditor = ({ restaurantId, onRefresh }: MenuEditorProps) => {
 
             {/* Menu items panel */}
             <div className="w-full md:w-2/3 border rounded-md p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold text-lg">
+              <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center mb-4">
+                <h3 className="font-semibold text-base md:text-lg">
                   {selectedCategoryId
                     ? `Piatti in ${categories.find(c => c.id === selectedCategoryId)?.name || "Categoria"}`
                     : "Seleziona una categoria"}
@@ -556,6 +556,8 @@ const MenuEditor = ({ restaurantId, onRefresh }: MenuEditorProps) => {
                 <Button 
                   onClick={handleNewMenuItem} 
                   disabled={!selectedCategoryId}
+                  className="self-start md:self-auto"
+                  size="sm"
                 >
                   <Plus className="h-4 w-4 mr-2" /> Nuovo Piatto
                 </Button>
@@ -576,21 +578,92 @@ const MenuEditor = ({ restaurantId, onRefresh }: MenuEditorProps) => {
                   Nessun piatto in questa categoria. Aggiungi il tuo primo piatto!
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[80px]">Immagine</TableHead>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Prezzo</TableHead>
-                      <TableHead>Allergeni</TableHead>
-                      <TableHead className="text-right">Azioni</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                <>
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[80px]">Immagine</TableHead>
+                          <TableHead>Nome</TableHead>
+                          <TableHead>Prezzo</TableHead>
+                          <TableHead>Allergeni</TableHead>
+                          <TableHead className="text-right">Azioni</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {menuItems.map((item) => (
+                          <TableRow key={item.id}>
+                            <TableCell>
+                              <div className="h-12 w-12 rounded overflow-hidden">
+                                {item.imageUrl ? (
+                                  <img
+                                    src={item.imageUrl}
+                                    alt={item.name}
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="h-full w-full bg-muted flex items-center justify-center text-muted-foreground text-xs">
+                                    No img
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-medium">{item.name}</TableCell>
+                            <TableCell>{item.price}</TableCell>
+                            <TableCell>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleManageAllergens(item)}
+                              >
+                                Gestisci
+                              </Button>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleEditMenuItem(item)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Modifica</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                      onClick={() => deleteMenuItemMutation.mutate(item.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Elimina</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  
+                  {/* Mobile Card View */}
+                  <div className="md:hidden space-y-3">
                     {menuItems.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <div className="h-12 w-12 rounded overflow-hidden">
+                      <Card key={item.id} className="p-4">
+                        <div className="flex gap-3">
+                          <div className="h-16 w-16 rounded overflow-hidden flex-shrink-0">
                             {item.imageUrl ? (
                               <img
                                 src={item.imageUrl}
@@ -598,59 +671,53 @@ const MenuEditor = ({ restaurantId, onRefresh }: MenuEditorProps) => {
                                 className="h-full w-full object-cover"
                               />
                             ) : (
-                              <div className="h-full w-full bg-muted flex items-center justify-center text-muted-foreground">
+                              <div className="h-full w-full bg-muted flex items-center justify-center text-muted-foreground text-xs">
                                 No img
                               </div>
                             )}
                           </div>
-                        </TableCell>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell>{item.price}</TableCell>
-                        <TableCell>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleManageAllergens(item)}
-                          >
-                            Gestisci
-                          </Button>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleEditMenuItem(item)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Modifica</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                  onClick={() => deleteMenuItemMutation.mutate(item.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Elimina</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </TableCell>
-                      </TableRow>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start mb-2">
+                              <h4 className="font-medium text-sm truncate">{item.name}</h4>
+                              <span className="text-sm font-medium text-primary ml-2">{item.price}</span>
+                            </div>
+                            {item.description && (
+                              <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{item.description}</p>
+                            )}
+                            <div className="flex gap-1 flex-wrap">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="text-xs h-7"
+                                onClick={() => handleManageAllergens(item)}
+                              >
+                                Allergeni
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs h-7"
+                                onClick={() => handleEditMenuItem(item)}
+                              >
+                                <Edit className="h-3 w-3 mr-1" />
+                                Modifica
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs h-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => deleteMenuItemMutation.mutate(item.id)}
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                Elimina
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
                     ))}
-                  </TableBody>
-                </Table>
+                  </div>
+                </>
               )}
             </div>
           </div>

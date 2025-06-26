@@ -301,12 +301,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/restaurants/:id", requireAuth, async (req, res) => {
+  app.get("/api/restaurants/:id", requireAuth, async (req: any, res) => {
     try {
       const restaurant = await storage.getRestaurant(Number(req.params.id));
       if (!restaurant) {
         return res.status(404).json({ message: "Restaurant not found" });
       }
+      
+      // Check if user has permission to access this restaurant
+      const userId = req.user.id;
+      const isUserAdmin = await isAdmin(req);
+      
+      if (!isUserAdmin && restaurant.ownerId !== userId) {
+        return res.status(403).json({ message: "Permission denied" });
+      }
+      
       res.json(restaurant);
     } catch (error) {
       console.error("Error fetching restaurant:", error);
@@ -484,9 +493,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Categories routes
-  app.get("/api/restaurants/:id/categories", async (req, res) => {
+  app.get("/api/restaurants/:id/categories", requireAuth, async (req: any, res) => {
     try {
       const restaurantId = Number(req.params.id);
+      
+      // Check if user has permission to access this restaurant's categories
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant) {
+        return res.status(404).json({ message: "Restaurant not found" });
+      }
+      
+      const userId = req.user.id;
+      const isUserAdmin = await isAdmin(req);
+      
+      if (!isUserAdmin && restaurant.ownerId !== userId) {
+        return res.status(403).json({ message: "Permission denied" });
+      }
+      
       const categories = await storage.getCategories(restaurantId);
       res.json(categories);
     } catch (error) {
