@@ -142,15 +142,26 @@ install_certbot() {
 
 install_pm2() {
     print_step "Installing PM2 process manager..."
+    
+    # Ensure npm global directory has correct permissions
+    npm config set prefix /usr/local
     npm install -g pm2
+    
+    # Create PM2 directories with proper ownership
+    mkdir -p /var/log/pm2
+    mkdir -p /var/www/.pm2
+    chown -R www-data:www-data /var/log/pm2
+    chown -R www-data:www-data /var/www/.pm2
+    
     print_info "PM2 installed globally"
 }
 
 download_application() {
     print_step "Downloading MenuMaster application..."
     
-    # Create application directory
+    # Create application directory with proper ownership from start
     mkdir -p /var/www
+    chown www-data:www-data /var/www
     cd /var/www
     
     # Remove existing directory if it exists
@@ -163,10 +174,12 @@ download_application() {
     # Create required directories
     mkdir -p uploads
     mkdir -p /var/log/pm2
+    mkdir -p /var/www/.npm
     
-    # Set proper ownership
+    # Set proper ownership for all directories
     chown -R www-data:www-data /var/www/menumaster
     chown -R www-data:www-data /var/log/pm2
+    chown -R www-data:www-data /var/www/.npm
     
     print_info "Application downloaded successfully"
 }
@@ -369,13 +382,23 @@ install_dependencies() {
     
     cd /var/www/menumaster
     
+    # Fix NPM cache ownership issue (critical fix)
+    if [ -d "/var/www/.npm" ]; then
+        print_step "Fixing NPM cache permissions..."
+        chown -R www-data:www-data /var/www/.npm
+    fi
+    
     # Clean npm cache and temporary files
     npm cache clean --force
     rm -rf node_modules package-lock.json
     
-    # Install dependencies with proper ownership
+    # Create and set proper ownership for npm cache directory
+    mkdir -p /var/www/.npm
+    chown -R www-data:www-data /var/www/.npm
     chown -R www-data:www-data /var/www/menumaster
-    sudo -u www-data npm install --no-audit --no-fund
+    
+    # Install dependencies with explicit cache location
+    sudo -u www-data npm install --no-audit --no-fund --cache /var/www/.npm
     
     # Build application
     print_step "Building application..."
@@ -385,8 +408,9 @@ install_dependencies() {
         sudo -u www-data npm run build
     fi
     
-    # Ensure proper permissions
+    # Final permissions check
     chown -R www-data:www-data /var/www/menumaster
+    chown -R www-data:www-data /var/www/.npm
     
     print_info "Dependencies installed and application built"
 }
