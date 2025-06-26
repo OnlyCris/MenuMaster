@@ -335,13 +335,11 @@ create_pm2_config() {
     
     cd /var/www/menumaster
     
-    cat > ecosystem.config.js << 'EOF'
+    cat > ecosystem.config.cjs << 'EOF'
 module.exports = {
   apps: [{
     name: 'menumaster',
-    script: 'server/index.ts',
-    interpreter: 'node',
-    interpreter_args: '--loader tsx',
+    script: 'dist/index.js',
     cwd: '/var/www/menumaster',
     instances: 1,
     exec_mode: 'fork',
@@ -373,7 +371,7 @@ module.exports = {
 };
 EOF
     
-    chown www-data:www-data ecosystem.config.js
+    chown www-data:www-data ecosystem.config.cjs
     print_info "PM2 configuration created"
 }
 
@@ -398,6 +396,7 @@ install_dependencies() {
     chown -R www-data:www-data /var/www/menumaster
     
     # Install dependencies with explicit cache location
+    print_step "Installing packages..."
     sudo -u www-data npm install --no-audit --no-fund --cache /var/www/.npm
     
     # Build application
@@ -406,6 +405,12 @@ install_dependencies() {
         sudo -u www-data VITE_STRIPE_PUBLIC_KEY="${STRIPE_PUBLIC_KEY}" npm run build
     else
         sudo -u www-data npm run build
+    fi
+    
+    # Verify build completed
+    if [ ! -f "dist/index.js" ]; then
+        print_error "Build failed - dist/index.js not found"
+        exit 1
     fi
     
     # Final permissions check
@@ -511,12 +516,12 @@ start_application() {
     
     # Test that the application can start
     print_step "Testing application startup..."
-    sudo -u www-data timeout 10s npm start || {
+    sudo -u www-data timeout 10s node dist/index.js || {
         print_warning "Application test failed, but continuing with PM2 setup"
     }
     
     # Start application with PM2
-    sudo -u www-data pm2 start ecosystem.config.js
+    sudo -u www-data pm2 start ecosystem.config.cjs
     sudo -u www-data pm2 save
     
     # Generate startup script
