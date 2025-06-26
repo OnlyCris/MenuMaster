@@ -20,7 +20,7 @@ DB_PASSWORD=""
 SESSION_SECRET=""
 STRIPE_SECRET_KEY=""
 STRIPE_PUBLIC_KEY=""
-SENDGRID_API_KEY=""
+RESEND_API_KEY=""
 CLOUDFLARE_API_TOKEN=""
 CLOUDFLARE_ZONE_ID=""
 GOOGLE_TRANSLATE_KEY=""
@@ -74,7 +74,7 @@ get_user_input() {
     print_info "Optional API keys (press Enter to skip):"
     read -p "Stripe Secret Key: " STRIPE_SECRET_KEY
     read -p "Stripe Public Key: " STRIPE_PUBLIC_KEY
-    read -p "SendGrid API Key: " SENDGRID_API_KEY
+    read -p "Resend API Key: " RESEND_API_KEY
     read -p "Cloudflare API Token: " CLOUDFLARE_API_TOKEN
     read -p "Cloudflare Zone ID: " CLOUDFLARE_ZONE_ID
     read -p "Google Translate API Key: " GOOGLE_TRANSLATE_KEY
@@ -176,7 +176,7 @@ STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
 VITE_STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
 
 # Email (if provided)
-SENDGRID_API_KEY=${SENDGRID_API_KEY}
+RESEND_API_KEY=${RESEND_API_KEY}
 FROM_EMAIL=noreply@${DOMAIN}
 FROM_NAME="MenuMaster"
 

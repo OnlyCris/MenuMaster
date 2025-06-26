@@ -25,7 +25,8 @@ MenuMaster is a comprehensive SaaS platform for restaurant digital menu manageme
 - ✅ **January 2025**: Multi-language support with automatic translation and tracking
 - ✅ **January 2025**: Complete documentation and installation guides created
 - ✅ **December 2024**: Fixed database connectivity issues and SSL certificate problems
-- ✅ **December 2024**: Stripe payment integration with dynamic API key loading
+- ✅ **January 2025**: Corrected email service from SendGrid to Resend in all documentation and installer
+- ✅ **December 2024**: Stripe payment integration with dynamic API key loading  
 - ✅ **December 2024**: Translation API errors resolved with silent fallback system
 
 ## Project Architecture
@@ -42,7 +43,7 @@ MenuMaster is a comprehensive SaaS platform for restaurant digital menu manageme
 - **Database**: PostgreSQL with Drizzle ORM
 - **Authentication**: Session-based with bcrypt password hashing
 - **File Uploads**: Multer with local storage
-- **External APIs**: Stripe, SendGrid, Google Translate, Cloudflare
+- **External APIs**: Stripe, Resend, Google Translate, Cloudflare
 
 ### Database Schema
 - **Users**: Authentication and profiles with admin roles
@@ -165,7 +166,7 @@ MenuMaster is a comprehensive SaaS platform for restaurant digital menu manageme
 DATABASE_URL=postgresql://user:pass@host:port/db
 STRIPE_SECRET_KEY=sk_live_...
 VITE_STRIPE_PUBLIC_KEY=pk_live_...
-SENDGRID_API_KEY=SG...
+RESEND_API_KEY=re_...
 CLOUDFLARE_API_TOKEN=...
 SESSION_SECRET=...
 ```
