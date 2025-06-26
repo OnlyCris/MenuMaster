@@ -6,6 +6,12 @@
     <title>{{RESTAURANT_NAME}} - Menu</title>
     <meta name="description" content="Menu digitale di {{RESTAURANT_NAME}} - {{RESTAURANT_LOCATION}}">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Security headers for better SSL handling -->
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <style>
         * {
             margin: 0;

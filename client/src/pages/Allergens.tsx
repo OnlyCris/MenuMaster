@@ -29,19 +29,19 @@ const Allergens = () => {
     <div className="flex h-screen bg-gray-100 dark:bg-gray-950">
       <Sidebar />
       
-      <div className="flex-1 pl-64 overflow-y-auto">
+      <div className="flex-1 md:pl-64 overflow-y-auto">
         <Topbar 
           title="Gestione Allergeni" 
           showNewButton={false}
         />
         
-        <div className="p-6 space-y-6">
+        <div className="p-3 md:p-6 space-y-4 md:space-y-6">
           <AllergenManager />
           
           <Card>
             <CardHeader>
-              <CardTitle>Informazioni sugli Allergeni</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg md:text-xl">Informazioni sugli Allergeni</CardTitle>
+              <CardDescription className="text-sm md:text-base">
                 Linee guida per la gestione degli allergeni nei menu
               </CardDescription>
             </CardHeader>
