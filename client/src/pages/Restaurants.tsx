@@ -69,7 +69,7 @@ const Restaurants = () => {
         <Topbar 
           title="I Miei Ristoranti" 
           showNewButton={true}
-          onNewClick={() => {
+          onNewRestaurantClick={() => {
             setSelectedRestaurant(null);
             setIsAddingRestaurant(true);
           }}
@@ -77,9 +77,9 @@ const Restaurants = () => {
         
         <div className="p-3 md:p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="lista" className="text-sm">Lista Ristoranti</TabsTrigger>
-              <TabsTrigger value="griglia" className="text-sm">Vista Griglia</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 h-10 md:h-12">
+              <TabsTrigger value="lista" className="text-xs md:text-sm px-2 md:px-4">Lista Ristoranti</TabsTrigger>
+              <TabsTrigger value="griglia" className="text-xs md:text-sm px-2 md:px-4">Vista Griglia</TabsTrigger>
             </TabsList>
             
             <TabsContent value="lista" className="mt-6">
@@ -112,12 +112,12 @@ const Restaurants = () => {
       
       {/* Restaurant Form Modal */}
       <Dialog open={isAddingRestaurant} onOpenChange={setIsAddingRestaurant}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="w-[95vw] max-w-4xl h-[90vh] max-h-[90vh] overflow-hidden p-3 md:p-6">
+          <DialogHeader className="mb-2 md:mb-4">
+            <DialogTitle className="text-sm md:text-lg">
               {selectedRestaurant ? "Modifica Ristorante" : "Aggiungi Ristorante"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs md:text-sm">
               {selectedRestaurant 
                 ? "Modifica i dettagli del ristorante" 
                 : "Compila il form per creare un nuovo ristorante"}
@@ -136,10 +136,10 @@ const Restaurants = () => {
       
       {/* QR Code Modal */}
       <Dialog open={isQRModalOpen} onOpenChange={setIsQRModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Codice QR del Menu</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="w-[95vw] max-w-md p-4 md:p-6">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-sm md:text-lg">Codice QR del Menu</DialogTitle>
+            <DialogDescription className="text-xs md:text-sm">
               Codice QR per {selectedRestaurant?.name}
             </DialogDescription>
           </DialogHeader>
@@ -147,22 +147,22 @@ const Restaurants = () => {
           <div className="flex flex-col items-center justify-center py-4">
             {selectedRestaurant && (
               <>
-                <div className="bg-white p-4 rounded-lg">
+                <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm">
                   <img 
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://${selectedRestaurant.subdomain}.menuisland.it`}
                     alt="QR Code"
-                    className="w-48 h-48"
+                    className="w-36 h-36 md:w-48 md:h-48"
                   />
                 </div>
-                <p className="mt-4 text-sm text-center text-muted-foreground">
+                <p className="mt-3 md:mt-4 text-xs md:text-sm text-center text-muted-foreground px-2">
                   Questo codice QR reindirizza a<br />
-                  <span className="font-medium text-primary">
+                  <span className="font-medium text-primary break-all text-xs md:text-sm">
                     https://{selectedRestaurant.subdomain}.menuisland.it
                   </span>
                 </p>
-                <div className="mt-4 flex space-x-2">
-                  <Button>Scarica PNG</Button>
-                  <Button variant="outline">Scarica PDF</Button>
+                <div className="mt-3 md:mt-4 flex flex-col sm:flex-row gap-2 w-full">
+                  <Button className="text-sm flex-1">Scarica PNG</Button>
+                  <Button variant="outline" className="text-sm flex-1">Scarica PDF</Button>
                 </div>
               </>
             )}

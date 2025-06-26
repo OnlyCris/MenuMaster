@@ -30,14 +30,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -201,14 +194,14 @@ const AllergenManager = () => {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
           <div>
-            <CardTitle>Gestione Allergeni</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg md:text-xl">Gestione Allergeni</CardTitle>
+            <CardDescription className="text-sm md:text-base">
               Crea e gestisci gli allergeni che possono essere assegnati ai piatti
             </CardDescription>
           </div>
-          <Button onClick={handleNewAllergen}>
+          <Button onClick={handleNewAllergen} className="text-sm">
             <Plus className="h-4 w-4 mr-2" /> Nuovo Allergene
           </Button>
         </CardHeader>
@@ -228,32 +221,34 @@ const AllergenManager = () => {
               </p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[80px]">Icona</TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Descrizione</TableHead>
-                  <TableHead className="text-right">Azioni</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {allergens.map((allergen) => (
-                  <TableRow key={allergen.id}>
-                    <TableCell>
-                      {renderIconPreview(allergen.icon)}
-                    </TableCell>
-                    <TableCell className="font-medium">{allergen.name}</TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      {allergen.description || <span className="text-muted-foreground italic">Nessuna descrizione</span>}
-                    </TableCell>
-                    <TableCell className="text-right">
+            /* Mobile-optimized card layout */
+            <div className="space-y-3 md:space-y-4">
+              {allergens.map((allergen) => (
+                <Card key={allergen.id} className="p-3 md:p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className="flex-shrink-0 mt-1">
+                        {renderIconPreview(allergen.icon) || (
+                          <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
+                            <span className="text-xs text-gray-500">?</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm md:text-base truncate">{allergen.name}</h4>
+                        <p className="text-xs md:text-sm text-muted-foreground mt-1 line-clamp-2">
+                          {allergen.description || <span className="italic">Nessuna descrizione</span>}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEditAllergen(allergen)}
+                        className="h-8 w-8 md:h-9 md:w-9 p-0"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-3 w-3 md:h-4 md:w-4" />
                       </Button>
                       
                       <AlertDialog>
@@ -261,34 +256,34 @@ const AllergenManager = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            className="h-8 w-8 md:h-9 md:w-9 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
                           </Button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent>
+                        <AlertDialogContent className="w-[95vw] max-w-md">
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Sei sicuro?</AlertDialogTitle>
-                            <AlertDialogDescription>
+                            <AlertDialogTitle className="text-sm md:text-base">Sei sicuro?</AlertDialogTitle>
+                            <AlertDialogDescription className="text-xs md:text-sm">
                               Questa azione non può essere annullata. L'allergene "{allergen.name}" verrà eliminato definitivamente.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Annulla</AlertDialogCancel>
+                          <AlertDialogFooter className="flex flex-col gap-2 sm:flex-row">
+                            <AlertDialogCancel className="text-sm">Annulla</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => deleteAllergenMutation.mutate(allergen.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-sm"
                             >
                               Elimina
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>

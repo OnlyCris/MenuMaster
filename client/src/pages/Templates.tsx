@@ -409,44 +409,46 @@ const Templates = () => {
       
       {/* Template Preview Modal */}
       <Dialog open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Anteprima Template: {selectedTemplate?.name}</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="w-[95vw] max-w-3xl h-[85vh] max-h-[85vh] overflow-hidden p-3 md:p-6">
+          <DialogHeader className="mb-2 md:mb-4">
+            <DialogTitle className="text-sm md:text-lg">Anteprima Template: {selectedTemplate?.name}</DialogTitle>
+            <DialogDescription className="text-xs md:text-sm">
               {selectedTemplate?.description}
             </DialogDescription>
           </DialogHeader>
           
-          <div className="flex justify-center py-4">
-            {/* This would be a component that shows the template preview */}
-            <div className="border rounded-lg p-4 w-full max-w-md">
-              <div className="bg-primary text-white p-4 text-center rounded-t-lg">
-                <h3 className="font-bold text-xl">Nome Ristorante</h3>
-                <p className="text-sm">Cucina italiana tradizionale</p>
+          <div className="flex-1 overflow-y-auto py-2 md:py-4">
+            {/* Mobile-optimized template preview */}
+            <div className="border rounded-lg w-full mx-auto max-w-sm md:max-w-md bg-white dark:bg-gray-900">
+              <div className="bg-primary text-white p-3 md:p-4 text-center rounded-t-lg">
+                <h3 className="font-bold text-lg md:text-xl">Nome Ristorante</h3>
+                <p className="text-xs md:text-sm">Cucina italiana tradizionale</p>
               </div>
-              <div className="flex overflow-x-auto whitespace-nowrap p-2 border-b">
-                <Button variant="default" size="sm" className="mr-2">Antipasti</Button>
-                <Button variant="ghost" size="sm" className="mr-2">Primi</Button>
-                <Button variant="ghost" size="sm" className="mr-2">Secondi</Button>
-                <Button variant="ghost" size="sm">Dessert</Button>
+              <div className="flex overflow-x-auto gap-1 md:gap-2 p-2 border-b">
+                <Button variant="default" size="sm" className="text-xs shrink-0">Antipasti</Button>
+                <Button variant="ghost" size="sm" className="text-xs shrink-0">Primi</Button>
+                <Button variant="ghost" size="sm" className="text-xs shrink-0">Secondi</Button>
+                <Button variant="ghost" size="sm" className="text-xs shrink-0">Dessert</Button>
               </div>
               
-              <div className="p-4 space-y-4">
-                <h4 className="font-bold">Antipasti</h4>
+              <div className="p-3 md:p-4 space-y-3 md:space-y-4">
+                <h4 className="font-bold text-sm md:text-base">Antipasti</h4>
                 
-                <div className="flex border-b pb-4">
-                  <div className="h-20 w-20 bg-gray-200 rounded-lg"></div>
-                  <div className="ml-4">
+                <div className="flex border-b pb-3 md:pb-4">
+                  <div className="h-14 w-14 md:h-20 md:w-20 bg-gray-200 rounded-lg shrink-0"></div>
+                  <div className="ml-3 md:ml-4 flex-1 min-w-0">
                     <div className="flex justify-between">
-                      <h5 className="font-bold">Nome Piatto</h5>
-                      <span className="font-bold text-accent">€12.00</span>
+                      <h5 className="font-bold text-sm md:text-base truncate">Nome Piatto</h5>
+                      <span className="font-bold text-accent text-sm md:text-base shrink-0">€12.00</span>
                     </div>
-                    <p className="text-sm text-neutral-300 my-1">Descrizione del piatto</p>
-                    <div className="flex gap-1">
-                      <span className="bg-neutral-100 text-xs px-2 py-1 rounded-full text-neutral-300">
+                    <p className="text-xs md:text-sm text-neutral-600 dark:text-neutral-300 my-1 line-clamp-2">
+                      Descrizione del piatto con ingredienti principali
+                    </p>
+                    <div className="flex gap-1 flex-wrap">
+                      <span className="bg-neutral-100 dark:bg-neutral-800 text-xs px-2 py-1 rounded-full text-neutral-600 dark:text-neutral-300">
                         Allergene 1
                       </span>
-                      <span className="bg-neutral-100 text-xs px-2 py-1 rounded-full text-neutral-300">
+                      <span className="bg-neutral-100 dark:bg-neutral-800 text-xs px-2 py-1 rounded-full text-neutral-600 dark:text-neutral-300">
                         Allergene 2
                       </span>
                     </div>
@@ -454,15 +456,17 @@ const Templates = () => {
                 </div>
                 
                 <div className="flex">
-                  <div className="h-20 w-20 bg-gray-200 rounded-lg"></div>
-                  <div className="ml-4">
+                  <div className="h-14 w-14 md:h-20 md:w-20 bg-gray-200 rounded-lg shrink-0"></div>
+                  <div className="ml-3 md:ml-4 flex-1 min-w-0">
                     <div className="flex justify-between">
-                      <h5 className="font-bold">Nome Piatto</h5>
-                      <span className="font-bold text-accent">€9.50</span>
+                      <h5 className="font-bold text-sm md:text-base truncate">Nome Piatto</h5>
+                      <span className="font-bold text-accent text-sm md:text-base shrink-0">€9.50</span>
                     </div>
-                    <p className="text-sm text-neutral-300 my-1">Descrizione del piatto</p>
-                    <div className="flex gap-1">
-                      <span className="bg-neutral-100 text-xs px-2 py-1 rounded-full text-neutral-300">
+                    <p className="text-xs md:text-sm text-neutral-600 dark:text-neutral-300 my-1 line-clamp-2">
+                      Descrizione del piatto con ingredienti
+                    </p>
+                    <div className="flex gap-1 flex-wrap">
+                      <span className="bg-neutral-100 dark:bg-neutral-800 text-xs px-2 py-1 rounded-full text-neutral-600 dark:text-neutral-300">
                         Allergene 1
                       </span>
                     </div>
@@ -470,15 +474,20 @@ const Templates = () => {
                 </div>
               </div>
               
-              <div className="bg-neutral-100 p-3 text-center rounded-b-lg">
-                <p className="text-xs text-neutral-300">Menu aggiornato il 01/07/2023</p>
+              <div className="bg-neutral-100 dark:bg-neutral-800 p-2 md:p-3 text-center rounded-b-lg">
+                <p className="text-xs text-neutral-600 dark:text-neutral-400">Menu aggiornato il 01/07/2023</p>
                 <p className="text-xs text-accent mt-1">Powered by MenuMaster</p>
               </div>
             </div>
           </div>
           
-          <div className="flex justify-end">
-            <Button onClick={() => setIsPreviewModalOpen(false)}>Chiudi</Button>
+          <div className="flex justify-end pt-2 md:pt-4 border-t mt-2 md:mt-4">
+            <Button 
+              onClick={() => setIsPreviewModalOpen(false)}
+              className="text-sm md:text-base px-4 md:px-6"
+            >
+              Chiudi
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
