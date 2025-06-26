@@ -103,7 +103,7 @@ const TemplateGallery = ({ onSelect, onPreview, limit }: TemplateGalleryProps) =
 
   const handlePreview = (template: Template) => {
     setPreviewTemplate(template);
-    onPreview(template);
+    // Non chiamare onPreview per evitare doppio popup
   };
   
   return (
@@ -178,16 +178,18 @@ const TemplateGallery = ({ onSelect, onPreview, limit }: TemplateGalleryProps) =
       
       {/* Preview Modal */}
       <Dialog open={!!previewTemplate} onOpenChange={() => setPreviewTemplate(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Anteprima Template - {previewTemplate?.name}</DialogTitle>
+        <DialogContent className="w-[95vw] max-w-4xl h-[90vh] max-h-[90vh] overflow-hidden p-0 md:p-6">
+          <DialogHeader className="px-4 py-3 md:px-0 md:py-0">
+            <DialogTitle className="text-sm md:text-lg">Anteprima Template - {previewTemplate?.name}</DialogTitle>
           </DialogHeader>
-          {previewTemplate && (
-            <TemplateModalPreview 
-              template={previewTemplate} 
-              onSelect={onSelect}
-            />
-          )}
+          <div className="flex-1 overflow-y-auto px-4 pb-4 md:px-0 md:pb-0">
+            {previewTemplate && (
+              <TemplateModalPreview 
+                template={previewTemplate} 
+                onSelect={onSelect}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </Card>

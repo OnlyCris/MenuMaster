@@ -183,14 +183,14 @@ const Templates = () => {
     <div className="flex h-screen bg-gray-100 dark:bg-gray-950">
       <Sidebar />
       
-      <div className="flex-1 pl-64 overflow-y-auto">
+      <div className="flex-1 md:pl-64 overflow-y-auto">
         <Topbar 
           title="Template per Menu" 
           onNewRestaurantClick={handleNewTemplate}
           showNewButton={false}
         />
         
-        <div className="p-6">
+        <div className="p-3 md:p-6">
           <Card className="mb-6">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -221,7 +221,7 @@ const Templates = () => {
               ) : (
                 <TemplateGallery 
                   onSelect={handleEditTemplate}
-                  onPreview={handlePreviewTemplate}
+                  onPreview={() => {}}
                 />
               )}
             </CardContent>
@@ -267,12 +267,12 @@ const Templates = () => {
       
       {/* Template Form Modal */}
       <Dialog open={isTemplateModalOpen} onOpenChange={setIsTemplateModalOpen}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-sm md:text-lg">
               {selectedTemplate ? "Modifica Template" : "Nuovo Template"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs md:text-sm">
               {selectedTemplate 
                 ? "Modifica i dettagli del template" 
                 : "Crea un nuovo template per i menu"}
