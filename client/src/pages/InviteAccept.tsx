@@ -14,6 +14,8 @@ export default function InviteAccept() {
   const [errorMessage, setErrorMessage] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
 
   // Extract invitation code from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -25,7 +27,7 @@ export default function InviteAccept() {
   });
 
   const acceptMutation = useMutation({
-    mutationFn: async (data: { inviteCode: string; userEmail: string; password: string }) => {
+    mutationFn: async (data: { inviteCode: string; userEmail: string; password: string; firstName: string; lastName: string }) => {
       return await apiRequest('POST', `/api/client-invitations/accept`, data);
     },
     onSuccess: () => {
@@ -50,13 +52,13 @@ export default function InviteAccept() {
     }
 
     if (invitation) {
-      if (invitation.usedAt) {
+      if ((invitation as any).usedAt) {
         setStatus('error');
         setErrorMessage('Questo invito è già stato utilizzato');
         return;
       }
 
-      if (new Date(invitation.expiresAt) < new Date()) {
+      if (new Date((invitation as any).expiresAt) < new Date()) {
         setStatus('error');
         setErrorMessage('Questo invito è scaduto');
         return;
@@ -78,9 +80,19 @@ export default function InviteAccept() {
       return;
     }
 
+    if (!firstName) {
+      setErrorMessage('Nome richiesto');
+      return;
+    }
+
+    if (!lastName) {
+      setErrorMessage('Cognome richiesto');
+      return;
+    }
+
     setStatus('processing');
     setErrorMessage('');
-    acceptMutation.mutate({ inviteCode: inviteCode!, userEmail, password });
+    acceptMutation.mutate({ inviteCode: inviteCode!, userEmail, password, firstName, lastName });
   };
 
   if (!inviteCode) {
@@ -123,10 +135,36 @@ export default function InviteAccept() {
           <CardHeader className="text-center">
             <CardTitle className="text-blue-700">Completa Registrazione</CardTitle>
             <CardDescription>
-              Gestisci il menu di {invitation.restaurantName}
+              Gestisci il menu di {(invitation as any).restaurantName}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="firstName">Nome</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Mario"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="lastName">Cognome</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Rossi"
+                  required
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="email">La tua email</Label>
               <Input
@@ -155,7 +193,7 @@ export default function InviteAccept() {
             <Button 
               onClick={handleAcceptInvitation}
               className="w-full"
-              disabled={!userEmail || !password}
+              disabled={!userEmail || !password || !firstName || !lastName}
             >
               Accedi al Sistema
             </Button>

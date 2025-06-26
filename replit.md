@@ -11,6 +11,10 @@ MenuMaster is a comprehensive SaaS platform for restaurant digital menu manageme
 **GitHub Repository**: https://github.com/OnlyCris/MenuMaster
 
 ## Recent Changes
+- ✅ **January 2025**: Fixed sidebar dashboard link routing from /dashboard to /
+- ✅ **January 2025**: Fixed user registration to include name/surname fields and profile update validation
+- ✅ **January 2025**: Improved QR code generation to use subdomain instead of restaurant name
+- ✅ **January 2025**: Enhanced menu page error handling for SSL and unavailable menus
 - ✅ **January 2025**: Enhanced mobile responsiveness across all admin pages and dashboard components
 - ✅ **January 2025**: Fixed PM2 ecosystem.config ESM/CommonJS compatibility issue - now uses .cjs extension
 - ✅ **January 2025**: Fixed critical NPM cache ownership issue (EACCES error) - proper /var/www/.npm permissions

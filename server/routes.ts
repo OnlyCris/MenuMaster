@@ -140,7 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Generate categories HTML
           let categoriesHtml = '';
           if (menuData.categories.length === 0) {
-            categoriesHtml = '<div style="text-align: center; padding: 3rem; color: #666;">Menu non disponibile al momento.</div>';
+            categoriesHtml = '<div style="text-align: center; padding: 3rem; color: #666;"><h2>Menu non disponibile</h2><p>Il menu di questo ristorante non è ancora stato configurato.</p></div>';
           } else {
             categoriesHtml = menuData.categories
               .sort((a, b) => (a.order || 0) - (b.order || 0))
@@ -244,16 +244,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id;
       const { firstName, lastName, email } = req.body;
       
-      const updatedUser = await storage.updateUserProfile(userId, {
-        firstName,
-        lastName,
-        email
-      });
+      // Simple validation without strict regex patterns
+      const updateData: any = {};
+      
+      if (firstName !== undefined) {
+        if (typeof firstName === 'string' && firstName.trim().length > 0) {
+          updateData.firstName = firstName.trim();
+        }
+      }
+      
+      if (lastName !== undefined) {
+        if (typeof lastName === 'string' && lastName.trim().length > 0) {
+          updateData.lastName = lastName.trim();
+        }
+      }
+      
+      if (email !== undefined) {
+        if (typeof email === 'string' && email.includes('@')) {
+          updateData.email = email.trim();
+        }
+      }
+      
+      const updatedUser = await storage.updateUserProfile(userId, updateData);
       
       res.json(updatedUser);
     } catch (error) {
       console.error("Error updating profile:", error);
-      res.status(500).json({ message: "Failed to update profile" });
+      res.status(500).json({ message: "Errore nell'aggiornamento del profilo" });
     }
   });
 
@@ -876,7 +893,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Permission denied" });
       }
       
-      // Generate QR code
+      // Generate QR code using the restaurant's subdomain
       const qrUrl = `https://${restaurant.subdomain}.menuisland.it`;
       const qrDataUrl = await QRCode.toDataURL(qrUrl, {
         width: 300,
@@ -1411,7 +1428,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Accept invitation (temporarily without authentication)
   app.post("/api/client-invitations/accept", async (req: any, res) => {
     try {
-      const { inviteCode, userEmail, password } = req.body;
+      const { inviteCode, userEmail, password, firstName, lastName } = req.body;
       
       // For now, create a temporary user ID based on email
       // In production, this would use the authenticated user's ID
@@ -1447,8 +1464,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: userId,
           email: userEmail,
           password: hashedPassword,
-          firstName: null,
-          lastName: null,
+          firstName: firstName || null,
+          lastName: lastName || null,
           profileImageUrl: null,
         });
         console.log('User created:', user);

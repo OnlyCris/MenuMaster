@@ -35,7 +35,7 @@ export default function Settings() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const response = await apiRequest("PATCH", "/api/auth/user/profile", data);
+      const response = await apiRequest("PATCH", "/api/auth/profile", data);
       return response.json();
     },
     onSuccess: () => {

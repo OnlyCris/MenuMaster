@@ -86,7 +86,7 @@ export function setupSimpleAuth(app: Express) {
   // Register endpoint
   app.post("/api/auth/register", async (req: Request, res: Response) => {
     try {
-      const { email, password, firstName, lastName } = req.body;
+      const { email, password, firstName, lastName, inviteCode } = req.body;
 
       if (!email || !password) {
         return res.status(400).json({ message: "Email e password sono obbligatori" });
@@ -101,7 +101,7 @@ export function setupSimpleAuth(app: Express) {
       // Hash password
       const hashedPassword = await hashPassword(password);
 
-      // Create user
+      // Create user with name and surname
       const userData = {
         id: email, // Use email as ID for simplicity
         email,

@@ -104,10 +104,10 @@ const Sidebar = () => {
         <div className="flex-1 px-3 py-4 overflow-y-auto">
           <ul className="space-y-2">
             <SidebarLink
-              href="/dashboard"
+              href="/"
               icon={<LayoutDashboard size={20} />}
               label="Dashboard"
-              active={location === "/dashboard"}
+              active={location === "/"}
               onClick={closeMobileMenu}
             />
             
