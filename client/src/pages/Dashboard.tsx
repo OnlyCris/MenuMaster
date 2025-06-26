@@ -29,6 +29,54 @@ const Dashboard = () => {
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
 
+  // Function to download QR code
+  const downloadQR = async (subdomain: string, format: 'png' | 'pdf') => {
+    try {
+      const domain = window.location.hostname.includes('.') ? window.location.hostname.split('.').slice(-2).join('.') : 'menuisland.it';
+      const qrUrl = `https://${subdomain}.${domain}`;
+      
+      if (format === 'png') {
+        const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrUrl)}`;
+        const link = document.createElement('a');
+        link.href = qrImageUrl;
+        link.download = `qr-${subdomain}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else if (format === 'pdf') {
+        // For PDF, we'll create a simple page with the QR code
+        const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrUrl)}`;
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(`
+            <html>
+              <head>
+                <title>QR Code - ${subdomain}</title>
+                <style>
+                  body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+                  img { margin: 20px 0; }
+                  h1 { color: #333; }
+                  p { color: #666; margin: 10px 0; }
+                </style>
+              </head>
+              <body>
+                <h1>QR Code Menu</h1>
+                <p>Ristorante: <strong>${subdomain}</strong></p>
+                <img src="${qrImageUrl}" alt="QR Code" />
+                <p>Scansiona per visualizzare il menu</p>
+                <p><strong>${qrUrl}</strong></p>
+              </body>
+            </html>
+          `);
+          printWindow.document.close();
+          printWindow.print();
+        }
+      }
+    } catch (error) {
+      console.error('Errore durante il download del QR:', error);
+    }
+  };
+
   // Fetch restaurants
   const { data: restaurants = [], isLoading: isRestaurantsLoading } = useQuery<Restaurant[]>({
     queryKey: ["/api/restaurants"],
@@ -163,22 +211,24 @@ const Dashboard = () => {
       
       {/* Restaurant Form Modal */}
       <Dialog open={isAddingRestaurant} onOpenChange={setIsAddingRestaurant}>
-        <DialogContent className="w-[95vw] max-w-4xl h-[90vh] max-h-[90vh] overflow-hidden p-3 md:p-6">
-          <DialogHeader className="mb-2 md:mb-4">
-            <DialogTitle className="text-sm md:text-lg">
+        <DialogContent className="w-[90vw] max-w-4xl h-[85vh] max-h-[85vh] overflow-y-auto p-4 md:p-6">
+          <DialogHeader className="mb-4 sticky top-0 bg-white dark:bg-gray-900 pb-2 border-b">
+            <DialogTitle className="text-lg md:text-xl">
               {selectedRestaurant ? "Modifica Ristorante" : "Aggiungi Ristorante"}
             </DialogTitle>
-            <DialogDescription className="text-xs md:text-sm">
+            <DialogDescription className="text-sm">
               {selectedRestaurant 
                 ? "Modifica i dettagli del ristorante" 
                 : "Compila il form per creare un nuovo ristorante"}
             </DialogDescription>
           </DialogHeader>
           
-          <RestaurantForm 
-            restaurant={selectedRestaurant || undefined}
-            onComplete={() => setIsAddingRestaurant(false)}
-          />
+          <div className="overflow-y-auto">
+            <RestaurantForm 
+              restaurant={selectedRestaurant || undefined}
+              onComplete={() => setIsAddingRestaurant(false)}
+            />
+          </div>
         </DialogContent>
       </Dialog>
       
@@ -197,7 +247,7 @@ const Dashboard = () => {
               <>
                 <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm">
                   <img 
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://${selectedRestaurant.subdomain}.menuisland.it`}
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://${selectedRestaurant.subdomain}.${window.location.hostname.includes('.') ? window.location.hostname.split('.').slice(-2).join('.') : 'menuisland.it'}`}
                     alt="QR Code"
                     className="w-36 h-36 md:w-48 md:h-48"
                   />
@@ -205,12 +255,23 @@ const Dashboard = () => {
                 <p className="mt-3 md:mt-4 text-xs md:text-sm text-center text-muted-foreground px-2">
                   Questo codice QR reindirizza a<br />
                   <span className="font-medium text-primary break-all text-xs md:text-sm">
-                    https://{selectedRestaurant.subdomain}.menuisland.it
+                    https://{selectedRestaurant.subdomain}.{window.location.hostname.includes('.') ? window.location.hostname.split('.').slice(-2).join('.') : 'menuisland.it'}
                   </span>
                 </p>
                 <div className="mt-3 md:mt-4 flex flex-col sm:flex-row gap-2 w-full">
-                  <Button className="text-sm flex-1">Scarica PNG</Button>
-                  <Button variant="outline" className="text-sm flex-1">Scarica PDF</Button>
+                  <Button 
+                    className="text-sm flex-1"
+                    onClick={() => downloadQR(selectedRestaurant.subdomain, 'png')}
+                  >
+                    Scarica PNG
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="text-sm flex-1"
+                    onClick={() => downloadQR(selectedRestaurant.subdomain, 'pdf')}
+                  >
+                    Scarica PDF
+                  </Button>
                 </div>
               </>
             )}

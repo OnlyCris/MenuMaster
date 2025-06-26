@@ -73,8 +73,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/", async (req, res, next) => {
     const host = req.hostname;
     
-    // Check if this is a restaurant subdomain
-    if (host.includes(".menuisland.it") && !host.startsWith("www.")) {
+    // Check if this is a restaurant subdomain (any subdomain that's not www, localhost, or main domain)
+    const isRestaurantSubdomain = host !== 'localhost' && 
+                                  !host.startsWith('www.') && 
+                                  !host.startsWith('127.0.0.1') &&
+                                  host.includes('.') &&
+                                  host.split('.').length >= 2;
+    
+    if (isRestaurantSubdomain) {
       const subdomain = host.split(".")[0];
       try {
         const restaurant = await storage.getRestaurantBySubdomain(subdomain);

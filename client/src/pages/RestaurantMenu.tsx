@@ -38,7 +38,13 @@ const RestaurantMenu = () => {
   // Check if we're on a restaurant subdomain
   useEffect(() => {
     const host = window.location.hostname;
-    setIsSubdomain(host.includes(".menuisland.it") && !host.startsWith("www."));
+    // Allow any subdomain that's not www, localhost, or the main domain
+    const isRestaurantSubdomain = host !== 'localhost' && 
+                                  !host.startsWith('www.') && 
+                                  !host.startsWith('127.0.0.1') &&
+                                  host.includes('.') &&
+                                  host.split('.').length >= 2;
+    setIsSubdomain(isRestaurantSubdomain);
   }, []);
 
   // Detect browser language on component mount

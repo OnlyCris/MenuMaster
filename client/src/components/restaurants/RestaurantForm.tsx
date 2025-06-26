@@ -25,6 +25,7 @@ const validationSchema = insertRestaurantSchema.extend({
     .max(30, "Il sottodominio non può superare i 30 caratteri")
     .regex(/^[a-z0-9-]+$/, "Solo lettere minuscole, numeri e trattini sono permessi"),
   ownerEmail: z.string().email("Email non valida"),
+  templateId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof validationSchema>;
@@ -107,10 +108,25 @@ const RestaurantForm = ({ restaurant, onComplete }: RestaurantFormProps) => {
       });
       onComplete();
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      let errorMessage = "Si è verificato un errore";
+      
+      // Se l'errore è un oggetto con error e message
+      if (error && typeof error === 'object' && error.error && error.message) {
+        if (error.error === 'RESTAURANT_LIMIT_REACHED') {
+          errorMessage = "Hai raggiunto il limite di ristoranti per il tuo account. Contatta l'amministratore per aumentare il limite.";
+        } else {
+          errorMessage = error.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
       toast({
         title: "Errore",
-        description: error instanceof Error ? error.message : "Si è verificato un errore",
+        description: errorMessage,
         variant: "destructive",
       });
     },
