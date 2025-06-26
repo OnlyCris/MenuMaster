@@ -11,6 +11,7 @@ MenuMaster is a comprehensive SaaS platform for restaurant digital menu manageme
 **GitHub Repository**: https://github.com/OnlyCris/MenuMaster
 
 ## Recent Changes
+- ✅ **January 2025**: Fixed mobile responsiveness and template preview popup issues - single customizable preview modal
 - ✅ **January 2025**: Fixed mobile responsiveness for Restaurants, Templates, and Allergens pages
 - ✅ **January 2025**: Enhanced SSL certificate handling with security headers and CSP
 - ✅ **January 2025**: Improved error handling for restaurant creation limits with user-friendly messages
