@@ -1,0 +1,35 @@
+root@vps391104583:/etc/nginx/sites-enabled# nano menumaster 
+root@vps391104583:/etc/nginx/sites-enabled# sudo certbot certificates
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Found the following certs:
+  Certificate Name: menuisland.it
+    Serial Number: 5fb8c428efe87ba4acbf0abc5d70bfada49
+    Key Type: ECDSA
+    Domains: menuisland.it
+    Expiry Date: 2025-09-24 09:12:51+00:00 (VALID: 88 days)
+    Certificate Path: /etc/letsencrypt/live/menuisland.it/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/menuisland.it/privkey.pem
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+root@vps391104583:/etc/nginx/sites-enabled# sudo certbot certonly --nginx -d menuisland.it -d *.menuisland.it
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+You have an existing certificate that contains a portion of the domains you
+requested (ref: /etc/letsencrypt/renewal/menuisland.it.conf)
+
+It contains these names: menuisland.it
+
+You requested these names for the new certificate: menuisland.it,
+*.menuisland.it.
+
+Do you want to expand and replace this existing certificate with the new
+certificate?
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(E)xpand/(C)ancel: E
+Renewing an existing certificate for menuisland.it and *.menuisland.it
+Client with the currently selected authenticator does not support any combination of challenges that will satisfy the CA. You may need to use an authenticator plugin that can do challenges over DNS.
+Client with the currently selected authenticator does not support any combination of challenges that will satisfy the CA. You may need to use an authenticator plugin that can do challenges over DNS.
+Ask for help or search for solutions at https://community.letsencrypt.org. See the logfile /var/log/letsencrypt/letsencrypt.log or re-run Certbot with -v for more details.
+root@vps391104583:/etc/nginx/sites-enabled# 
