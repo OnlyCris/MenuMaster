@@ -924,8 +924,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Permission denied" });
       }
       
-      // Generate QR code using the restaurant's subdomain
-      const qrUrl = `https://${restaurant.subdomain}.menuisland.it`;
+      // Generate QR code using clean URL format
+      const restaurantUrlName = restaurant.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const qrUrl = `https://menuisland.it/${restaurantUrlName}`;
       const qrDataUrl = await QRCode.toDataURL(qrUrl, {
         width: 300,
         margin: 2,
@@ -1253,11 +1254,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Public view route that tracks visits
+  // Public view route that tracks visits (supports both subdomain and restaurant name)
   app.get("/api/view/:subdomain", async (req, res) => {
     try {
       const subdomain = req.params.subdomain;
-      const restaurant = await storage.getRestaurantBySubdomain(subdomain);
+      const language = req.query.lang as string || 'it';
+      
+      // Try to find restaurant by subdomain first, then by name
+      let restaurant = await storage.getRestaurantBySubdomain(subdomain);
+      
+      // If not found by subdomain, try to find by restaurant name
+      if (!restaurant) {
+        const restaurants = await storage.getRestaurants();
+        restaurant = restaurants.find(r => 
+          r.name.toLowerCase().replace(/[^a-z0-9]/g, '') === subdomain.toLowerCase().replace(/[^a-z0-9]/g, '')
+        );
+      }
       
       if (!restaurant) {
         return res.status(404).json({ message: "Restaurant not found" });
@@ -1265,6 +1277,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Track visit
       await storage.incrementVisits(restaurant.id);
+      
+      // Track language usage if not Italian (default)
+      if (language !== 'it') {
+        await storage.trackLanguageUsage(restaurant.id, language);
+      }
       
       // Get all menu data for the restaurant
       const categories = await storage.getCategories(restaurant.id);

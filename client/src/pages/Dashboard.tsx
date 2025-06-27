@@ -30,16 +30,17 @@ const Dashboard = () => {
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
 
   // Function to download QR code
-  const downloadQR = async (subdomain: string, format: 'png' | 'pdf') => {
+  const downloadQR = async (restaurantName: string, subdomain: string, format: 'png' | 'pdf') => {
     try {
       const domain = window.location.hostname.includes('.') ? window.location.hostname.split('.').slice(-2).join('.') : 'menuisland.it';
-      const qrUrl = `https://${subdomain}.${domain}`;
+      const restaurantUrlName = restaurantName.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const qrUrl = `https://${domain}/${restaurantUrlName}`;
       
       if (format === 'png') {
         const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrUrl)}`;
         const link = document.createElement('a');
         link.href = qrImageUrl;
-        link.download = `qr-${subdomain}.png`;
+        link.download = `qr-${restaurantUrlName}.png`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -51,7 +52,7 @@ const Dashboard = () => {
           printWindow.document.write(`
             <html>
               <head>
-                <title>QR Code - ${subdomain}</title>
+                <title>QR Code - ${restaurantName}</title>
                 <style>
                   body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
                   img { margin: 20px 0; }
@@ -61,7 +62,7 @@ const Dashboard = () => {
               </head>
               <body>
                 <h1>QR Code Menu</h1>
-                <p>Ristorante: <strong>${subdomain}</strong></p>
+                <p>Ristorante: <strong>${restaurantName}</strong></p>
                 <img src="${qrImageUrl}" alt="QR Code" />
                 <p>Scansiona per visualizzare il menu</p>
                 <p><strong>${qrUrl}</strong></p>
@@ -261,14 +262,14 @@ const Dashboard = () => {
                 <div className="mt-3 md:mt-4 flex flex-col sm:flex-row gap-2 w-full">
                   <Button 
                     className="text-sm flex-1"
-                    onClick={() => downloadQR(selectedRestaurant.subdomain, 'png')}
+                    onClick={() => downloadQR(selectedRestaurant.name, selectedRestaurant.subdomain, 'png')}
                   >
                     Scarica PNG
                   </Button>
                   <Button 
                     variant="outline" 
                     className="text-sm flex-1"
-                    onClick={() => downloadQR(selectedRestaurant.subdomain, 'pdf')}
+                    onClick={() => downloadQR(selectedRestaurant.name, selectedRestaurant.subdomain, 'pdf')}
                   >
                     Scarica PDF
                   </Button>

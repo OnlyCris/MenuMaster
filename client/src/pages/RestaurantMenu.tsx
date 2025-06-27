@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Restaurant, Template, Category, MenuItem, Allergen } from "@shared/schema";
 import { useEffect, useState } from "react";
+import { useParams } from "wouter";
 import { Loader2, Globe, Star, Utensils, MapPin, Phone, Clock, Wifi, Car, Heart, Share2, ChevronDown, ChevronUp } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -29,23 +30,15 @@ const SUPPORTED_LANGUAGES = {
 };
 
 const RestaurantMenu = () => {
-  const [isSubdomain, setIsSubdomain] = useState(false);
+  const params = useParams();
   const [selectedLanguage, setSelectedLanguage] = useState('it');
   const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [restaurantId, setRestaurantId] = useState<number | null>(null);
 
-  // Check if we're on a restaurant subdomain
-  useEffect(() => {
-    const host = window.location.hostname;
-    // Allow any subdomain that's not www, localhost, or the main domain
-    const isRestaurantSubdomain = host !== 'localhost' && 
-                                  !host.startsWith('www.') && 
-                                  !host.startsWith('127.0.0.1') &&
-                                  host.includes('.') &&
-                                  host.split('.').length >= 2;
-    setIsSubdomain(isRestaurantSubdomain);
-  }, []);
+  // Get restaurant name from URL parameter
+  const restaurantName = params.restaurantName;
+  const isDirectAccess = !!restaurantName;
 
   // Detect browser language on component mount
   useEffect(() => {
@@ -116,17 +109,20 @@ const RestaurantMenu = () => {
     }
   };
 
-  // Fetch menu data if on a subdomain
+  // Fetch menu data if restaurant name is provided
   const { data: menuData, isLoading, error } = useQuery<MenuData>({
-    queryKey: ["/", selectedLanguage],
+    queryKey: ["/api/view", restaurantName, selectedLanguage],
     queryFn: async () => {
-      const response = await fetch(`/?lang=${selectedLanguage}`);
+      if (!restaurantName) {
+        throw new Error("Restaurant name is required");
+      }
+      const response = await fetch(`/api/view/${restaurantName}?lang=${selectedLanguage}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return response.json();
     },
-    enabled: isSubdomain,
+    enabled: !!restaurantName && isDirectAccess,
     retry: 2
   });
 
@@ -139,7 +135,7 @@ const RestaurantMenu = () => {
     }
   }, [menuData]);
 
-  if (!isSubdomain) {
+  if (!isDirectAccess || !restaurantName) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md">

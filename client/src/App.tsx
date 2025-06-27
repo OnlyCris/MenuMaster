@@ -104,6 +104,8 @@ function Router() {
       <Route path="/help" component={Help} />
       <Route path="/admin/support" component={SupportAdmin} />
       <Route path="/clients" component={ClientInvitations} />
+      <Route path="/view/:restaurantName" component={RestaurantMenu} />
+      <Route path="/:restaurantName" component={RestaurantMenu} />
       <Route component={NotFound} />
     </Switch>
   );
