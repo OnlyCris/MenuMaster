@@ -19,16 +19,21 @@ import {
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const validationSchema = insertRestaurantSchema.extend({
+// Form-specific schema that uses strings for all select fields
+const formSchema = z.object({
+  name: z.string().min(1, "Il nome del ristorante è richiesto"),
+  location: z.string().optional(),
   subdomain: z.string()
     .min(3, "Il sottodominio deve essere di almeno 3 caratteri")
     .max(30, "Il sottodominio non può superare i 30 caratteri")
     .regex(/^[a-z0-9-]+$/, "Solo lettere minuscole, numeri e trattini sono permessi"),
   ownerEmail: z.string().email("Email non valida"),
   templateId: z.string().optional(),
+  category: z.string().optional(),
+  logoUrl: z.string().optional(),
 });
 
-type FormValues = z.infer<typeof validationSchema>;
+type FormValues = z.infer<typeof formSchema>;
 
 type RestaurantFormProps = {
   restaurant?: Restaurant;
@@ -47,7 +52,7 @@ const RestaurantForm = ({ restaurant, onComplete }: RestaurantFormProps) => {
   });
   
   const form = useForm<FormValues>({
-    resolver: zodResolver(validationSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: restaurant?.name || "",
       location: restaurant?.location || "",
@@ -197,7 +202,8 @@ const RestaurantForm = ({ restaurant, onComplete }: RestaurantFormProps) => {
                     <FormControl>
                       <Input 
                         placeholder="Es. Milano, Italia" 
-                        {...field} 
+                        {...field}
+                        value={field.value || ""}
                       />
                     </FormControl>
                     <FormMessage />
@@ -259,8 +265,8 @@ const RestaurantForm = ({ restaurant, onComplete }: RestaurantFormProps) => {
                       Template del menu
                     </FormLabel>
                     <Select 
-                      value={field.value?.toString()} 
-                      onValueChange={(value) => field.onChange(Number(value))}
+                      value={field.value || ""} 
+                      onValueChange={field.onChange}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -293,7 +299,7 @@ const RestaurantForm = ({ restaurant, onComplete }: RestaurantFormProps) => {
                       Categoria ristorante
                     </FormLabel>
                     <Select 
-                      value={field.value} 
+                      value={field.value || ""} 
                       onValueChange={field.onChange}
                     >
                       <FormControl>
