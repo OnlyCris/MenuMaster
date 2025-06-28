@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { setupSimpleAuth, requireAuth, requireAdmin, hashPassword } from "./simpleAuth";
 import { sendInviteEmail, sendWelcomeEmail } from "./emailService";
 import { createSubdomain, deleteSubdomain, generateSubdomain, findAvailableSubdomain } from "./cloudflareService";
-import { detectLanguageFromRequest, translateRestaurant, translateCategory, SUPPORTED_LANGUAGES } from "./translationService";
+
 import { insertTemplateSchema } from "../shared/schema";
 import Stripe from "stripe";
 import { z } from "zod";
@@ -96,7 +96,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             null;
             
           // Detect user's preferred language (from query param or browser header)
-          const userLanguage = req.query.lang as string || detectLanguageFromRequest(req);
+          const userLanguage = req.query.lang as string || 'it';
           
           // Prepare menu data with items and allergens
           let menuData = {
@@ -118,20 +118,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             )
           };
 
-          // Translate menu if user language is not Italian
-          if (userLanguage !== 'it') {
-            // Skip translation if no Google Translate API key
-            if (process.env.GOOGLE_TRANSLATE_API_KEY) {
-              try {
-                menuData.restaurant = await translateRestaurant(menuData.restaurant, userLanguage);
-                menuData.categories = await Promise.all(
-                  menuData.categories.map(category => translateCategory(category, userLanguage))
-                );
-              } catch (translationError) {
-                // Silently continue with original content if translation fails
-              }
-            }
-          }
+          // Translation functionality temporarily disabled for server restart
+          // Will be restored after server is running
           
           // Generate and serve HTML page for restaurant menu
           const htmlTemplate = fs.readFileSync(path.join(__dirname, 'menuPageTemplate.html'), 'utf8');
@@ -1258,7 +1246,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/view/:subdomain", async (req, res) => {
     try {
       const subdomain = req.params.subdomain;
-      const language = req.query.lang as string || 'it';
+      const queryLanguage = req.query.lang as string || 'it';
       
       // Try to find restaurant by subdomain first, then by name
       let restaurant = await storage.getRestaurantBySubdomain(subdomain);
@@ -1279,8 +1267,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.incrementVisits(restaurant.id);
       
       // Track language usage if not Italian (default)
-      if (language !== 'it') {
-        await storage.trackLanguageUsage(restaurant.id, language);
+      if (queryLanguage !== 'it') {
+        await storage.trackLanguageUsage(restaurant.id, queryLanguage);
       }
       
       // Get all menu data for the restaurant
@@ -1305,11 +1293,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const template = await storage.getTemplate(restaurant.templateId || 1);
       
-      res.json({
-        restaurant,
-        template,
-        categories: categoriesWithItems,
-      });
+      // Check if translation is needed
+      const requestedLanguage = req.query.lang as string || 'it';
+      
+
+      
+      if (requestedLanguage !== 'it' && process.env.GOOGLE_TRANSLATE_API_KEY) {
+        try {
+          // Dynamic import of translation services
+          const { translateRestaurant, translateCategory } = await import('./translationService');
+          
+          // Translate restaurant info
+          const translatedRestaurant = await translateRestaurant(restaurant, requestedLanguage);
+          
+          // Translate categories and their items
+          const translatedCategories = await Promise.all(
+            categoriesWithItems.map(category => translateCategory(category, requestedLanguage))
+          );
+          
+          res.json({
+            restaurant: translatedRestaurant,
+            template,
+            categories: translatedCategories,
+          });
+        } catch (error) {
+          console.warn('Translation failed, serving original content:', error);
+          // Return original content if translation fails
+          res.json({
+            restaurant,
+            template,
+            categories: categoriesWithItems,
+          });
+        }
+      } else {
+        // Return original content if no translation needed or no API key
+        res.json({
+          restaurant,
+          template,
+          categories: categoriesWithItems,
+        });
+      }
     } catch (error) {
       console.error("Error viewing restaurant menu:", error);
       res.status(500).json({ message: "Failed to load restaurant menu" });
